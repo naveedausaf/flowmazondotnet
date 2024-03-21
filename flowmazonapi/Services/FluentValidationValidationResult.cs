@@ -9,7 +9,7 @@ public class FluentValidationValidationResult : IValidationResult
     public FluentValidationValidationResult(FluentValidation.Results.ValidationResult validationResult)
     {
         this._validationResult = validationResult;
-        this.Errors = (IList<IValidationFailure>)validationResult.Errors.Select(f => new FluentValidationFailure { PropertyName = f.PropertyName, ErrroMessage = f.ErrorMessage }).ToList();
+        this.Errors = validationResult.Errors.Select(f => new FluentValidationFailure { PropertyName = f.PropertyName, ErrroMessage = f.ErrorMessage }).ToList<IValidationFailure>();
 
     }
 
@@ -29,6 +29,6 @@ public class FluentValidationValidationResult : IValidationResult
 
 public class FluentValidationFailure : IValidationFailure
 {
-    public string PropertyName { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-    public string ErrroMessage { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+    public required string PropertyName { get; set; }
+    public required string ErrroMessage { get; set; }
 }

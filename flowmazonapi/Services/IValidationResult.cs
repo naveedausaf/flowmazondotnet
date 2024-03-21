@@ -4,22 +4,6 @@ using FluentValidation.Results;
 
 namespace flowmazonapi.Services;
 
-
-public struct Result<T>
-{
-
-    public Result(T val, IValidationResult validationResult)
-    {
-        this.Value = val;
-        this.ValidationResult = validationResult;
-    }
-
-    public T Value { get; set; }
-    public IValidationResult ValidationResult { get; set; }
-
-
-}
-
 public interface IValidationResult
 {
 
