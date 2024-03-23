@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using System.Net.Http.Headers;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
@@ -10,8 +11,10 @@ using flowmazonapi.Handlers;
 using flowmazonapi.Services;
 using flowmazonapi.Services.ProductService;
 
+using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddProblemDetails();
@@ -37,18 +40,36 @@ builder.Services.AddScoped(typeof(FluentValidation.IValidator<Product>), typeof(
 builder.Services.AddScoped(typeof(FluentValidation.IValidator<CreateProductArgs>), typeof(CreateProductArgsValidator));
 builder.Services.AddScoped(typeof(ProductService));
 
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen(
+    options =>
+    {
+        options.SwaggerDoc("v1", new OpenApiInfo()
+        {
+            Title = "Flowmazon API",
+            Description = "API for Flowmazon, the next online shopping destination",
+            Version = "v1"
+        });
+
+        var xmlFilename = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+        options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, xmlFilename));
+    }
+);
+
 var app = builder.Build();
 
-app.UseForwardedHeaders();
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler();
 }
+
+
+app.UseSwagger();
+app.UseSwaggerUI();
+
 app.UseStatusCodePages();
 
-
-
-ProductHandlers.MapRoutes(app.MapGroup("/product"));
+ProductHandlers.MapRoutes(app.MapGroup("/product")).WithTags("productOperations");
 
 app.Run();
 

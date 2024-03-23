@@ -19,17 +19,38 @@ public class ProductHandlers
     }
     public static RouteGroupBuilder MapRoutes(RouteGroupBuilder routeBuilder)
     {
-        routeBuilder.MapPost("/", HandleCreateProduct).WithName(HandlerNames.CreateProduct);
-        routeBuilder.MapGet("/{id}", HandleGetProduct).WithName(HandlerNames.GetProduct);
+        routeBuilder.MapPost("/", HandleCreateProduct).WithName(HandlerNames.CreateProduct).WithOpenApi();
+        routeBuilder.MapGet("/{id}", HandleGetProduct).WithName(HandlerNames.GetProduct).WithOpenApi(
+            h =>
+            {
+                h.Parameters[0].Description = "Id of the product which is to be fethed frmo the database.";
+                return h;
+            }
+        );
+
         return routeBuilder;
     }
 
-    private static async Task<Ok<Product>> HandleGetProduct(int id)
+    /// <summary>
+    /// This is the Get Product op.
+    /// </summary>
+    /// <param name="id">Id of the product to fetch from the system.</param>
+    /// <returns></returns>
+    /// <exception cref="NotImplementedException"></exception>
+    private static async Task<Results<Ok<Product>, ValidationProblem>> HandleGetProduct(int id)
     {
         throw new NotImplementedException();
     }
 
-    private static async Task<IResult> HandleCreateProduct(CreateProductArgs p, ProductService productService, LinkGenerator linkGen, HttpContext httpContext)
+    /// <summary>
+    /// Creates a new product
+    /// </summary>
+    /// <param name="p">This is the Product to be vreated</param>
+    /// <param name="productService"></param>
+    /// <param name="linkGen"></param>
+    /// <param name="httpContext"></param>
+    /// <returns></returns>
+    private static async Task<Results<Created, ValidationProblem>> HandleCreateProduct(CreateProductArgs p, ProductService productService, LinkGenerator linkGen, HttpContext httpContext)
     {
 
         try

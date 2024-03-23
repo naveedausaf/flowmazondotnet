@@ -6,6 +6,9 @@ namespace flowmazonapi.Domain
 {
     public class Product
     {
+        /// <summary>
+        /// if of the product
+        /// </summary>
         public int Id { get; set; }
         public required string Name { get; set; }
         public required string Description { get; set; }
