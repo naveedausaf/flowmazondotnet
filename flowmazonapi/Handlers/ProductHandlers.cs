@@ -106,7 +106,7 @@ public class ProductHandlers
         //model binder. WE SHALL ASSUME THIS IS THE ONLY CHECKING
         //NEEDED FOR PARAMETER OBJECTS.
         //
-        //I NEED TO ENSURE THAT the response returned in 
+        //I NEED TO ENSURE THAT the response returned in    
         //PRODUCTION, by any middleware (e.g. StatusCodePages
         //or by the EndpointMiddleware; it won't be 
         //ExceptionHandlerMiddleware as role of that in production 
