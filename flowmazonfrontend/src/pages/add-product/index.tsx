@@ -14,16 +14,16 @@ export default function AddProductPage() {
     },
     validationSchema: Yup.object({
       name: Yup.string()
-        .max(50, "Name must be 50 characteres or less")
-        .required("Name is required."),
-      description: Yup.string().required("Description is required."),
+        .max(50, "Name MUST be 50 characteres or less")
+        .required("Name IS required."),
+      description: Yup.string().required("Description IS required."),
       imageUrl: Yup.string()
-        .url("Image URL must be a valid URL.")
-        .required("Image URL is required."),
+        .url("Image URL MUST be a valid URL.")
+        .required("Image URL IS required."),
       price: Yup.number()
-        .required("Price is required.")
-        .min(0, "Price must be zero or greater.")
-        .integer("Price must be an integer."),
+        .required("Price IS required.")
+        .min(0, "Price MUST be zero or greater.")
+        .integer("Price MUST be an integer."),
     }),
     onSubmit: (values) => {
       console.log(values);
