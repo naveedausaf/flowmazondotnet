@@ -1,0 +1,102 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "build-backend",
+      "command": "dotnet",
+      "type": "process",
+      "args": [
+        "build",
+        "${workspaceFolder}/flowmazonbackend/flowmazonbackend.sln",
+        "/property:GenerateFullPaths=true",
+        "/consoleloggerparameters:NoSummary;ForceNoAlign"
+      ],
+      "problemMatcher": "$msCompile"
+    },
+    {
+      "label": "publish-backend",
+      "command": "dotnet",
+      "type": "process",
+      "args": [
+        "publish",
+        "${workspaceFolder}/flowmazonbackend/flowmazonbackend.sln",
+        "/property:GenerateFullPaths=true",
+        "/consoleloggerparameters:NoSummary;ForceNoAlign"
+      ],
+      "problemMatcher": "$msCompile"
+    },
+    {
+      "label": "watch-backend",
+      "command": "dotnet",
+      "type": "process",
+      "args": [
+        "watch",
+        "run",
+        "--project",
+        "${workspaceFolder}/flowmazonbackend/flowmazonbackend.sln"
+      ],
+      "problemMatcher": "$msCompile"
+    },
+    {
+      "type": "docker-build",
+      "label": "docker-build-backend: debug",
+      "dependsOn": [
+        "build"
+      ],
+      "dockerBuild": {
+        "tag": "flowmazonbackend:dev",
+        "target": "base",
+        "dockerfile": "${workspaceFolder}/flowmazonbackend/Dockerfile",
+        "context": "${workspaceFolder}",
+        "pull": true
+      },
+      "netCore": {
+        "appProject": "${workspaceFolder}/flowmazonbackend/flowmazonapi/flowmazonapi.csproj"
+      }
+    },
+    {
+      "type": "docker-build",
+      "label": "docker-build-backend: release",
+      "dependsOn": [
+        "build"
+      ],
+      "dockerBuild": {
+        "tag": "flowmazonbackend:latest",
+        "dockerfile": "${workspaceFolder}/flowmazonbackend/Dockerfile",
+        "context": "${workspaceFolder}",
+        "platform": {
+          "os": "linux",
+          "architecture": "amd64"
+        },
+        "pull": true
+      },
+      "netCore": {
+        "appProject": "${workspaceFolder}/flowmazonbackend/flowmazonapi/flowmazonapi.csproj"
+      }
+    },
+    {
+      "type": "docker-run",
+      "label": "docker-run-backend: debug",
+      "dependsOn": [
+        "docker-build-backend: debug"
+      ],
+      "dockerRun": {},
+      "netCore": {
+        "appProject": "${workspaceFolder}/flowmazonbackend/flowmazonapi/flowmazonapi.csproj",
+        "enableDebugging": true
+      }
+    },
+    {
+      "type": "docker-run",
+      "label": "docker-run-backend: release",
+      "dependsOn": [
+        "docker-build-backend: release"
+      ],
+      "dockerRun": {},
+      "netCore": {
+        "appProject": "${workspaceFolder}/flowmazonbackend/flowmazonapi/flowmazonapi.csproj"
+      }
+    }
+  ]
+}
+

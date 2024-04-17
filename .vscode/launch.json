@@ -1,0 +1,84 @@
+{
+    "version": "0.2.0",
+    "compounds": [
+        {
+          "name": "Frontend/Backend",
+          "configurations": ["Next.js: debug full stack", ".NET Core Launch (web)"],
+          "stopAll": true
+        }
+      ],
+    "configurations": [
+        {
+            "name": "Docker .NET Attach",
+            "type": "docker",
+            "request": "attach",
+            "platform": "netCore",
+            "sourceFileMap": {
+                "/source": "${workspaceFolder}/flowmazonbackend/flowmazonapi"
+            }
+        },
+        {
+            "name": ".NET Core Launch (web)",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build-backend",
+            "program": "${workspaceFolder}/flowmazonbackend/flowmazonapi/bin/Debug/net8.0/flowmazonapi.dll",
+            "args": [],
+            "cwd": "${workspaceFolder}/flowmazonbackend/flowmazonapi",
+            "stopAtEntry": false,
+            // "serverReadyAction": {
+            //     "action": "openExternally",
+            //     "pattern": "\\bNow listening on:\\s+(https?://\\S+)"
+            // },
+            "env": {
+                "ASPNETCORE_ENVIRONMENT": "Development",
+                "ASPNETCORE_URLS": "http://localhost:5003"
+            },
+            "sourceFileMap": {
+                "/Views": "${workspaceFolder}/Views"
+            }
+        },
+        {
+            "name": ".NET Core Attach",
+            "type": "coreclr",
+            "request": "attach"
+        },
+        {
+            "name": "Docker .NET Launch",
+            "type": "docker",
+            "request": "launch",
+            "preLaunchTask": "docker-run-backend: debug",
+            "netCore": {
+                "appProject": "${workspaceFolder}/flowmazonbackend/flowmazonapi/flowmazonapi.csproj"
+            }
+        },
+        // {
+        //   "name": "Next.js: debug server-side",
+        //   "type": "node-terminal",
+        //   "request": "launch",
+        //   "cwd": "${workspaceFolder}/flowmazonfrontend",
+        //   "command": "npm run dev"
+        // },
+        // {
+        //   "name": "Next.js: debug client-side",
+        //   "type": "chrome",
+        //   "request": "launch",
+        //   "url": "http://localhost:3002"
+        // },
+        {
+          "name": "Next.js: debug full stack",
+          "type": "node-terminal",
+          "request": "launch",
+          "cwd": "${workspaceFolder}/flowmazonfrontend",
+          "command": "npm run dev",
+          "env": {
+            "NEXT_PUBLIC_BACKEND_URL": "http://localhost:5003"
+          },
+          "serverReadyAction": {
+            "pattern": "- Local:.+(https?://.+)",
+            "uriFormat": "%s",
+            "action": "debugWithChrome"
+          }
+        }
+    ]
+}
