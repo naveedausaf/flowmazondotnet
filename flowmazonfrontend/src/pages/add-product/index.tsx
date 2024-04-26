@@ -122,8 +122,10 @@ export default function AddProductPage() {
           <input
             type="text"
             className={clsx(
-              form.hasError.name && "border-error",
-              "input input-bordered focus-error mb-0 w-full",
+              form.hasError.name &&
+                "focus:ring-error focus:border-error border-error",
+
+              "input input-bordered mb-0 w-full focus:outline-none focus:ring-1",
             )}
             name="name"
             value={form.formik.values.name}
@@ -147,8 +149,10 @@ export default function AddProductPage() {
           <textarea
             name="description"
             className={clsx(
-              form.hasError.description && "border-error",
-              "textarea textarea-bordered mb-0 w-full",
+              form.hasError.description &&
+                "focus:ring-error focus:border-error border-error",
+
+              "textarea textarea-bordered mb-0 w-full focus:outline-none focus:ring-1",
             )}
             value={form.formik.values.description}
             aria-required="true"
@@ -171,8 +175,10 @@ export default function AddProductPage() {
           <input
             type="text"
             className={clsx(
-              form.hasError.imageUrl && "border-error",
-              "input input-bordered mb-0 w-full",
+              form.hasError.imageUrl &&
+                "focus:ring-error focus:border-error border-error",
+
+              "input input-bordered mb-0 w-full focus:outline-none focus:ring-1",
             )}
             name="imageUrl"
             value={form.formik.values.imageUrl}
@@ -196,8 +202,10 @@ export default function AddProductPage() {
           <input
             type="text"
             className={clsx(
-              form.hasError.price && "border-error",
-              "input input-bordered mb-0 w-full",
+              form.hasError.price &&
+                "focus:ring-error focus:border-error border-error",
+
+              "input input-bordered mb-0 w-full focus:outline-none focus:ring-1",
             )}
             name="price"
             value={form.formik.values.price}
