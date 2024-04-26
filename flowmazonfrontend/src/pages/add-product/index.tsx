@@ -5,6 +5,20 @@ import { useRouter } from "next/router";
 import { FormEvent, useEffect, useState } from "react";
 import clsx from "clsx";
 
+//TODO: Few more things to do:
+//1. Reduce clutter of wiring up in each control using
+//getFieldProps: https://formik.org/docs/tutorial#getfieldprops
+//
+//2. implement hook as a decorator for the specific behaviour
+//of computing an error on a field based on whether it has
+//been changed and subsequently exited or if there was an
+//in the field when we last tried to submit (whether or not
+//we had exited or changed the field). These computed errors
+//would be made available as an additional "hasError" property.
+//
+//3. Factor out repeated blocks of label, control, error message
+//into components
+
 function useFormikAccessible<FV extends FormikValues>(
   config: FormikConfig<FV>,
 ) {
