@@ -1,12 +1,90 @@
-import { useFormik } from "formik";
+import { useFormik, FormikConfig, FormikValues } from "formik";
 import Head from "next/head";
 import * as Yup from "yup";
 import { useRouter } from "next/router";
 import { FormEvent, useEffect, useState } from "react";
 import clsx from "clsx";
 
+function useFormikAccessible<FV extends FormikValues>(
+  config: FormikConfig<FV>,
+) {
+  const formik = useFormik(config);
+
+  function sameValueAgainstEachValidatedControl<T>(value: T): {
+    [InputName in keyof typeof formik.initialValues]: T;
+  } {
+    // //HAIRY FUNCTION...KEEP NOTE OF TYPE ASSERTIONS
+
+    const keys: (keyof typeof formik.initialValues)[] = Object.keys(
+      formik.initialValues,
+    );
+    return Object.fromEntries(keys.map((key) => [key, value])) as {
+      [InputName in keyof typeof formik.initialValues]: T;
+    };
+  }
+
+  const [inputsChanged, setInputsChanged] = useState(
+    sameValueAgainstEachValidatedControl(false),
+  );
+
+  const handleInputChanged = (
+    e: FormEvent<HTMLInputElement | HTMLTextAreaElement>,
+  ) => {
+    console.log("CHANGE handler called.");
+    formik.handleChange(e);
+    setInputsChanged({
+      ...inputsChanged,
+      [e.currentTarget.name]: true, //cheating a bit as this
+      //falls outside TS type checking
+    });
+  };
+
+  const [inputsChangedThenBlurred, setInputsChangedThenBlurred] = useState(
+    sameValueAgainstEachValidatedControl(false),
+  );
+
+  const handleInputBlurred = (
+    e: FormEvent<HTMLInputElement | HTMLTextAreaElement>,
+  ) => {
+    console.log("BLUR handler called.");
+    formik.handleBlur(e);
+    setInputsChangedThenBlurred({
+      ...inputsChangedThenBlurred,
+      [e.currentTarget.name]:
+        /* ( */ inputsChanged[
+          e.currentTarget.name
+        ] /*&& we know it has just blurred)*/ ||
+        //Following allows us to take into account value set
+        //if user tried to submit form before
+        inputsChangedThenBlurred[e.currentTarget.name],
+    });
+  };
+
+  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+    console.log("SUBMIT handler called.");
+    formik.handleSubmit(e);
+
+    setInputsChangedThenBlurred(sameValueAgainstEachValidatedControl(true));
+  };
+
+  const namesOfValidatedControl: (keyof typeof formik.initialValues)[] =
+    Object.keys(formik.initialValues);
+  const hasError = sameValueAgainstEachValidatedControl(false);
+  namesOfValidatedControl.forEach((controlName) => {
+    hasError[controlName] =
+      inputsChangedThenBlurred[controlName] && !!formik.errors[controlName];
+  });
+  return {
+    formik,
+    handleSubmit,
+    handleInputChanged,
+    handleInputBlurred,
+    hasError,
+  };
+}
+
 export default function AddProductPage() {
-  const formik = useFormik({
+  const form = useFormikAccessible({
     initialValues: {
       name: "",
       description: "",
@@ -31,70 +109,6 @@ export default function AddProductPage() {
     },
   });
 
-  function inputValues<T>(
-    name: T,
-    description: T,
-    price: T,
-    imageUrl: T,
-  ): { [InputName in keyof typeof formik.initialValues]-?: T } {
-    return {
-      name,
-      description,
-      price,
-      imageUrl,
-    };
-  }
-
-  let inputsChangedDefaults: {
-    [InputName in keyof typeof formik.initialValues]-?: boolean;
-  } = inputValues(false, false, false, false);
-
-  const [inputsChanged, setInputsChanged] = useState(inputsChangedDefaults);
-
-  const handleInputChanged = (
-    e: FormEvent<HTMLInputElement | HTMLTextAreaElement>,
-  ) => {
-    console.log("CHANGE handler called.");
-    formik.handleChange(e);
-    setInputsChanged({
-      ...inputsChanged,
-      [e.currentTarget.name]: true, //cheating a bit as this
-      //falls outside TS type checking
-    });
-  };
-
-  const [inputsChangedThenBlurred, setInputsChangedThenBlurred] = useState(
-    inputValues(false, false, false, false),
-  );
-
-  function assertInputIsValidated(
-    inputName: string,
-  ): asserts inputName is keyof typeof formik.initialValues {
-    if (!(inputName in formik.initialValues))
-      throw new TypeError(
-        `Form control ${inputName} is not known to be a validated control.`,
-      );
-  }
-
-  const handleInputBlurred = (
-    e: FormEvent<HTMLInputElement | HTMLTextAreaElement>,
-  ) => {
-    console.log("BLUR handler called.");
-    formik.handleBlur(e);
-    assertInputIsValidated(e.currentTarget.name);
-    setInputsChangedThenBlurred({
-      ...inputsChangedThenBlurred,
-      [e.currentTarget.name]: inputsChanged[e.currentTarget.name], //&& we know it has just blurred,
-    });
-  };
-
-  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
-    console.log("SUBMIT handler called.");
-    formik.handleSubmit(e);
-
-    setInputsChangedThenBlurred(inputValues(true, true, true, true));
-  };
-
   return (
     <>
       <Head>
@@ -102,25 +116,21 @@ export default function AddProductPage() {
       </Head>
       <div>
         <h1 className="mb-4 text-lg font-bold">Add Product</h1>
-        <form action="" onSubmit={handleSubmit}>
+        <form action="" onSubmit={form.handleSubmit}>
           <label htmlFor="name">Name</label>
 
           <input
             type="text"
             className={clsx(
-              inputsChangedThenBlurred.name &&
-                formik.errors.name &&
-                "border-error",
+              form.hasError.name && "border-error",
               "input input-bordered focus-error mb-0 w-full",
             )}
             name="name"
-            value={formik.values.name}
+            value={form.formik.values.name}
             aria-required="true"
-            onChange={handleInputChanged}
-            onBlur={handleInputBlurred}
-            aria-invalid={
-              (formik.errors.name && inputsChangedThenBlurred.name) || false
-            }
+            onChange={form.handleInputChanged}
+            onBlur={form.handleInputBlurred}
+            aria-invalid={form.hasError.name}
             aria-describedby="nameError"
           />
           <div className="mb-2 mt-0">
@@ -129,7 +139,7 @@ export default function AddProductPage() {
               aria-live="assertive"
               className="text-sm text-red-500"
             >
-              {inputsChangedThenBlurred.name && formik.errors.name}
+              {form.hasError.name && form.formik.errors.name}
             </span>
             &nbsp;
           </div>
@@ -137,19 +147,14 @@ export default function AddProductPage() {
           <textarea
             name="description"
             className={clsx(
-              inputsChangedThenBlurred.description &&
-                formik.errors.description &&
-                "border-error",
+              form.hasError.description && "border-error",
               "textarea textarea-bordered mb-0 w-full",
             )}
-            value={formik.values.description}
+            value={form.formik.values.description}
             aria-required="true"
-            onChange={handleInputChanged}
-            onBlur={handleInputBlurred}
-            aria-invalid={
-              !!formik.errors.description &&
-              inputsChangedThenBlurred.description
-            }
+            onChange={form.handleInputChanged}
+            onBlur={form.handleInputBlurred}
+            aria-invalid={form.hasError.description}
             aria-describedby="descriptionError"
           />
           <div className="mb-2 mt-0">
@@ -158,8 +163,7 @@ export default function AddProductPage() {
               aria-live="assertive"
               className="text-sm text-red-500"
             >
-              {inputsChangedThenBlurred.description &&
-                formik.errors.description}
+              {form.hasError.description && form.formik.errors.description}
             </span>
             &nbsp;
           </div>
@@ -167,19 +171,15 @@ export default function AddProductPage() {
           <input
             type="text"
             className={clsx(
-              inputsChangedThenBlurred.imageUrl &&
-                formik.errors.imageUrl &&
-                "border-error",
+              form.hasError.imageUrl && "border-error",
               "input input-bordered mb-0 w-full",
             )}
             name="imageUrl"
-            value={formik.values.imageUrl}
+            value={form.formik.values.imageUrl}
             aria-required="true"
-            onChange={handleInputChanged}
-            onBlur={handleInputBlurred}
-            aria-invalid={
-              !!formik.errors.imageUrl && inputsChangedThenBlurred.imageUrl
-            }
+            onChange={form.handleInputChanged}
+            onBlur={form.handleInputBlurred}
+            aria-invalid={form.hasError.imageUrl}
             aria-describedby="imageUrlError"
           />
           <div className="mb-2 mt-0">
@@ -188,7 +188,7 @@ export default function AddProductPage() {
               aria-live="assertive"
               className="text-sm text-red-500"
             >
-              {inputsChangedThenBlurred.imageUrl && formik.errors.imageUrl}
+              {form.hasError.imageUrl && form.formik.errors.imageUrl}
             </span>
             &nbsp;
           </div>
@@ -196,19 +196,15 @@ export default function AddProductPage() {
           <input
             type="text"
             className={clsx(
-              inputsChangedThenBlurred.price &&
-                formik.errors.price &&
-                "border-error",
+              form.hasError.price && "border-error",
               "input input-bordered mb-0 w-full",
             )}
             name="price"
-            value={formik.values.price}
+            value={form.formik.values.price}
             aria-required="true"
-            onChange={handleInputChanged}
-            onBlur={handleInputBlurred}
-            aria-invalid={
-              !!formik.errors.price && inputsChangedThenBlurred.price
-            }
+            onChange={form.handleInputChanged}
+            onBlur={form.handleInputBlurred}
+            aria-invalid={form.hasError.price}
             aria-describedby="priceError"
           />
           <div className="mb-2 mt-0">
@@ -217,7 +213,7 @@ export default function AddProductPage() {
               aria-live="assertive"
               className="text-sm text-red-500"
             >
-              {inputsChangedThenBlurred.price && formik.errors.price}
+              {form.hasError.price && form.formik.errors.price}
             </span>
             &nbsp;
           </div>
