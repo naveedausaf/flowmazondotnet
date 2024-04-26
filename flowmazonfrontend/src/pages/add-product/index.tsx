@@ -1,4 +1,4 @@
-import { useFormik, FormikConfig, FormikValues } from "formik";
+import { useFormik, FormikConfig, FormikValues, FormikProps } from "formik";
 import Head from "next/head";
 import * as Yup from "yup";
 import { useRouter } from "next/router";
@@ -9,8 +9,8 @@ import clsx from "clsx";
 //1. Reduce clutter of wiring up in each control using
 //getFieldProps: https://formik.org/docs/tutorial#getfieldprops
 //
-//2. implement hook as a decorator for the specific behaviour
-//of computing an error on a field based on whether it has
+//2. Document the hook: it is just  as a decorator for the specific
+//behaviour of computing an error on a field based on whether it has
 //been changed and subsequently exited or if there was an
 //in the field when we last tried to submit (whether or not
 //we had exited or changed the field). These computed errors
@@ -18,10 +18,11 @@ import clsx from "clsx";
 //
 //3. Factor out repeated blocks of label, control, error message
 //into components
-
-function useFormikAccessible<FV extends FormikValues>(
-  config: FormikConfig<FV>,
-) {
+function useFormikAccessible<Values extends FormikValues>(
+  config: FormikConfig<Values>,
+): FormikProps<Values> & {
+  hasError: { [InputControl in keyof Values]: boolean };
+} {
   const formik = useFormik(config);
 
   function sameValueAgainstEachValidatedControl<T>(value: T): {
@@ -41,7 +42,7 @@ function useFormikAccessible<FV extends FormikValues>(
     sameValueAgainstEachValidatedControl(false),
   );
 
-  const handleInputChanged = (
+  const handleChange = (
     e: FormEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => {
     console.log("CHANGE handler called.");
@@ -57,9 +58,7 @@ function useFormikAccessible<FV extends FormikValues>(
     sameValueAgainstEachValidatedControl(false),
   );
 
-  const handleInputBlurred = (
-    e: FormEvent<HTMLInputElement | HTMLTextAreaElement>,
-  ) => {
+  const handleBlur = (e: FormEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     console.log("BLUR handler called.");
     formik.handleBlur(e);
     setInputsChangedThenBlurred({
@@ -74,7 +73,7 @@ function useFormikAccessible<FV extends FormikValues>(
     });
   };
 
-  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = (e?: FormEvent<HTMLFormElement>) => {
     console.log("SUBMIT handler called.");
     formik.handleSubmit(e);
 
@@ -88,11 +87,12 @@ function useFormikAccessible<FV extends FormikValues>(
     hasError[controlName] =
       inputsChangedThenBlurred[controlName] && !!formik.errors[controlName];
   });
+
   return {
-    formik,
+    ...formik,
     handleSubmit,
-    handleInputChanged,
-    handleInputBlurred,
+    handleChange,
+    handleBlur,
     hasError,
   };
 }
@@ -142,10 +142,10 @@ export default function AddProductPage() {
               "input input-bordered mb-0 w-full focus:outline-none focus:ring-1",
             )}
             name="name"
-            value={form.formik.values.name}
+            value={form.values.name}
             aria-required="true"
-            onChange={form.handleInputChanged}
-            onBlur={form.handleInputBlurred}
+            onChange={form.handleChange}
+            onBlur={form.handleBlur}
             aria-invalid={form.hasError.name}
             aria-describedby="nameError"
           />
@@ -155,7 +155,7 @@ export default function AddProductPage() {
               aria-live="assertive"
               className="text-sm text-red-500"
             >
-              {form.hasError.name && form.formik.errors.name}
+              {form.hasError.name && form.errors.name}
             </span>
             &nbsp;
           </div>
@@ -168,10 +168,10 @@ export default function AddProductPage() {
 
               "textarea textarea-bordered mb-0 w-full focus:outline-none focus:ring-1",
             )}
-            value={form.formik.values.description}
+            value={form.values.description}
             aria-required="true"
-            onChange={form.handleInputChanged}
-            onBlur={form.handleInputBlurred}
+            onChange={form.handleChange}
+            onBlur={form.handleBlur}
             aria-invalid={form.hasError.description}
             aria-describedby="descriptionError"
           />
@@ -181,7 +181,7 @@ export default function AddProductPage() {
               aria-live="assertive"
               className="text-sm text-red-500"
             >
-              {form.hasError.description && form.formik.errors.description}
+              {form.hasError.description && form.errors.description}
             </span>
             &nbsp;
           </div>
@@ -195,10 +195,10 @@ export default function AddProductPage() {
               "input input-bordered mb-0 w-full focus:outline-none focus:ring-1",
             )}
             name="imageUrl"
-            value={form.formik.values.imageUrl}
+            value={form.values.imageUrl}
             aria-required="true"
-            onChange={form.handleInputChanged}
-            onBlur={form.handleInputBlurred}
+            onChange={form.handleChange}
+            onBlur={form.handleBlur}
             aria-invalid={form.hasError.imageUrl}
             aria-describedby="imageUrlError"
           />
@@ -208,7 +208,7 @@ export default function AddProductPage() {
               aria-live="assertive"
               className="text-sm text-red-500"
             >
-              {form.hasError.imageUrl && form.formik.errors.imageUrl}
+              {form.hasError.imageUrl && form.errors.imageUrl}
             </span>
             &nbsp;
           </div>
@@ -222,10 +222,10 @@ export default function AddProductPage() {
               "input input-bordered mb-0 w-full focus:outline-none focus:ring-1",
             )}
             name="price"
-            value={form.formik.values.price}
+            value={form.values.price}
             aria-required="true"
-            onChange={form.handleInputChanged}
-            onBlur={form.handleInputBlurred}
+            onChange={form.handleChange}
+            onBlur={form.handleBlur}
             aria-invalid={form.hasError.price}
             aria-describedby="priceError"
           />
@@ -235,7 +235,7 @@ export default function AddProductPage() {
               aria-live="assertive"
               className="text-sm text-red-500"
             >
-              {form.hasError.price && form.formik.errors.price}
+              {form.hasError.price && form.errors.price}
             </span>
             &nbsp;
           </div>
