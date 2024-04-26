@@ -103,13 +103,16 @@ export default function AddProductPage() {
       <div>
         <h1 className="mb-4 text-lg font-bold">Add Product</h1>
         <form action="" onSubmit={handleSubmit}>
-          <label htmlFor="name" className="text-lg">
-            Name
-          </label>
+          <label htmlFor="name">Name</label>
 
           <input
             type="text"
-            className="input input-bordered mb-0 w-full"
+            className={clsx(
+              inputsChangedThenBlurred.name &&
+                formik.errors.name &&
+                "border-error",
+              "input input-bordered focus-error mb-0 w-full",
+            )}
             name="name"
             value={formik.values.name}
             aria-required="true"
@@ -130,12 +133,15 @@ export default function AddProductPage() {
             </span>
             &nbsp;
           </div>
-          <label htmlFor="description" className="text-lg">
-            Description
-          </label>
+          <label htmlFor="description">Description</label>
           <textarea
             name="description"
-            className="textarea textarea-bordered mb-0 w-full"
+            className={clsx(
+              inputsChangedThenBlurred.description &&
+                formik.errors.description &&
+                "border-error",
+              "textarea textarea-bordered mb-0 w-full",
+            )}
             value={formik.values.description}
             aria-required="true"
             onChange={handleInputChanged}
@@ -157,12 +163,15 @@ export default function AddProductPage() {
             </span>
             &nbsp;
           </div>
-          <label htmlFor="imageUrl" className="text-lg">
-            Image URL
-          </label>
+          <label htmlFor="imageUrl">Image URL</label>
           <input
             type="text"
-            className="input input-bordered mb-0 w-full"
+            className={clsx(
+              inputsChangedThenBlurred.imageUrl &&
+                formik.errors.imageUrl &&
+                "border-error",
+              "input input-bordered mb-0 w-full",
+            )}
             name="imageUrl"
             value={formik.values.imageUrl}
             aria-required="true"
@@ -183,12 +192,15 @@ export default function AddProductPage() {
             </span>
             &nbsp;
           </div>
-          <label htmlFor="price" className="text-lg">
-            Price
-          </label>
+          <label htmlFor="price">Price</label>
           <input
             type="text"
-            className="input input-bordered mb-0 w-full"
+            className={clsx(
+              inputsChangedThenBlurred.price &&
+                formik.errors.price &&
+                "border-error",
+              "input input-bordered mb-0 w-full",
+            )}
             name="price"
             value={formik.values.price}
             aria-required="true"
