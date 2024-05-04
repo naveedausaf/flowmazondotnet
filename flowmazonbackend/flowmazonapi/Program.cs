@@ -17,6 +17,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using FluentValidation;
 
+const string CorsPolicy_AllowFlowmazonWeb = "AllowFlowmazonWeb";
+
 var builder = WebApplication.CreateBuilder(args);
 
 if (builder.Environment.IsDevelopment())
@@ -68,6 +70,15 @@ builder.Services.AddSwaggerGen(
     }
 );
 
+if (builder.Environment.IsDevelopment())
+{
+    builder.Services.AddCors(options =>
+    {
+        options.AddPolicy(CorsPolicy_AllowFlowmazonWeb, policy => policy.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod());
+    });
+
+}
+
 var app = builder.Build();
 
 if (!app.Environment.IsDevelopment())
@@ -75,6 +86,12 @@ if (!app.Environment.IsDevelopment())
     app.UseExceptionHandler();
 }
 
+app.UseRouting();
+
+if (app.Environment.IsDevelopment())
+{
+    app.UseCors(CorsPolicy_AllowFlowmazonWeb);
+}
 
 app.UseSwagger();
 app.UseSwaggerUI();

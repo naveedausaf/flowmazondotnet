@@ -3,11 +3,13 @@ import * as Yup from "yup";
 import { useRouter } from "next/router";
 import clsx from "clsx";
 import useFormikAccessible from "@/utils/useFormikAccessible";
+import { config } from "@/utils/config";
 
 //TODO: Factor out repeated blocks of label, control, error message
 //into components
-
 export default function AddProductPage() {
+  console.log(config.serviceUrls);
+  console.log(config.serviceUrls);
   const form = useFormikAccessible({
     initialValues: {
       name: "",
@@ -17,7 +19,7 @@ export default function AddProductPage() {
     },
     validationSchema: Yup.object({
       name: Yup.string()
-        .max(50, "Name must be 50 characteres or less")
+        .max(50, "Name must be 50 characters or less")
         .required("Name is required."),
       description: Yup.string().required("Description is required."),
       imageUrl: Yup.string()
@@ -28,8 +30,20 @@ export default function AddProductPage() {
         .min(0, "Price must be zero or greater.")
         .integer("Price must be an integer."),
     }),
-    onSubmit: (values) => {
-      console.log(values);
+    onSubmit: async (values) => {
+      console.log(config.serviceUrls.product);
+      try {
+        const response = await fetch(config.serviceUrls.product, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(values),
+        });
+      } catch (e) {
+        console.log(e);
+      }
+      console.log(config.serviceUrls.product);
     },
   });
 
@@ -40,7 +54,31 @@ export default function AddProductPage() {
       </Head>
       <div>
         <h1 className="mb-4 text-lg font-bold">Add Product</h1>
-        <form action="" onSubmit={form.handleSubmit}>
+        <form
+          action=""
+          onSubmit={async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.currentTarget);
+            const values = Object.fromEntries(formData.entries());
+            console.log(values);
+            const bodyJson = JSON.stringify(values);
+            console.log(bodyJson);
+            const url = config.serviceUrls.product;
+            console.log(url);
+            try {
+              const response = await fetch(url, {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: bodyJson,
+              });
+            } catch (err) {
+              console.log(err);
+            }
+            console.log(config.serviceUrls.product);
+          }}
+        >
           <label htmlFor="name">Name</label>
 
           <input
