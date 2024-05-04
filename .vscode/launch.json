@@ -73,7 +73,7 @@
           "command": "npm run dev",
           
           "env": {
-            "NEXT_PUBLIC_BACKEND_URL": "http://127.0.0.1:5003"
+            "NEXT_PUBLIC_BACKEND_URL": "http://localhost:5003"
           },
           "serverReadyAction": {
             "pattern": "- Local:.+(https?://.+)",
