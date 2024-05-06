@@ -79,6 +79,9 @@ if (builder.Environment.IsDevelopment())
 
 }
 
+// builder.Services.AddAuthentication().AddJwtBearer();
+// builder.Services.AddAuthorization();
+
 var app = builder.Build();
 
 if (!app.Environment.IsDevelopment())
@@ -87,6 +90,9 @@ if (!app.Environment.IsDevelopment())
 }
 
 app.UseRouting();
+
+// app.UseAuthentication();
+// app.UseAuthorization();
 
 if (app.Environment.IsDevelopment())
 {
@@ -98,7 +104,7 @@ app.UseSwaggerUI();
 
 app.UseStatusCodePages();
 
-ProductHandlers.MapRoutes(app.MapGroup("/product")).WithTags("product Operations");
+ProductHandlers.MapRoutes(app.MapGroup("/product")).WithTags("product Operations")/* .RequireAuthorization() */;
 
 app.Run();
 
