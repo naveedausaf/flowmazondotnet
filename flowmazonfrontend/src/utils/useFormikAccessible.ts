@@ -1,7 +1,7 @@
-import { useFormik, FormikConfig, FormikValues, FormikProps } from "formik";
+import { useFormik, FormikConfig, FormikValues, FormikProps } from 'formik';
 
-import { FormEvent, useEffect, useState } from "react";
-import * as Yup from "yup";
+import { FormEvent, useEffect, useState } from 'react';
+import * as Yup from 'yup';
 
 //TODO: Document the hook: it is just  as a decorator for the specific
 //behaviour of computing an error on a field based on whether it has
@@ -37,7 +37,7 @@ export default function useFormikAccessible<Values extends FormikValues>(
   const handleChange = (
     e: FormEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => {
-    console.log("CHANGE handler called.");
+    console.log('CHANGE handler called.');
     formik.handleChange(e);
     setInputsChanged({
       ...inputsChanged,
@@ -51,7 +51,7 @@ export default function useFormikAccessible<Values extends FormikValues>(
   );
 
   const handleBlur = (e: FormEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    console.log("BLUR handler called.");
+    console.log('BLUR handler called.');
     formik.handleBlur(e);
     setInputsChangedThenBlurred({
       ...inputsChangedThenBlurred,
@@ -66,7 +66,7 @@ export default function useFormikAccessible<Values extends FormikValues>(
   };
 
   const handleSubmit = (e?: FormEvent<HTMLFormElement>) => {
-    console.log("SUBMIT handler called.");
+    console.log('SUBMIT handler called.');
     formik.handleSubmit(e);
 
     setInputsChangedThenBlurred(sameValueAgainstEachValidatedControl(true));
