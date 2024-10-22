@@ -34,7 +34,7 @@ jobs:
           # Find latest version tag 
           # Starts with 'v' followed by a digit
           echo "abut to run git describe..."
-          lasttag=$(git describe --tags --abbrev=0 --match="v[0-9]* 2>/dev/null")
+          lasttag=$(git describe --tags --abbrev=0 --match="v[0-9]*" 2>/dev/null)
           echo "finished running git describe..."
 
           # Compute arguments to commitlint
