@@ -39,9 +39,6 @@ export default function FormikAccessibleTestForm() {
 
   return (
     <>
-      <Head>
-        <title>Add Product - Flowmazon</title>
-      </Head>
       <div>
         <h1 className='mb-4 text-lg font-bold'>Add Product</h1>
         <form action='' onSubmit={form.handleSubmit}>
