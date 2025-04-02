@@ -12,9 +12,8 @@
 **/test-results
 **/junit.xml
 docs
-flowmazonbackend
-flowmazonfrontend/src/stories
-flowmazonfrontend/*.ts
-flowmazonfrontend/*.js
-flowmazonfrontend/.storybook
-.vscode
+
+src/stories
+*.ts
+*.js
+.storybook
