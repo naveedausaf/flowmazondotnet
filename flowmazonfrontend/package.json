@@ -13,8 +13,8 @@
     "build-storybook": "storybook build",
     "chromatic": "# do nothing as we don't want Chromatic project token in here",
     "test-storybook": "test-storybook",
-    "test-storybook:test": "echo Starting Storybook tests... && (test-storybook --url http://127.0.0.1:6010 --watch --coverage || true) && echo Completed Storybook tests...",
-    "test-storybook:watch": "concurrently --names \"STORYBOOK,TEST\" --prefix-colors \"blue,magenta\" \"storybook dev --no-open -p 6010\" \"wait-on http://127.0.0.1:6010 && wait 30000 && npm run test-storybook:test\"",
+    "test-storybook:test": "wait 3000 && echo Starting Storybook tests... && (test-storybook --url http://127.0.0.1:6010 --coverage || true) && echo Completed Storybook tests...",
+    "test-storybook:watch": "concurrently --names \"STORYBOOK,TEST\" --hide HTTP --prefix-colors \"blue,magenta\" \"storybook dev --no-open -p 6010\" \"wait-on http://127.0.0.1:6010 && wait 30000 && onchange -i -k src/**/* -- npm run test-storybook:test\"",
     "test-storybook-a11y:test": "wait 3000 && echo Starting Storybook A11Y tests... && ((axe-storybook --storybook-url http://127.0.0.1:6010) || true) && echo Completed Storybook A11Y tests...",
     "test-storybook-a11y:watch": "wait-on http://127.0.0.1:6010 && wait 30000 && onchange -i -k src/**/* -- npm run test-storybook-a11y:test"
   },

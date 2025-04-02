@@ -1,31 +1,31 @@
 /* eslint-env node */
 module.exports = {
-  branches: ['main'],
+  branches: ["main"],
   plugins: [
-    '@semantic-release/commit-analyzer',
+    "@semantic-release/commit-analyzer",
 
-    '@semantic-release/release-notes-generator',
+    "@semantic-release/release-notes-generator",
 
     [
-      '@semantic-release/npm',
+      "@semantic-release/npm",
       {
         npmPublish: false,
       },
     ],
     [
-      '@semantic-release/changelog',
+      "@semantic-release/changelog",
       {
-        changelogFile: 'docs/CHANGELOG.md',
+        changelogFile: "docs/CHANGELOG.md",
       },
     ],
     [
-      '@semantic-release/github',
+      "@semantic-release/github",
       {
-        assets: ['docs/CHANGELOG.md'],
+        assets: ["docs/CHANGELOG.md"],
       },
     ],
     [
-      '@semantic-release/exec',
+      "@semantic-release/exec",
       {
         successCmd:
           "echo 'RELEASED=1' >> $GITHUB_ENV && echo 'NEW_VERSION=${nextRelease.version}' >> $GITHUB_ENV",

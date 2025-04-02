@@ -1,6 +1,6 @@
-import type { TaskData } from "../types";
+import type { TaskData } from '../types';
 
-import Task from "./Task";
+import Task from './Task';
 
 type TaskListProps = {
   /** Checks if it's in loading state */
@@ -25,15 +25,15 @@ export default function TaskList({
   };
 
   if (loading) {
-    return <div className="list-items">loading</div>;
+    return <div className='list-items'>loading</div>;
   }
 
   if (tasks.length === 0) {
-    return <div className="list-items">empty</div>;
+    return <div className='list-items'>empty</div>;
   }
 
   return (
-    <div className="list-items">
+    <div className='list-items'>
       {tasks.map((task) => (
         <Task key={task.id} task={task} {...events} />
       ))}

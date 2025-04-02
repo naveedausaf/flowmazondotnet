@@ -94,7 +94,7 @@
       "type": "shell", //"process" does not work as value
       "command": "npm run test-storybook:watch",
       "options": {
-          "cwd": "${workspaceFolder}/flowmazonfrontend"
+        "cwd": "${workspaceFolder}/flowmazonfrontend"
       },
       "args": [],
       "isBackground": true, //this makes it keep running in the background without interrupting what you're doing
@@ -129,10 +129,10 @@
     {
       "label": "Storybook A11Y",
       "type": "shell", //"process" does not work as value
-      "command": "npm run test-storybook-a11y:watch",    
+      "command": "npm run test-storybook-a11y:watch",
       "options": {
-          "cwd": "${workspaceFolder}/flowmazonfrontend"
-      },  
+        "cwd": "${workspaceFolder}/flowmazonfrontend"
+      },
       "args": [],
       "isBackground": true, //this makes it keep running in the background without interrupting what you're doing
       "runOptions": {
@@ -161,8 +161,7 @@
           "endsPattern": "^\\s*Completed Storybook A11Y tests\\.\\.\\.\\s*$"
           //"endsPattern": "^Waiting for file changes\\. Press enter to run tests, q to quit or h for more options\\.\\s*"
         }
-      }     
-      
+      }
     }
   ]
 }
