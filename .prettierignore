@@ -5,7 +5,6 @@
 **/.prettierignore
 **/.stylelintignore
 **/.eslintignore
-./flowmazonfrontend/stories
 **/storybook-static
 *.log
 **/playwright-report
@@ -13,4 +12,9 @@
 **/test-results
 **/junit.xml
 docs
-./flowmazonbackend
+flowmazonbackend
+flowmazonfrontend/src/stories
+flowmazonfrontend/*.ts
+flowmazonfrontend/*.js
+flowmazonfrontend/.storybook
+.vscode

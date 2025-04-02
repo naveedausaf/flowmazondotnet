@@ -1,6 +1,6 @@
 /* eslint-env node */
 const path = require('path');
-const formatCommand = 'prettier ./flowmazonfrontend --check';
+const formatCommand = 'prettier . --check';
 
 module.exports = {
   '*': formatCommand,
