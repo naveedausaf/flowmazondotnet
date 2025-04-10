@@ -105,7 +105,17 @@ function getTest(fieldSchema: SchemaDescription, testName: string) {
   };
 }
 
-const createImageUrlErrorCases = () => {
+type ErrorCase<T> = {
+  InvalidValue: T;
+  ErrorMessage: string;
+};
+
+const createPriceErrorCases: () => Record<string, ErrorCase<number>> = () => {};
+
+const createImageUrlErrorCases: () => Record<
+  string,
+  ErrorCase<string>
+> = () => {
   const imageUrlSchema = getFieldSchema(
     validationSchema.fields.imageUrl.describe(),
     2,
@@ -118,10 +128,27 @@ const createImageUrlErrorCases = () => {
     'http://www.example.com/image123-' + 'e'.repeat(max.params.max as number);
 
   getTest(imageUrlSchema, 'url');
-  const notAUrl = 'e'.repeat();
+  const notAUrl = 'e'.repeat(Math.ceil((max.params.max as number) / 2));
+  return {
+    ImageUrlRequired: {
+      InvalidValue: '',
+      ErrorMessage: getValidationErrorMessage('imageUrl', ''),
+    },
+    ImageUrlMaxLength: {
+      InvalidValue: urlTooLong,
+      ErrorMessage: getValidationErrorMessage('imageUrl', urlTooLong),
+    },
+    ImageUrlIsValidUrl: {
+      InvalidValue: notAUrl,
+      ErrorMessage: getValidationErrorMessage('imageUrl', notAUrl),
+    },
+  };
 };
 
-const createDescriptionErrorCases = () => {
+const createDescriptionErrorCases: () => Record<
+  string,
+  ErrorCase<string>
+> = () => {
   const descriptionSchema = getFieldSchema(
     validationSchema.fields.description.describe(),
     1,
@@ -146,7 +173,7 @@ const createDescriptionErrorCases = () => {
   };
 };
 
-const createNameErrorCases = () => {
+const createNameErrorCases: () => Record<string, ErrorCase<string>> = () => {
   const nameSchema = getFieldSchema(validationSchema.fields.name.describe(), 2);
   const max = getTest(nameSchema, 'max');
   assertTestParamsDefined(max.params);
@@ -170,9 +197,10 @@ const createErrorCases = () => {
   expect(validationSchema.describe().fields).toHaveLength(4);
 
   return {
-    ...createNameErrorCases(),
-    ...createDescriptionErrorCases(),
-    ...createImageUrlErrorCases(),
+    name: createNameErrorCases(),
+    description: createDescriptionErrorCases(),
+    imageUrl: createImageUrlErrorCases(),
+    price: createPriceErrorCases(),
   };
 };
 
