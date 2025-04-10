@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { useFormik, FormikConfig, FormikValues, FormikProps } from 'formik';
 
 import { FormEvent, useEffect, useState } from 'react';
@@ -20,7 +21,7 @@ export default function useFormikAccessible<Values extends FormikValues>(
   function sameValueAgainstEachValidatedControl<T>(value: T): {
     [InputName in keyof typeof formik.initialValues]: T;
   } {
-    // //HAIRY FUNCTION...KEEP NOTE OF TYPE ASSERTIONS
+    // //HAIRY FUNCTION...KEEP A TAB ON TYPE ASSERTIONS
 
     const keys: (keyof typeof formik.initialValues)[] = Object.keys(
       formik.initialValues,

@@ -1,52 +1,35 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import Head from 'next/head';
-import * as Yup from 'yup';
-/* import { useRouter } from 'next/router'; */
 import clsx from 'clsx';
-import useFormikAccessible from '@/utils/useFormikAccessible';
-import { config } from '@/utils/config';
+import { FormEvent } from 'react';
 
-export const validationSchema = Yup.object({
-  name: Yup.string()
-    .max(50, 'Name must be 50 characters or less')
-    .required('Name is required.'),
-  description: Yup.string()
-    .required('Description is required.')
-    .max(10000, 'Description must be 10,000 characters or less'),
-  imageUrl: Yup.string()
-    .url('Image URL must be a valid URL.')
-    .required('Image URL is required.')
-    .max(1000, 'Image URL must be 1000 character or less'),
-  price: Yup.number()
-    .required('Price is required.')
-    .min(0, 'Price must be zero or greater.')
-    .integer('Price must be an integer.'),
-});
+export type FormState = {
+  hasError: {
+    name: boolean;
+    description: boolean;
+    imageUrl: boolean;
+    price: boolean;
+  };
+  errors: {
+    name?: string;
+    description?: string;
+    imageUrl?: string;
+    price?: string;
+  };
+  values: {
+    name: string;
+    description: string;
+    imageUrl: string;
+    price: string;
+  };
 
-//TODO: Factor out repeated blocks of label, control, error message
-//into components
-export default function AddProductPage() {
-  console.log(validationSchema.describe().fields.description);
+  handleSubmit: (e?: FormEvent<HTMLFormElement>) => void;
 
-  const form = useFormikAccessible({
-    initialValues: {
-      name: '',
-      description: '',
-      imageUrl: '',
-      price: '',
-    },
-    validationSchema: validationSchema,
-    onSubmit: async (values) => {
-      const response = await fetch(config.serviceUrls.product, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(values),
-      });
-    },
-  });
+  handleBlur: (e: FormEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
 
+  handleChange: (e: FormEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
+};
+
+export default function AddProductPageScreen(formState: FormState) {
   return (
     <>
       <Head>
@@ -54,23 +37,23 @@ export default function AddProductPage() {
       </Head>
       <div>
         <h1 className='mb-4 text-lg font-bold'>Add Product</h1>
-        <form action='' onSubmit={form.handleSubmit}>
+        <form action='' onSubmit={formState.handleSubmit}>
           <label htmlFor='name'>Name</label>
 
           <input
             type='text'
             className={clsx(
-              form.hasError.name &&
+              formState.hasError.name &&
                 'border-error focus:border-error focus:ring-error',
 
               'input input-bordered mb-0 w-full focus:outline-none focus:ring-1',
             )}
             name='name'
-            value={form.values.name}
+            value={formState.values.name}
             aria-required='true'
-            onChange={form.handleChange}
-            onBlur={form.handleBlur}
-            aria-invalid={form.hasError.name}
+            onChange={formState.handleChange}
+            onBlur={formState.handleBlur}
+            aria-invalid={formState.hasError.name}
             aria-describedby='nameError'
           />
           <div className='mb-2 mt-0'>
@@ -79,7 +62,7 @@ export default function AddProductPage() {
               aria-live='assertive'
               className='text-sm text-red-500'
             >
-              {form.hasError.name && form.errors.name}
+              {formState.hasError.name && formState.errors.name}
             </span>
             &nbsp;
           </div>
@@ -87,16 +70,16 @@ export default function AddProductPage() {
           <textarea
             name='description'
             className={clsx(
-              form.hasError.description &&
+              formState.hasError.description &&
                 'border-error focus:border-error focus:ring-error',
 
               'textarea textarea-bordered mb-0 w-full focus:outline-none focus:ring-1',
             )}
-            value={form.values.description}
+            value={formState.values.description}
             aria-required='true'
-            onChange={form.handleChange}
-            onBlur={form.handleBlur}
-            aria-invalid={form.hasError.description}
+            onChange={formState.handleChange}
+            onBlur={formState.handleBlur}
+            aria-invalid={formState.hasError.description}
             aria-describedby='descriptionError'
           />
           <div className='mb-2 mt-0'>
@@ -105,7 +88,7 @@ export default function AddProductPage() {
               aria-live='assertive'
               className='text-sm text-red-500'
             >
-              {form.hasError.description && form.errors.description}
+              {formState.hasError.description && formState.errors.description}
             </span>
             &nbsp;
           </div>
@@ -113,17 +96,17 @@ export default function AddProductPage() {
           <input
             type='text'
             className={clsx(
-              form.hasError.imageUrl &&
+              formState.hasError.imageUrl &&
                 'border-error focus:border-error focus:ring-error',
 
               'input input-bordered mb-0 w-full focus:outline-none focus:ring-1',
             )}
             name='imageUrl'
-            value={form.values.imageUrl}
+            value={formState.values.imageUrl}
             aria-required='true'
-            onChange={form.handleChange}
-            onBlur={form.handleBlur}
-            aria-invalid={form.hasError.imageUrl}
+            onChange={formState.handleChange}
+            onBlur={formState.handleBlur}
+            aria-invalid={formState.hasError.imageUrl}
             aria-describedby='imageUrlError'
           />
           <div className='mb-2 mt-0'>
@@ -132,7 +115,7 @@ export default function AddProductPage() {
               aria-live='assertive'
               className='text-sm text-red-500'
             >
-              {form.hasError.imageUrl && form.errors.imageUrl}
+              {formState.hasError.imageUrl && formState.errors.imageUrl}
             </span>
             &nbsp;
           </div>
@@ -140,17 +123,17 @@ export default function AddProductPage() {
           <input
             type='text'
             className={clsx(
-              form.hasError.price &&
+              formState.hasError.price &&
                 'border-error focus:border-error focus:ring-error',
 
               'input input-bordered mb-0 w-full focus:outline-none focus:ring-1',
             )}
             name='price'
-            value={form.values.price}
+            value={formState.values.price}
             aria-required='true'
-            onChange={form.handleChange}
-            onBlur={form.handleBlur}
-            aria-invalid={form.hasError.price}
+            onChange={formState.handleChange}
+            onBlur={formState.handleBlur}
+            aria-invalid={formState.hasError.price}
             aria-describedby='priceError'
           />
           <div className='mb-2 mt-0'>
@@ -159,7 +142,7 @@ export default function AddProductPage() {
               aria-live='assertive'
               className='text-sm text-red-500'
             >
-              {form.hasError.price && form.errors.price}
+              {formState.hasError.price && formState.errors.price}
             </span>
             &nbsp;
           </div>

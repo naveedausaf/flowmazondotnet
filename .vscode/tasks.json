@@ -109,7 +109,7 @@
         "severity": "error", //probabaly redundant as it is the default
         "pattern": {
           "kind": "file",
-          "regexp": "^\\[TEST\\]\\s*FAIL\\s*(browser:\\s*\\S*)\\s*(.*)\\s\\(.*\\)\\s*$",
+          "regexp": "(^\\[TEST\\]\\s*FAIL\\s*(browser:\\s*\\S*)\\s*(.*)\\s\\(.*\\)\\s*$)|(If you are in development, this likely indicates a problem with your Storybook process,)|(^\\[STORYBOOK\\] WARN Broken build, fix the error above\\.)",
           "message": 1,
           "file": 2
         },
@@ -118,10 +118,10 @@
           //I have verified that if either of the following regexes is wrong,
           //you don't get the tick on the terminal to indicate once
           //a test run has completed (even though our watch task carries on running)
-          "beginsPattern": "^\\[TEST\\]\\s*Starting Storybook tests\\.\\.\\.\\s*$",
+          "beginsPattern": "(^\\[TEST\\]\\s*Starting Storybook tests\\.\\.\\.\\s*$)|(^\\[STORYBOOK\\] WARN Broken build, fix the error above\\.)",
           //"beginsPattern": "^\\s*Running \\d* tests using \\d* workers\\s*$",
           //USE THE FOLLOWING endsPattern IF REVERTING TO CHOKIDAR TO WATCH
-          "endsPattern": "^\\[TEST\\]\\s*Completed Storybook tests\\.\\.\\.\\s*$"
+          "endsPattern": "(^\\[TEST\\]\\s*Completed Storybook tests\\.\\.\\.\\s*$)|(^\\[STORYBOOK\\] WARN Broken build, fix the error above\\.)"
           //"endsPattern": "^Waiting for file changes\\. Press enter to run tests, q to quit or h for more options\\.\\s*"
         }
       }

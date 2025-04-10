@@ -12,7 +12,6 @@ const config: StorybookConfig = {
     '@storybook/addon-coverage',
   ],
   docs: {
-    autodocs: true,
     defaultName: 'Documentation',
   },
   framework: {
@@ -20,5 +19,8 @@ const config: StorybookConfig = {
     options: {},
   },
   staticDirs: ['..\\public'],
+  core: {
+    disableTelemetry: true, // 👈 Disables telemetry
+  },
 };
 export default config;
