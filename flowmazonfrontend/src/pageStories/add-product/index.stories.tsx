@@ -19,6 +19,7 @@ import { expect } from 'vitest';
 import { AssertionError } from 'assert';
 import { ErrorMessage } from 'formik';
 import { Meta } from '@storybook/react';
+import { N } from 'vitest/dist/chunks/environment.d.C8UItCbf.js';
 
 const meta: Meta<typeof AddProductPage> = {
   component: AddProductPage,
@@ -27,7 +28,7 @@ const meta: Meta<typeof AddProductPage> = {
 
 export default meta;
 
-//FIRST INSTANCE of why reflecting on Yup schema is
+//TODO: NOTE FIRST INSTANCE of why reflecting on Yup schema is
 //so painful:
 //
 // The abomination below necessary to get `max` value
@@ -63,7 +64,7 @@ function assertTestParamsDefined(
 //TestCaseGenerator as well as add test cases in the
 //Screen (pure presentational page component for this page)
 
-//SECOND INSTANCE of how difficult it is to reflect
+//TODO:  NOTE SECOND INSTANCE of how difficult it is to reflect
 //  why I need to move away from Yup:
 //why should reflectin on error message supplied
 //at schema construction time be so painful?
@@ -105,20 +106,53 @@ function getTest(fieldSchema: SchemaDescription, testName: string) {
   };
 }
 
-type ErrorCase<T> = {
-  InvalidValue: T;
+type ErrorCase = {
+  InvalidValue: any;
   ErrorMessage: string;
 };
 
-const createPriceErrorCases: () => Record<string, ErrorCase<number>> = () => {};
+function getErrorCaseFactory(fieldPath: string) {
+  return (invalidValue: any): ErrorCase => {
+    return {
+      InvalidValue: invalidValue,
+      ErrorMessage: getValidationErrorMessage(fieldPath, invalidValue),
+    };
+  };
+}
 
-const createImageUrlErrorCases: () => Record<
-  string,
-  ErrorCase<string>
-> = () => {
+const createPriceErrorCases = () => {
+  const errorCase = getErrorCaseFactory('price');
+  const priceSchema = getFieldSchema(
+    validationSchema.fields.price.describe(),
+    4,
+  );
+
+  getTest(priceSchema, 'required');
+  const max = getTest(priceSchema, 'max');
+  assertTestParamsDefined(max.params);
+  const priceAboveMax = (max.params.max as number) + 1;
+
+  const min = getTest(priceSchema, 'min');
+  assertTestParamsDefined(min.params);
+  const priceBelowMin = (min.params.min as number) - 1;
+
+  getTest(priceSchema, 'currency');
+
+  let priceNotMoney = (max.params.min as number) + 0.001;
+
+  return {
+    PriceRequired: errorCase(''),
+    PriceAboveMax: errorCase(priceAboveMax),
+    PriceBelowMin: errorCase(priceBelowMin),
+    PriceNotMoney: errorCase(priceNotMoney),
+  };
+};
+
+const createImageUrlErrorCases = () => {
+  const errorCase = getErrorCaseFactory('imageUrl');
   const imageUrlSchema = getFieldSchema(
     validationSchema.fields.imageUrl.describe(),
-    2,
+    3,
   );
 
   getTest(imageUrlSchema, 'required');
@@ -130,28 +164,17 @@ const createImageUrlErrorCases: () => Record<
   getTest(imageUrlSchema, 'url');
   const notAUrl = 'e'.repeat(Math.ceil((max.params.max as number) / 2));
   return {
-    ImageUrlRequired: {
-      InvalidValue: '',
-      ErrorMessage: getValidationErrorMessage('imageUrl', ''),
-    },
-    ImageUrlMaxLength: {
-      InvalidValue: urlTooLong,
-      ErrorMessage: getValidationErrorMessage('imageUrl', urlTooLong),
-    },
-    ImageUrlIsValidUrl: {
-      InvalidValue: notAUrl,
-      ErrorMessage: getValidationErrorMessage('imageUrl', notAUrl),
-    },
+    ImageUrlRequired: errorCase(''),
+    ImageUrlMaxLength: errorCase(urlTooLong),
+    ImageUrlIsValidUrl: errorCase(notAUrl),
   };
 };
 
-const createDescriptionErrorCases: () => Record<
-  string,
-  ErrorCase<string>
-> = () => {
+const createDescriptionErrorCases = () => {
+  const errorCase = getErrorCaseFactory('description');
   const descriptionSchema = getFieldSchema(
     validationSchema.fields.description.describe(),
-    1,
+    2,
   );
   getTest(descriptionSchema, 'required');
   const max = getTest(descriptionSchema, 'max');
@@ -159,21 +182,13 @@ const createDescriptionErrorCases: () => Record<
   const tooLongDescription =
     'Lorem ' + 'ipsum '.repeat(Math.ceil((max.params.max as number) / 6));
   return {
-    DescriptionRequired: {
-      InvalidValue: '',
-      ErrorMessage: getValidationErrorMessage('description', ''),
-    },
-    DescriptionMaxLength: {
-      InvalidValue: tooLongDescription,
-      ErrorMessage: getValidationErrorMessage(
-        'description',
-        tooLongDescription,
-      ),
-    },
+    DescriptionRequired: errorCase(''),
+    DescriptionMaxLength: errorCase(tooLongDescription),
   };
 };
 
-const createNameErrorCases: () => Record<string, ErrorCase<string>> = () => {
+const createNameErrorCases = () => {
+  const errorCase = getErrorCaseFactory('name');
   const nameSchema = getFieldSchema(validationSchema.fields.name.describe(), 2);
   const max = getTest(nameSchema, 'max');
   assertTestParamsDefined(max.params);
@@ -182,14 +197,8 @@ const createNameErrorCases: () => Record<string, ErrorCase<string>> = () => {
   getTest(nameSchema, 'required');
 
   return {
-    NameMaxLength: {
-      InvalidValue: tooLongName,
-      ErrorMessage: getValidationErrorMessage('name', tooLongName),
-    },
-    NameRequired: {
-      InvalidValue: '',
-      ErrorMessage: getValidationErrorMessage('name', ''),
-    },
+    NameMaxLength: errorCase(tooLongName),
+    NameRequired: errorCase(''),
   };
 };
 

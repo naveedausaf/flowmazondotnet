@@ -20,7 +20,17 @@ export const validationSchema = Yup.object({
   price: Yup.number()
     .required('Price is required.')
     .min(0, 'Price must be zero or greater.')
-    .integer('Price must be an integer.'),
+    .max(50000)
+    //TODO: Note: other than than the two instances of
+    //of difficulty in reflecting on the schema pointed out in
+    //the stories file, this is anotner reason why I would
+    //switch away fro Yup: no build in constraint for
+    //money!!!
+    .test(
+      'currency',
+      'Price must have two or fewer digits after the decimal point',
+      (num) => /^[1-9]\d{0,6}(\.((\d\d)|\d))?$/.test(String(num)),
+    ),
 });
 
 //TODO: Factor out repeated blocks of label, control, error message
