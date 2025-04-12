@@ -1,7 +1,8 @@
 import { faker } from '@faker-js/faker/locale/en';
 import type { Meta, StoryObj } from '@storybook/react';
 
-import AddProductPageScreen from './AddProductPageScreen';
+import AddProductPageScreen from './AddProductScreen';
+import { fn } from '@storybook/test';
 
 const meta: Meta<typeof AddProductPageScreen> = {
   component: AddProductPageScreen,
@@ -28,7 +29,15 @@ const primaryArgs = {
 };
 
 export const Primary: Story = {
-  args: primaryArgs,
+  args: { ...primaryArgs, onBlur: fn(), onChange: fn(), onSubmit: fn() },
+  // parameters: {
+  //   controls: { disable: true },
+  // },
+  argTypes: {
+    values: { control: 'object' },
+    errors: { control: 'object' },
+    //hasError: { control: { disable: true } },
+  },
 };
 
 export const ErrorNameMaxLength: Story = {

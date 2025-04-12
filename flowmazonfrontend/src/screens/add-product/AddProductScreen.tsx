@@ -2,7 +2,7 @@ import Head from 'next/head';
 import clsx from 'clsx';
 import { FormEvent } from 'react';
 
-export type FormState = {
+export type AddProductPageScreenProps = {
   hasError: {
     name: boolean;
     description: boolean;
@@ -21,15 +21,21 @@ export type FormState = {
     imageUrl: string;
     price: string;
   };
+  onSubmit: (e?: FormEvent<HTMLFormElement>) => void;
 
-  handleSubmit: (e?: FormEvent<HTMLFormElement>) => void;
+  onBlur: (e: FormEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
 
-  handleBlur: (e: FormEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
-
-  handleChange: (e: FormEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
+  onChange: (e: FormEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
 };
 
-export default function AddProductPageScreen(formState: FormState) {
+export default function AddProductPageScreen({
+  hasError,
+  errors,
+  values,
+  onSubmit,
+  onBlur,
+  onChange,
+}: AddProductPageScreenProps) {
   return (
     <>
       <Head>
@@ -37,23 +43,23 @@ export default function AddProductPageScreen(formState: FormState) {
       </Head>
       <div>
         <h1 className='mb-4 text-lg font-bold'>Add Product</h1>
-        <form action='' onSubmit={formState.handleSubmit}>
+        <form action='' onSubmit={onSubmit}>
           <label htmlFor='name'>Name</label>
 
           <input
             type='text'
             className={clsx(
-              formState.hasError.name &&
+              hasError.name &&
                 'border-error focus:border-error focus:ring-error',
 
               'input input-bordered mb-0 w-full focus:outline-none focus:ring-1',
             )}
             name='name'
-            value={formState.values.name}
+            value={values.name}
             aria-required='true'
-            onChange={formState.handleChange}
-            onBlur={formState.handleBlur}
-            aria-invalid={formState.hasError.name}
+            onChange={onChange}
+            onBlur={onBlur}
+            aria-invalid={hasError.name}
             aria-describedby='nameError'
           />
           <div className='mb-2 mt-0'>
@@ -62,7 +68,7 @@ export default function AddProductPageScreen(formState: FormState) {
               aria-live='assertive'
               className='text-sm text-red-500'
             >
-              {formState.hasError.name && formState.errors.name}
+              {hasError.name && errors.name}
             </span>
             &nbsp;
           </div>
@@ -70,16 +76,16 @@ export default function AddProductPageScreen(formState: FormState) {
           <textarea
             name='description'
             className={clsx(
-              formState.hasError.description &&
+              hasError.description &&
                 'border-error focus:border-error focus:ring-error',
 
               'textarea textarea-bordered mb-0 w-full focus:outline-none focus:ring-1',
             )}
-            value={formState.values.description}
+            value={values.description}
             aria-required='true'
-            onChange={formState.handleChange}
-            onBlur={formState.handleBlur}
-            aria-invalid={formState.hasError.description}
+            onChange={onChange}
+            onBlur={onBlur}
+            aria-invalid={hasError.description}
             aria-describedby='descriptionError'
           />
           <div className='mb-2 mt-0'>
@@ -88,7 +94,7 @@ export default function AddProductPageScreen(formState: FormState) {
               aria-live='assertive'
               className='text-sm text-red-500'
             >
-              {formState.hasError.description && formState.errors.description}
+              {hasError.description && errors.description}
             </span>
             &nbsp;
           </div>
@@ -96,17 +102,17 @@ export default function AddProductPageScreen(formState: FormState) {
           <input
             type='text'
             className={clsx(
-              formState.hasError.imageUrl &&
+              hasError.imageUrl &&
                 'border-error focus:border-error focus:ring-error',
 
               'input input-bordered mb-0 w-full focus:outline-none focus:ring-1',
             )}
             name='imageUrl'
-            value={formState.values.imageUrl}
+            value={values.imageUrl}
             aria-required='true'
-            onChange={formState.handleChange}
-            onBlur={formState.handleBlur}
-            aria-invalid={formState.hasError.imageUrl}
+            onChange={onChange}
+            onBlur={onBlur}
+            aria-invalid={hasError.imageUrl}
             aria-describedby='imageUrlError'
           />
           <div className='mb-2 mt-0'>
@@ -115,7 +121,7 @@ export default function AddProductPageScreen(formState: FormState) {
               aria-live='assertive'
               className='text-sm text-red-500'
             >
-              {formState.hasError.imageUrl && formState.errors.imageUrl}
+              {hasError.imageUrl && errors.imageUrl}
             </span>
             &nbsp;
           </div>
@@ -123,17 +129,17 @@ export default function AddProductPageScreen(formState: FormState) {
           <input
             type='text'
             className={clsx(
-              formState.hasError.price &&
+              hasError.price &&
                 'border-error focus:border-error focus:ring-error',
 
               'input input-bordered mb-0 w-full focus:outline-none focus:ring-1',
             )}
             name='price'
-            value={formState.values.price}
+            value={values.price}
             aria-required='true'
-            onChange={formState.handleChange}
-            onBlur={formState.handleBlur}
-            aria-invalid={formState.hasError.price}
+            onChange={onChange}
+            onBlur={onBlur}
+            aria-invalid={hasError.price}
             aria-describedby='priceError'
           />
           <div className='mb-2 mt-0'>
@@ -142,7 +148,7 @@ export default function AddProductPageScreen(formState: FormState) {
               aria-live='assertive'
               className='text-sm text-red-500'
             >
-              {formState.hasError.price && formState.errors.price}
+              {hasError.price && errors.price}
             </span>
             &nbsp;
           </div>
