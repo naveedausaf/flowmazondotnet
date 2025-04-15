@@ -1,16 +1,25 @@
 import { faker } from '@faker-js/faker/locale/en';
 import type { Meta, StoryObj } from '@storybook/react';
 
-import AddProductPageScreen from './AddProductScreen';
+import AddProductScreen from './AddProductScreen';
 import { fn } from '@storybook/test';
 
-const meta: Meta<typeof AddProductPageScreen> = {
-  component: AddProductPageScreen,
+const meta: Meta<typeof AddProductScreen> = {
+  component: AddProductScreen,
+  args: {
+    onBlur: fn(),
+    onChange: fn(),
+    onSubmit: fn(),
+  },
+  parameters: {
+    // 👇 Set default viewport for all component stories
+    viewport: { defaultViewport: 'xl' },
+  },
 };
 
 export default meta;
 
-type Story = StoryObj<typeof AddProductPageScreen>;
+type Story = StoryObj<typeof AddProductScreen>;
 
 const primaryArgs = {
   errors: {},
@@ -29,15 +38,7 @@ const primaryArgs = {
 };
 
 export const Primary: Story = {
-  args: { ...primaryArgs, onBlur: fn(), onChange: fn(), onSubmit: fn() },
-  // parameters: {
-  //   controls: { disable: true },
-  // },
-  argTypes: {
-    values: { control: 'object' },
-    errors: { control: 'object' },
-    //hasError: { control: { disable: true } },
-  },
+  args: { ...primaryArgs },
 };
 
 export const ErrorNameMaxLength: Story = {

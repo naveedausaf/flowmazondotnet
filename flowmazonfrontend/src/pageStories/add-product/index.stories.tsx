@@ -19,11 +19,14 @@ import { expect } from 'vitest';
 import { AssertionError } from 'assert';
 import { ErrorMessage } from 'formik';
 import { Meta } from '@storybook/react';
-import { N } from 'vitest/dist/chunks/environment.d.C8UItCbf.js';
 
 const meta: Meta<typeof AddProductPage> = {
   component: AddProductPage,
   excludeStories: ['ErrorCases'],
+  parameters: {
+    // 👇 Set default viewport for all component stories
+    viewport: { defaultViewport: 'xl' },
+  },
 };
 
 export default meta;
@@ -138,7 +141,7 @@ const createPriceErrorCases = () => {
 
   getTest(priceSchema, 'currency');
 
-  let priceNotMoney = (max.params.min as number) + 0.001;
+  const priceNotMoney = (max.params.min as number) + 0.001;
 
   return {
     PriceRequired: errorCase(''),
