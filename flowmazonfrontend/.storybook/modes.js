@@ -7,7 +7,7 @@ export const allModes = {
   md: {
     viewport: {
       height: 100,
-      width: 768,
+      width: 800,
     },
   },
   lg: {
