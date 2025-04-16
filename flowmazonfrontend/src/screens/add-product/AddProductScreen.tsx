@@ -42,7 +42,7 @@ export default function AddProductScreen({
         <title>Add Product - Flowmazon</title>
       </Head>
       <div>
-        <div className='w- mx-[50px] my-0'>
+        <div className='mx-auto max-w-5xl px-0'>
           <h1 className='mb-4 text-lg font-bold'>Add Product</h1>
           <form action='' onSubmit={onSubmit}>
             <label htmlFor='name'>Name</label>
