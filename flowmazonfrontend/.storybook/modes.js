@@ -11,7 +11,10 @@ export const allModes = {
     },
   },
   lg: {
-    viewport: 'lg',
+    viewport: {
+      height: 1024,
+      width: 1024,
+    },
   },
   xl: {
     viewport: 'xl',
