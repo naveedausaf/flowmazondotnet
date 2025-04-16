@@ -18,6 +18,7 @@ const meta: Meta<typeof AddProductScreen> = {
       modes: {
         md: allModes.md,
         lg: allModes.lg,
+        xl: allModes.xl,
       },
     },
   },
