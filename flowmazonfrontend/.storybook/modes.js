@@ -5,7 +5,10 @@ export const allModes = {
     viewport: 'sm',
   },
   md: {
-    viewport: 'md',
+    viewport: {
+      height: 100,
+      width: 768,
+    },
   },
   lg: {
     viewport: 'lg',
