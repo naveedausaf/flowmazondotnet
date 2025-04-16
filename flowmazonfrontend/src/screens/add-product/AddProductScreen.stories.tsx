@@ -1,8 +1,8 @@
-import { faker } from '@faker-js/faker/locale/en';
 import type { Meta, StoryObj } from '@storybook/react';
 
 import AddProductScreen from './AddProductScreen';
 import { fn } from '@storybook/test';
+import { allModes } from '../../../.storybook/modes.js';
 
 const meta: Meta<typeof AddProductScreen> = {
   component: AddProductScreen,
@@ -14,6 +14,12 @@ const meta: Meta<typeof AddProductScreen> = {
   parameters: {
     // 👇 Set default viewport for all component stories
     viewport: { defaultViewport: 'xl' },
+    chromatic: {
+      modes: {
+        sm: allModes.sm,
+        md: allModes.md,
+      },
+    },
   },
 };
 

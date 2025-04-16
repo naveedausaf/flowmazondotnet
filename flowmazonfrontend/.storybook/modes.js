@@ -11,6 +11,6 @@ export const allModes = {
     viewport: 'lg',
   },
   xl: {
-    viewport: 'xll',
+    viewport: 'xl',
   },
 };

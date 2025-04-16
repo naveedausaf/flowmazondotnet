@@ -18,7 +18,7 @@ const preview: Preview = {
           name: 'sm (Tailwind default)',
           styles: {
             height: '1138px',
-            width: '640px',
+            width: '200px', //'640px',
           },
           type: 'mobile',
         },
@@ -28,7 +28,7 @@ const preview: Preview = {
           name: 'md (Tailwind default)',
           styles: {
             height: '1024px',
-            width: '768px',
+            width: '200px', //'768px',
           },
           type: 'tablet',
         },
