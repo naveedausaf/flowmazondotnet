@@ -53,7 +53,7 @@ export default function AddProductScreen({
                 hasError.name &&
                   'border-error focus:border-error focus:ring-error',
 
-                'input input-bordered mb-0 w-full focus:outline-none focus:ring-1',
+                'input input-bordered mb-0 w-full focus:ring-1 focus:outline-none',
               )}
               name='name'
               value={values.name}
@@ -63,7 +63,7 @@ export default function AddProductScreen({
               aria-invalid={hasError.name}
               aria-describedby='nameError'
             />
-            <div className='mb-2 mt-0'>
+            <div className='mt-0 mb-2'>
               <span
                 id='nameError'
                 aria-live='assertive'
@@ -80,7 +80,7 @@ export default function AddProductScreen({
                 hasError.description &&
                   'border-error focus:border-error focus:ring-error',
 
-                'textarea textarea-bordered mb-0 w-full focus:outline-none focus:ring-1',
+                'textarea textarea-bordered mb-0 w-full focus:ring-1 focus:outline-none',
               )}
               value={values.description}
               aria-required='true'
@@ -89,7 +89,7 @@ export default function AddProductScreen({
               aria-invalid={hasError.description}
               aria-describedby='descriptionError'
             />
-            <div className='mb-2 mt-0'>
+            <div className='mt-0 mb-2'>
               <span
                 id='descriptionError'
                 aria-live='assertive'
@@ -106,7 +106,7 @@ export default function AddProductScreen({
                 hasError.imageUrl &&
                   'border-error focus:border-error focus:ring-error',
 
-                'input input-bordered mb-0 w-full focus:outline-none focus:ring-1',
+                'input input-bordered mb-0 w-full focus:ring-1 focus:outline-none',
               )}
               name='imageUrl'
               value={values.imageUrl}
@@ -116,7 +116,7 @@ export default function AddProductScreen({
               aria-invalid={hasError.imageUrl}
               aria-describedby='imageUrlError'
             />
-            <div className='mb-2 mt-0'>
+            <div className='mt-0 mb-2'>
               <span
                 id='imageUrlError'
                 aria-live='assertive'
@@ -133,7 +133,7 @@ export default function AddProductScreen({
                 hasError.price &&
                   'border-error focus:border-error focus:ring-error',
 
-                'input input-bordered mb-0 w-full focus:outline-none focus:ring-1',
+                'input input-bordered mb-0 w-full focus:ring-1 focus:outline-none',
               )}
               name='price'
               value={values.price}
@@ -143,7 +143,7 @@ export default function AddProductScreen({
               aria-invalid={hasError.price}
               aria-describedby='priceError'
             />
-            <div className='mb-2 mt-0'>
+            <div className='mt-0 mb-2'>
               <span
                 id='priceError'
                 aria-live='assertive'

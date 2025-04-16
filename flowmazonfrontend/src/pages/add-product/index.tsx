@@ -62,7 +62,7 @@ export default function AddProductPage() {
       <Head>
         <title>Add Product - Flowmazon</title>
       </Head>
-      <div>
+      <div className='mx-auto max-w-4xl'>
         <h1 className='mb-4 text-lg font-bold'>Add Product</h1>
         <form action='' onSubmit={form.handleSubmit}>
           <label htmlFor='name'>Name</label>
@@ -73,7 +73,7 @@ export default function AddProductPage() {
               form.hasError.name &&
                 'border-error focus:border-error focus:ring-error',
 
-              'input input-bordered mb-0 w-full focus:outline-none focus:ring-1',
+              'input input-bordered mb-0 w-full focus:ring-1 focus:outline-hidden',
             )}
             name='name'
             value={form.values.name}
@@ -83,7 +83,7 @@ export default function AddProductPage() {
             aria-invalid={form.hasError.name}
             aria-describedby='nameError'
           />
-          <div className='mb-2 mt-0'>
+          <div className='mt-0 mb-2'>
             <span
               id='nameError'
               aria-live='assertive'
@@ -100,7 +100,7 @@ export default function AddProductPage() {
               form.hasError.description &&
                 'border-error focus:border-error focus:ring-error',
 
-              'textarea textarea-bordered mb-0 w-full focus:outline-none focus:ring-1',
+              'textarea textarea-bordered mb-0 w-full focus:ring-1 focus:outline-hidden',
             )}
             value={form.values.description}
             aria-required='true'
@@ -109,7 +109,7 @@ export default function AddProductPage() {
             aria-invalid={form.hasError.description}
             aria-describedby='descriptionError'
           />
-          <div className='mb-2 mt-0'>
+          <div className='mt-0 mb-2'>
             <span
               id='descriptionError'
               aria-live='assertive'
@@ -126,7 +126,7 @@ export default function AddProductPage() {
               form.hasError.imageUrl &&
                 'border-error focus:border-error focus:ring-error',
 
-              'input input-bordered mb-0 w-full focus:outline-none focus:ring-1',
+              'input input-bordered mb-0 w-full focus:ring-1 focus:outline-hidden',
             )}
             name='imageUrl'
             value={form.values.imageUrl}
@@ -136,7 +136,7 @@ export default function AddProductPage() {
             aria-invalid={form.hasError.imageUrl}
             aria-describedby='imageUrlError'
           />
-          <div className='mb-2 mt-0'>
+          <div className='mt-0 mb-2'>
             <span
               id='imageUrlError'
               aria-live='assertive'
@@ -153,7 +153,7 @@ export default function AddProductPage() {
               form.hasError.price &&
                 'border-error focus:border-error focus:ring-error',
 
-              'input input-bordered mb-0 w-full focus:outline-none focus:ring-1',
+              'input input-bordered mb-0 w-full focus:ring-1 focus:outline-hidden',
             )}
             name='price'
             value={form.values.price}
@@ -163,7 +163,7 @@ export default function AddProductPage() {
             aria-invalid={form.hasError.price}
             aria-describedby='priceError'
           />
-          <div className='mb-2 mt-0'>
+          <div className='mt-0 mb-2'>
             <span
               id='priceError'
               aria-live='assertive'
@@ -173,7 +173,7 @@ export default function AddProductPage() {
             </span>
             &nbsp;
           </div>
-          <button type='submit' className='btn btn-primary btn-block mt-4'>
+          <button type='submit' className='btn btn-secondary btn-block mt-4'>
             Add Product
           </button>
         </form>
