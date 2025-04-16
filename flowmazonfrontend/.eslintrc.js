@@ -6,7 +6,7 @@ module.exports = {
     'plugin:tailwindcss/recommended',
     'prettier',
   ],
-  plugins: ['@typescript-eslint', 'tailwindcss'],
+  plugins: ['@typescript-eslint', 'tailwindcss', 'storybook', 'jsx-a11y'],
   rules: {
     'tailwindcss/classnames-order': 'off',
   },
@@ -23,6 +23,8 @@ module.exports = {
         'next/core-web-vitals',
         'plugin:@typescript-eslint/recommended',
         'plugin:tailwindcss/recommended',
+        'plugin:storybook/recommended',
+        'plugin:jsx-a11y/recommended',
         'prettier',
         //'plugin:@typescript-eslint/recommended-type-checked',
         // 'plugin:@typescript-eslint/strict-type-checked',

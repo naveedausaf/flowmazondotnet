@@ -5,7 +5,6 @@
 **/.prettierignore
 **/.stylelintignore
 **/.eslintignore
-./flowmazonfrontend/stories
 **/storybook-static
 *.log
 **/playwright-report
@@ -13,3 +12,8 @@
 **/test-results
 **/junit.xml
 docs
+
+src/stories
+*.ts
+*.js
+.storybook

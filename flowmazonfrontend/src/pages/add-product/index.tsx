@@ -1,13 +1,43 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import Head from 'next/head';
 import * as Yup from 'yup';
-import { useRouter } from 'next/router';
+/* import { useRouter } from 'next/router'; */
 import clsx from 'clsx';
 import useFormikAccessible from '@/utils/useFormikAccessible';
 import { config } from '@/utils/config';
 
+export const validationSchema = Yup.object({
+  name: Yup.string()
+    .max(50, 'Name must be 50 characters or less')
+    .required('Name is required.'),
+  description: Yup.string()
+    .required('Description is required.')
+    .max(10000, 'Description must be 10,000 characters or less'),
+  imageUrl: Yup.string()
+    .url('Image URL must be a valid URL.')
+    .required('Image URL is required.')
+    .max(1000, 'Image URL must be 1000 character or less'),
+  price: Yup.number()
+    .required('Price is required.')
+    .min(0, 'Price must be zero or greater.')
+    .max(50000)
+    //TODO: Note: other than than the two instances of
+    //of difficulty in reflecting on the schema pointed out in
+    //the stories file, this is anotner reason why I would
+    //switch away fro Yup: no build in constraint for
+    //money!!!
+    .test(
+      'currency',
+      'Price must have two or fewer digits after the decimal point',
+      (num) => /^[1-9]\d{0,6}(\.((\d\d)|\d))?$/.test(String(num)),
+    ),
+});
+
 //TODO: Factor out repeated blocks of label, control, error message
 //into components
 export default function AddProductPage() {
+  console.log(validationSchema.describe().fields.description);
+
   const form = useFormikAccessible({
     initialValues: {
       name: '',
@@ -15,19 +45,7 @@ export default function AddProductPage() {
       imageUrl: '',
       price: '',
     },
-    validationSchema: Yup.object({
-      name: Yup.string()
-        .max(50, 'Name must be 50 characters or less')
-        .required('Name is required.'),
-      description: Yup.string().required('Description is required.'),
-      imageUrl: Yup.string()
-        .url('Image URL must be a valid URL.')
-        .required('Image URL is required.'),
-      price: Yup.number()
-        .required('Price is required.')
-        .min(0, 'Price must be zero or greater.')
-        .integer('Price must be an integer.'),
-    }),
+    validationSchema: validationSchema,
     onSubmit: async (values) => {
       const response = await fetch(config.serviceUrls.product, {
         method: 'POST',
