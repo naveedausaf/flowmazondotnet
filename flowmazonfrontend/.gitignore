@@ -37,6 +37,5 @@ next-env.d.ts
 
 *storybook.log
 .vercel
-.storybook
 vitest.shims.d.ts
 stories
