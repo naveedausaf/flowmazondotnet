@@ -17,7 +17,7 @@ const preview: Preview = {
           // Storybook default viewports
           name: 'sm (Tailwind default)',
           styles: {
-            height: '200px', //'1138px',
+            height: '100px', //'1138px',
             width: '640px',
           },
           type: 'mobile',
@@ -27,7 +27,7 @@ const preview: Preview = {
           // Storybook default viewports
           name: 'md (Tailwind default)',
           styles: {
-            height: '200px', //'1024px',
+            height: '100px', //'1024px',
             width: '768px',
           },
           type: 'tablet',
