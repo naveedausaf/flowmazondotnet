@@ -16,8 +16,8 @@ const meta: Meta<typeof AddProductScreen> = {
     viewport: { defaultViewport: 'xl' },
     chromatic: {
       modes: {
-        sm: allModes.sm,
         md: allModes.md,
+        lg: allModes.lg,
       },
     },
   },
