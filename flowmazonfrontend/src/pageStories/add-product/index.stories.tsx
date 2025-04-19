@@ -73,7 +73,7 @@ function assertTestParamsDefined(
 //at schema construction time be so painful?
 const getValidationErrorMessage = (path: string, value: unknown) => {
   try {
-    validationSchema.validateSyncAt(path, value);
+    validationSchema.validateSyncAt(path, { [path]: value });
 
     //as a fallback, if no ValidationError is thrown then
     //we throw an AssertionError
@@ -83,6 +83,11 @@ const getValidationErrorMessage = (path: string, value: unknown) => {
   } catch (ex) {
     //we know for a fact that ex is ValidationError
     const err = ex as ValidationError;
+    console.log(
+      `I am returning error '${err.message}' for path '${path}' and value '${value}'`,
+    );
+    console.log(`I have eror value: ${err.value}`);
+    console.log(`I have eror errors: ${err.errors.length}`);
     return err.message;
   }
 };
@@ -104,36 +109,40 @@ function getTest(fieldSchema: SchemaDescription, testName: string) {
     };
   }
 
-  // if (
-  //   testName === 'required' &&
-  //   !fieldSchema.optional &&
-  //   !fieldSchema.nullable
-  // ) {
-  //   //special case checking for required: if
-  //   //feld is a number (but possibly if it is any
-  //   //non-string type), `required` does not appear
-  //   //in .tests and has to be tested for as above.
-  //   return {
-  //     name: testName,
-  //     //params should be undefined
-  //   };
-  // }
+  if (
+    testName === 'required' &&
+    !fieldSchema.optional &&
+    !fieldSchema.nullable
+  ) {
+    //special case checking for required: if
+    //feld is a number (but possibly if it is any
+    //non-string type), `required` does not appear
+    //in .tests and has to be tested for as above.
+    return {
+      name: testName,
+      //params should be undefined
+    };
+  }
 
   throw new AssertionError({
     message: `The test named ${testName} in YUP field schema does not exist.`,
   });
 }
 
-type ErrorCase = {
+export type ErrorCase = {
   InvalidValue: any;
   ErrorMessage: string;
 };
 
 function getErrorCaseFactory(fieldPath: string) {
   return (invalidValue: any): ErrorCase => {
+    const errorMessage = getValidationErrorMessage(fieldPath, invalidValue);
+    console.log(
+      `for fieldPath ${fieldPath} I have value '${invalidValue}' and error message '${errorMessage}'`,
+    );
     return {
       InvalidValue: invalidValue,
-      ErrorMessage: getValidationErrorMessage(fieldPath, invalidValue),
+      ErrorMessage: errorMessage,
     };
   };
 }
@@ -156,13 +165,16 @@ const createPriceErrorCases = () => {
 
   getTest(priceSchema, 'currency');
 
-  const priceNotMoney = (max.params.min as number) + 0.001;
+  const priceNotMoney = (min.params.min as number) + 0.001;
+
+  const priceNotNumeric = 'not-a-number';
 
   return {
     PriceRequired: errorCase(''),
     PriceAboveMax: errorCase(priceAboveMax),
     PriceBelowMin: errorCase(priceBelowMin),
     PriceNotMoney: errorCase(priceNotMoney),
+    PriceNotNumeric: errorCase(priceNotNumeric),
   };
 };
 
@@ -180,7 +192,7 @@ const createImageUrlErrorCases = () => {
     'http://www.example.com/image123-' + 'e'.repeat(max.params.max as number);
 
   getTest(imageUrlSchema, 'url');
-  const notAUrl = 'e'.repeat(Math.ceil((max.params.max as number) / 2));
+  const notAUrl = 'http / not-a-url';
   return {
     ImageUrlRequired: errorCase(''),
     ImageUrlMaxLength: errorCase(urlTooLong),

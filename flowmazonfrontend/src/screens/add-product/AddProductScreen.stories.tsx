@@ -4,7 +4,8 @@ import AddProductScreen from './AddProductScreen';
 import { fn } from '@storybook/test';
 import { allModes } from '../../../.storybook/modes.js';
 
-//import { ErrorCases } from '@/pageStories/add-product/index.stories';
+import { ErrorCase, ErrorCases } from '@/pageStories/add-product/index.stories';
+import { error } from 'node:console';
 //import { action } from '@storybook/addon-actions';
 
 const meta: Meta<typeof AddProductScreen> = {
@@ -47,34 +48,68 @@ export const Primary: Story = {
   args: { ...primaryArgs },
 };
 
-// export const ErrorNameMaxLength: Story = {
-//   args: {
-//     ...primaryArgs,
-//     values: {
-//       ...primaryArgs.values,
-//       //name: ErrorCases.name.NameMaxLength.InvalidValue,
-//     },
-//     hasError: {
-//       ...primaryArgs.hasError,
-//       name: true,
-//     },
-//     errors: {
-//       ...primaryArgs.errors,
-//       //name: ErrorCases.name.NameMaxLength.ErrorMessage,
-//     },
-//   },
-// };
+const makeArgs = (arg: string, errorCase: ErrorCase) => {
+  return {
+    ...primaryArgs, //redundant to do this
+    values: {
+      ...primaryArgs.values,
+      [arg]: errorCase.InvalidValue,
+    },
+    hasError: {
+      ...primaryArgs.hasError,
+      [arg]: true,
+    },
+    errors: {
+      ...primaryArgs.errors,
+      [arg]: errorCase.ErrorMessage,
+    },
+  };
+};
 
-// export const ErrorNameIsRequired: Story = {};
+export const ErrorNameMaxLength: Story = {
+  args: makeArgs('name', ErrorCases.name.NameMaxLength),
+};
 
-// export const DescriptionIsRequired: Story = {};
+export const ErrorNameIsRequired: Story = {
+  args: makeArgs('name', ErrorCases.name.NameRequired),
+};
 
-// export const ErrorImageURLInvalidURL: Story = {};
+export const ErrorDescriptionMaxLength: Story = {
+  args: makeArgs('description', ErrorCases.description.DescriptionMaxLength),
+};
 
-// export const ErrorImageURLRequired: Story = {};
+export const ErrorDescriptionIsRequried: Story = {
+  args: makeArgs('description', ErrorCases.description.DescriptionRequired),
+};
 
-// export const ErrorPriceIsRequired: Story = {};
+export const ErrorImageURLInvalidURL: Story = {
+  args: makeArgs('imageUrl', ErrorCases.imageUrl.ImageUrlIsValidUrl),
+};
 
-// export const ErrorPriceMustBeZeroOrGreater = {};
+export const ErrorImageURLRequired: Story = {
+  args: makeArgs('imageUrl', ErrorCases.imageUrl.ImageUrlRequired),
+};
 
-// export const ErrorPriceMustBeNumber = {};
+export const ErrorImageUrlMaxLength: Story = {
+  args: makeArgs('imageUrl', ErrorCases.imageUrl.ImageUrlMaxLength),
+};
+
+export const ErrorPriceIsRequired: Story = {
+  args: makeArgs('price', ErrorCases.price.PriceRequired),
+};
+
+export const ErrorPriceBelowMin: Story = {
+  args: makeArgs('price', ErrorCases.price.PriceBelowMin),
+};
+
+export const ErrorPriceAboveMax: Story = {
+  args: makeArgs('price', ErrorCases.price.PriceAboveMax),
+};
+
+export const ErrorPriceNotMoney: Story = {
+  args: makeArgs('price', ErrorCases.price.PriceNotMoney),
+};
+
+export const ErrorPriceNotNumeric: Story = {
+  args: makeArgs('price', ErrorCases.price.PriceNotNumeric),
+};

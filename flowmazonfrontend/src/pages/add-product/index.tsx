@@ -9,7 +9,7 @@ import { config } from '@/utils/config';
 export const validationSchema = Yup.object({
   name: Yup.string()
     .max(50, 'Name must be 50 characters or less')
-    .required('Name is required.'),
+    .required('Name is required'),
   description: Yup.string()
     .required('Description is required.')
     .max(10000, 'Description must be 10,000 characters or less'),
@@ -18,6 +18,14 @@ export const validationSchema = Yup.object({
     .required('Image URL is required.')
     .max(1000, 'Image URL must be 1000 character or less'),
   price: Yup.number()
+    //even though we have a custom test for money below
+    //whose pattern will fail for non numeric input,
+    //the fact that the input is not a number will fail
+    //first and the default eror message will be shown:
+    //"price must be a `number` type, but the final value was: `NaN`"
+    //THerefore we have to ahain the .typeError below
+    //to provide a more appropriate message if the input is
+    //not a number:
     .typeError('Price must be a number')
     .required('Price is required.') //does not appear in .tests so needs
     //special treatment in tests cases

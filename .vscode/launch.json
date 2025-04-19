@@ -9,6 +9,19 @@
   ],
   "configurations": [
     {
+      "name": "Storybook Debug",
+      "type": "node-terminal",
+      "request": "launch",
+      "cwd": "${workspaceFolder}/flowmazonfrontend",
+      "command": "npm run storybook",
+      "internalConsoleOptions": "openOnFirstSessionStart",
+      "serverReadyAction": {
+        "pattern": "Local:.+(https?://[^:]+:[0-9]+)",
+        "uriFormat": "%s",
+        "action": "debugWithEdge" // "debugWithChrome"
+      }
+    },
+    {
       "name": "Docker .NET Attach",
       "type": "docker",
       "request": "attach",
