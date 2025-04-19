@@ -18,7 +18,9 @@ export const validationSchema = Yup.object({
     .required('Image URL is required.')
     .max(1000, 'Image URL must be 1000 character or less'),
   price: Yup.number()
-    .required('Price is required.')
+    .typeError('Price must be a number')
+    .required('Price is required.') //does not appear in .tests so needs
+    //special treatment in tests cases
     .min(0, 'Price must be zero or greater.')
     .max(50000)
     //TODO: Note: other than than the two instances of
@@ -36,7 +38,7 @@ export const validationSchema = Yup.object({
 //TODO: Factor out repeated blocks of label, control, error message
 //into components
 export default function AddProductPage() {
-  console.log(validationSchema.describe().fields.description);
+  console.log(validationSchema.describe().fields.price);
 
   const form = useFormikAccessible({
     initialValues: {

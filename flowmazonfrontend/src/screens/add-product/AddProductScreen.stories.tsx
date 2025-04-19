@@ -4,6 +4,9 @@ import AddProductScreen from './AddProductScreen';
 import { fn } from '@storybook/test';
 import { allModes } from '../../../.storybook/modes.js';
 
+//import { ErrorCases } from '@/pageStories/add-product/index.stories';
+//import { action } from '@storybook/addon-actions';
+
 const meta: Meta<typeof AddProductScreen> = {
   component: AddProductScreen,
   args: {
@@ -15,11 +18,7 @@ const meta: Meta<typeof AddProductScreen> = {
     // 👇 Set default viewport for all component stories
     viewport: { defaultViewport: 'xl' },
     chromatic: {
-      modes: {
-        md: allModes.md,
-        lg: allModes.lg,
-        xl: allModes.xl,
-      },
+      modes: { ...allModes },
     },
   },
 };
@@ -48,19 +47,23 @@ export const Primary: Story = {
   args: { ...primaryArgs },
 };
 
-export const ErrorNameMaxLength: Story = {
-  args: {
-    ...primaryArgs,
-    hasError: {
-      ...primaryArgs.hasError,
-      name: true,
-    },
-    errors: {
-      ...primaryArgs.errors,
-      name: 'hello',
-    },
-  },
-};
+// export const ErrorNameMaxLength: Story = {
+//   args: {
+//     ...primaryArgs,
+//     values: {
+//       ...primaryArgs.values,
+//       //name: ErrorCases.name.NameMaxLength.InvalidValue,
+//     },
+//     hasError: {
+//       ...primaryArgs.hasError,
+//       name: true,
+//     },
+//     errors: {
+//       ...primaryArgs.errors,
+//       //name: ErrorCases.name.NameMaxLength.ErrorMessage,
+//     },
+//   },
+// };
 
 // export const ErrorNameIsRequired: Story = {};
 

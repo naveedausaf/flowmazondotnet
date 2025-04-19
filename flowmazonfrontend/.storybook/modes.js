@@ -1,5 +1,3 @@
-// .storybook/modes.js
-
 export const allModes = {
   sm: {
     viewport: 'sm',
