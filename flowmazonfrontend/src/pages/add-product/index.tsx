@@ -19,11 +19,13 @@ export const validationSchema = Yup.object({
     .max(1000, 'Image URL must be 1000 character or less'),
   price: Yup.number()
     //even though we have a custom test for money below
-    //whose pattern will fail for non numeric input,
-    //the fact that the input is not a number will fail
-    //first and the default eror message will be shown:
+    //whose pattern would fail for any non numeric input,
+    //if the the input is not a number, then .number() constaint
+    // will fail first and the default eror message will be shown:
+    //
     //"price must be a `number` type, but the final value was: `NaN`"
-    //THerefore we have to ahain the .typeError below
+    //
+    //Therefore we have to ahain the .typeError below
     //to provide a more appropriate message if the input is
     //not a number:
     .typeError('Price must be a number')
@@ -46,8 +48,6 @@ export const validationSchema = Yup.object({
 //TODO: Factor out repeated blocks of label, control, error message
 //into components
 export default function AddProductPage() {
-  console.log(validationSchema.describe().fields.price);
-
   const form = useFormikAccessible({
     initialValues: {
       name: '',

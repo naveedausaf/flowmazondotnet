@@ -9,23 +9,29 @@
 /* eslint-disable storybook/use-storybook-expect */
 
 import AddProductPage, { validationSchema } from '@/pages/add-product';
+import { allModes } from '../../../.storybook/modes.js';
 import {
   SchemaFieldDescription,
   SchemaDescription,
   ValidationError,
 } from 'yup';
 
-import { expect } from 'vitest';
+//import { expect } from 'vitest';
+import { fn, within, userEvent, expect } from '@storybook/test';
 import { AssertionError } from 'assert';
 import { ErrorMessage } from 'formik';
-import { Meta } from '@storybook/react';
+import { Meta, StoryObj } from '@storybook/react';
 
 const meta: Meta<typeof AddProductPage> = {
   component: AddProductPage,
   excludeStories: ['ErrorCases'],
+
   parameters: {
     // 👇 Set default viewport for all component stories
     viewport: { defaultViewport: 'xl' },
+    chromatic: {
+      modes: { ...allModes },
+    },
   },
 };
 
@@ -244,3 +250,14 @@ const createErrorCases = () => {
 };
 
 export const ErrorCases = createErrorCases();
+
+type Story = StoryObj<typeof AddProductPage>;
+
+export const Primary: Story = {};
+
+export const Errors: Story = {
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await userEvent.type(canvas.getByLabelText(/^Name/), 'Naveed Ausaf');
+  },
+};
