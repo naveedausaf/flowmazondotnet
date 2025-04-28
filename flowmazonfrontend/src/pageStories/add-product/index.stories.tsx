@@ -21,6 +21,7 @@ import { fn, within, userEvent, expect } from '@storybook/test';
 import { AssertionError } from 'assert';
 import { ErrorMessage } from 'formik';
 import { Meta, StoryObj } from '@storybook/react';
+import createAddProductPagePOM from './AddProductPagePOM';
 
 const meta: Meta<typeof AddProductPage> = {
   component: AddProductPage,
@@ -251,13 +252,30 @@ const createErrorCases = () => {
 
 export const ErrorCases = createErrorCases();
 
+const tlNormaliseString = (s: string) => s || ' {backspace}';
+
 type Story = StoryObj<typeof AddProductPage>;
 
 export const Primary: Story = {};
 
 export const Errors: Story = {
   play: async ({ canvasElement }) => {
-    const canvas = within(canvasElement);
-    await userEvent.type(canvas.getByLabelText(/^Name/), 'Naveed Ausaf');
+    const form =
+      await createAddProductPagePOM(canvasElement).getAddProductForm();
+    const nameTextbox = await form.getName();
+
+    let errorCaseName: keyof typeof ErrorCases.name;
+
+    for (errorCaseName in ErrorCases.name) {
+      const errorCase = ErrorCases.name[errorCaseName];
+      await userEvent.type(
+        nameTextbox,
+        tlNormaliseString(errorCase.InvalidValue),
+      );
+
+      await userEvent.tab();
+
+      await await userEvent.tab({ shift: true });
+    }
   },
 };

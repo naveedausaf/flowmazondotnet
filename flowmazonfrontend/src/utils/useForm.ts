@@ -11,10 +11,11 @@ import * as Yup from 'yup';
 //we had exited or changed the field). These computed errors
 //would be made available as an additional "hasError" property.
 
-export default function useFormikAccessible<Values extends FormikValues>(
+export default function useForm<Values extends FormikValues>(
   config: FormikConfig<Values>,
 ): FormikProps<Values> & {
   hasError: { [InputControl in keyof Values]: boolean };
+  required: { [InputControl in keyof Values]: boolean };
 } {
   const formik = useFormik(config);
 
@@ -75,10 +76,17 @@ export default function useFormikAccessible<Values extends FormikValues>(
 
   const namesOfValidatedControl: (keyof typeof formik.initialValues)[] =
     Object.keys(formik.initialValues);
+
   const hasError = sameValueAgainstEachValidatedControl(false);
   namesOfValidatedControl.forEach((controlName) => {
     hasError[controlName] =
       inputsChangedThenBlurred[controlName] && !!formik.errors[controlName];
+  });
+
+  const required = sameValueAgainstEachValidatedControl(false);
+  namesOfValidatedControl.forEach((controlName) => {
+    const fieldSchema = config.validationSchema.fields[controlName].describe();
+    required[controlName] = !fieldSchema.optional && fieldSchema.nullable;
   });
 
   return {
@@ -87,5 +95,6 @@ export default function useFormikAccessible<Values extends FormikValues>(
     handleChange,
     handleBlur,
     hasError,
+    required,
   };
 }

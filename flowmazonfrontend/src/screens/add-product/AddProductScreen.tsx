@@ -1,6 +1,6 @@
 import Head from 'next/head';
 import clsx from 'clsx';
-import { FormEvent } from 'react';
+import { FormEvent, useId } from 'react';
 
 export type AddProductPageScreenProps = {
   hasError: {
@@ -21,6 +21,12 @@ export type AddProductPageScreenProps = {
     imageUrl: string;
     price: string;
   };
+  required: {
+    name: boolean;
+    description: boolean;
+    imageUrl: boolean;
+    price: boolean;
+  };
   onSubmit: (e?: FormEvent<HTMLFormElement>) => void;
 
   onBlur: (e: FormEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
@@ -32,10 +38,16 @@ export default function AddProductScreen({
   hasError,
   errors,
   values,
+  required,
   onSubmit,
   onBlur,
   onChange,
 }: AddProductPageScreenProps) {
+  const nameId = useId();
+  const descId = useId();
+  const imageUrlId = useId();
+  const priceId = useId();
+
   return (
     <>
       <Head>
@@ -44,9 +56,8 @@ export default function AddProductScreen({
       <div className='bg-base-300 sm:px-1 sm:py-5 md:px-3 md:py-4 lg:px-3 lg:py-4'>
         <div className='mx-auto max-w-5xl px-0'>
           <h1 className='mb-4 text-lg font-bold'>Add Product</h1>
-          <form action='' onSubmit={onSubmit}>
-            <label htmlFor='name'>Name</label>
-
+          <form action='' onSubmit={onSubmit} aria-label='add product form'>
+            <label htmlFor={nameId}>Name</label>
             <input
               type='text'
               className={clsx(
@@ -56,8 +67,10 @@ export default function AddProductScreen({
                 'input input-bordered mb-0 w-full focus:ring-1 focus:outline-none',
               )}
               name='name'
+              id={nameId}
               value={values.name}
-              aria-required='true'
+              inputMode='text'
+              aria-required={required.name}
               onChange={onChange}
               onBlur={onBlur}
               aria-invalid={hasError.name}
@@ -73,9 +86,10 @@ export default function AddProductScreen({
               </span>
               &nbsp;
             </div>
-            <label htmlFor='description'>Description</label>
+            <label htmlFor={descId}>Description</label>
             <textarea
               name='description'
+              id={descId}
               className={clsx(
                 hasError.description &&
                   'border-error focus:border-error focus:ring-error',
@@ -83,7 +97,8 @@ export default function AddProductScreen({
                 'textarea textarea-bordered mb-0 w-full focus:ring-1 focus:outline-none',
               )}
               value={values.description}
-              aria-required='true'
+              inputMode='text'
+              aria-required={required.description}
               onChange={onChange}
               onBlur={onBlur}
               aria-invalid={hasError.description}
@@ -99,7 +114,7 @@ export default function AddProductScreen({
               </span>
               &nbsp;
             </div>
-            <label htmlFor='imageUrl'>Image URL</label>
+            <label htmlFor={imageUrlId}>Image URL</label>
             <input
               type='text'
               className={clsx(
@@ -109,8 +124,10 @@ export default function AddProductScreen({
                 'input input-bordered mb-0 w-full focus:ring-1 focus:outline-none',
               )}
               name='imageUrl'
+              id={imageUrlId}
               value={values.imageUrl}
-              aria-required='true'
+              inputMode='url'
+              aria-required={required.imageUrl}
               onChange={onChange}
               onBlur={onBlur}
               aria-invalid={hasError.imageUrl}
@@ -126,7 +143,7 @@ export default function AddProductScreen({
               </span>
               &nbsp;
             </div>
-            <label htmlFor='price'>Price</label>
+            <label htmlFor={priceId}>Price</label>
             <input
               type='text'
               className={clsx(
@@ -136,8 +153,10 @@ export default function AddProductScreen({
                 'input input-bordered mb-0 w-full focus:ring-1 focus:outline-none',
               )}
               name='price'
+              id={priceId}
               value={values.price}
-              aria-required='true'
+              inputMode='decimal'
+              aria-required={required.price}
               onChange={onChange}
               onBlur={onBlur}
               aria-invalid={hasError.price}

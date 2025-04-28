@@ -3,8 +3,9 @@ import Head from 'next/head';
 import * as Yup from 'yup';
 /* import { useRouter } from 'next/router'; */
 import clsx from 'clsx';
-import useFormikAccessible from '@/utils/useFormikAccessible';
+import useForm from '@/utils/useForm';
 import { config } from '@/utils/config';
+import AddProductScreen from '@/screens/add-product/AddProductScreen';
 
 export const validationSchema = Yup.object({
   name: Yup.string()
@@ -48,7 +49,7 @@ export const validationSchema = Yup.object({
 //TODO: Factor out repeated blocks of label, control, error message
 //into components
 export default function AddProductPage() {
-  const form = useFormikAccessible({
+  const form = useForm({
     initialValues: {
       name: '',
       description: '',
@@ -68,7 +69,16 @@ export default function AddProductPage() {
   });
 
   return (
-    <>
+    <AddProductScreen
+      hasError={form.hasError}
+      errors={form.errors}
+      values={form.values}
+      required={form.required}
+      onBlur={form.handleBlur}
+      onChange={form.handleChange}
+      onSubmit={form.handleSubmit}
+    />
+    /* <>
       <Head>
         <title>Add Product - Flowmazon</title>
       </Head>
@@ -188,6 +198,6 @@ export default function AddProductPage() {
           </button>
         </form>
       </div>
-    </>
+    </> */
   );
 }
