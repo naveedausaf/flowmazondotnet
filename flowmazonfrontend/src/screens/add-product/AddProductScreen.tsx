@@ -44,9 +44,13 @@ export default function AddProductScreen({
   onChange,
 }: AddProductPageScreenProps) {
   const nameId = useId();
+  const nameErrorId = useId();
   const descId = useId();
+  const descErrorId = useId();
   const imageUrlId = useId();
+  const imageUrlErrorId = useId();
   const priceId = useId();
+  const priceErrorId = useId();
 
   return (
     <>
@@ -74,14 +78,10 @@ export default function AddProductScreen({
               onChange={onChange}
               onBlur={onBlur}
               aria-invalid={hasError.name}
-              aria-describedby='nameError'
+              aria-errormessage={(hasError.name && nameErrorId) || ''}
             />
             <div className='mt-0 mb-2'>
-              <span
-                id='nameError'
-                aria-live='assertive'
-                className='text-sm text-red-500'
-              >
+              <span id={nameErrorId} className='text-sm text-red-500'>
                 {hasError.name && errors.name}
               </span>
               &nbsp;

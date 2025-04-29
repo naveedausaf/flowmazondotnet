@@ -252,30 +252,42 @@ const createErrorCases = () => {
 
 export const ErrorCases = createErrorCases();
 
-const tlNormaliseString = (s: string) => s || ' {backspace}';
+const tlNormaliseString = (s: string) => '{backspace}' + (s || ' {backspace}');
 
 type Story = StoryObj<typeof AddProductPage>;
 
 export const Primary: Story = {};
 
-export const Errors: Story = {
+export const NameErrors: Story = {
   play: async ({ canvasElement }) => {
-    const form =
-      await createAddProductPagePOM(canvasElement).getAddProductForm();
-    const nameTextbox = await form.getName();
+    //initialise
+    const form = createAddProductPagePOM(canvasElement).getAddProductForm();
+    const nameTextbox = form.getName();
 
     let errorCaseName: keyof typeof ErrorCases.name;
 
+    nameTextbox.focus();
+
+    //iterate over error test cases
     for (errorCaseName in ErrorCases.name) {
       const errorCase = ErrorCases.name[errorCaseName];
-      await userEvent.type(
-        nameTextbox,
-        tlNormaliseString(errorCase.InvalidValue),
-      );
+      await userEvent.keyboard(tlNormaliseString(errorCase.InvalidValue));
 
       await userEvent.tab();
+
+      await expect(
+        form.queryName_withAccessibleDescription(errorCase.ErrorMessage),
+      ).not.toBeNull();
+      // const nameError = await form.getNameErrorByText(errorCase.ErrorMessage);
 
       await await userEvent.tab({ shift: true });
     }
   },
 };
+
+// export const DescriptionErrors: Story = {
+//   play: async ({ canvasElement }) => {
+//     const form = createAddProductPagePOM(canvasElement).getAddProductForm();
+//     const descriptionTextbox = form.getDescription();
+//   },
+// };

@@ -86,7 +86,7 @@ export default function useForm<Values extends FormikValues>(
   const required = sameValueAgainstEachValidatedControl(false);
   namesOfValidatedControl.forEach((controlName) => {
     const fieldSchema = config.validationSchema.fields[controlName].describe();
-    required[controlName] = !fieldSchema.optional && fieldSchema.nullable;
+    required[controlName] = !fieldSchema.optional && !fieldSchema.nullable;
   });
 
   return {
