@@ -45,6 +45,7 @@ type Story = StoryObj<typeof AddProductPage>;
 export const Primary: Story = {};
 export const InputModes: Story = {};
 export const Autocomplete: Story = {};
+export const SubmitSuccessfully: Story = {};
 export const SubmitValidateAllFieldsAndJumpsToFirstError: Story = {};
 export const SubmitWhenThereAreAlreadyErrorsJumpsToFirstError: Story = {};
 export const ValidateOnTypeButAfterFirstTabOff: Story = {};
