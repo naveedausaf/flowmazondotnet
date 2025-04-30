@@ -9,6 +9,7 @@
 /* eslint-disable storybook/use-storybook-expect */
 
 import AddProductPage, { validationSchema } from '@/pages/add-product';
+import { ErrorCases } from './testdata';
 import { allModes } from '../../../.storybook/modes.js';
 import {
   SchemaFieldDescription,
@@ -16,12 +17,11 @@ import {
   ValidationError,
 } from 'yup';
 
-//import { expect } from 'vitest';
 import { fn, within, userEvent, expect } from '@storybook/test';
 import { AssertionError } from 'assert';
 import { ErrorMessage } from 'formik';
 import { Meta, StoryObj } from '@storybook/react';
-import createAddProductPagePOM from './AddProductPagePOM';
+import createAddProductPagePOM from './PageObjectModel';
 
 const meta: Meta<typeof AddProductPage> = {
   component: AddProductPage,
@@ -38,232 +38,25 @@ const meta: Meta<typeof AddProductPage> = {
 
 export default meta;
 
-//TODO: NOTE FIRST INSTANCE of why reflecting on Yup schema is
-//so painful:
-//
-// The abomination below necessary to get `max` value
-//in a max constraint.
-//
-//validationSchema.describe()
-// .fields.name.tests.find((obj) => obj.name === 'max').params.max + 1
-
-//NOTE: re. typescript assertion functions below,
-//they cannot be arrow functions or TS throws errors.
-
-//better than 'as SchemaDescription' all over the place
-function assertFieldSchemaIsSchemaDescription(
-  fieldSchema: SchemaFieldDescription,
-): asserts fieldSchema is SchemaDescription {
-  if ((fieldSchema as SchemaDescription).tests === undefined) {
-    throw new AssertionError({
-      message:
-        'The provided Yup schema for a field was not of type SchemaDescription',
-    });
-  }
-}
-
-function assertTestParamsDefined(
-  testParams: unknown,
-): asserts testParams is NonNullable<unknown> {
-  //expect(testParams).toBeDefined();
-}
-
-//A bit unorthodox, but in these createXXXSchema functions
-//below, I am asserting that the Yup schema has not changed
-//from what was expected. If it has, we would update the
-//TestCaseGenerator as well as add test cases in the
-//Screen (pure presentational page component for this page)
-
-//TODO:  NOTE SECOND INSTANCE of how difficult it is to reflect
-//  why I need to move away from Yup:
-//why should reflectin on error message supplied
-//at schema construction time be so painful?
-const getValidationErrorMessage = (path: string, value: unknown) => {
-  try {
-    validationSchema.validateSyncAt(path, { [path]: value });
-
-    //as a fallback, if no ValidationError is thrown then
-    //we throw an AssertionError
-    throw new AssertionError({
-      message: `An error should have been thrown whan validating value "${value}" at path ${path} using the YUP schema`,
-    });
-  } catch (ex) {
-    //we know for a fact that ex is ValidationError
-    const err = ex as ValidationError;
-    console.log(
-      `I am returning error '${err.message}' for path '${path}' and value '${value}'`,
-    );
-    console.log(`I have eror value: ${err.value}`);
-    console.log(`I have eror errors: ${err.errors.length}`);
-    return err.message;
-  }
-};
-
-const getFieldSchema = (
-  fieldSchema: SchemaFieldDescription,
-  expectedNumOfTests: number,
-) => {
-  assertFieldSchemaIsSchemaDescription(fieldSchema);
-  //expect(fieldSchema.tests.length).toEqual(expectedNumOfTests);
-  return fieldSchema;
-};
-function getTest(fieldSchema: SchemaDescription, testName: string) {
-  const test = fieldSchema.tests.find((obj) => obj.name === testName);
-  if (test) {
-    return {
-      name: testName,
-      params: test.params,
-    };
-  }
-
-  if (
-    testName === 'required' &&
-    !fieldSchema.optional &&
-    !fieldSchema.nullable
-  ) {
-    //special case checking for required: if
-    //feld is a number (but possibly if it is any
-    //non-string type), `required` does not appear
-    //in .tests and has to be tested for as above.
-    return {
-      name: testName,
-      //params should be undefined
-    };
-  }
-
-  throw new AssertionError({
-    message: `The test named ${testName} in YUP field schema does not exist.`,
-  });
-}
-
-export type ErrorCase = {
-  InvalidValue: any;
-  ErrorMessage: string;
-};
-
-function getErrorCaseFactory(fieldPath: string) {
-  return (invalidValue: any): ErrorCase => {
-    const errorMessage = getValidationErrorMessage(fieldPath, invalidValue);
-    console.log(
-      `for fieldPath ${fieldPath} I have value '${invalidValue}' and error message '${errorMessage}'`,
-    );
-    return {
-      InvalidValue: invalidValue,
-      ErrorMessage: errorMessage,
-    };
-  };
-}
-
-const createPriceErrorCases = () => {
-  const errorCase = getErrorCaseFactory('price');
-  const priceSchema = getFieldSchema(
-    validationSchema.fields.price.describe(),
-    3,
-  );
-
-  getTest(priceSchema, 'required');
-  const max = getTest(priceSchema, 'max');
-  assertTestParamsDefined(max.params);
-  const priceAboveMax = (max.params.max as number) + 1;
-
-  const min = getTest(priceSchema, 'min');
-  assertTestParamsDefined(min.params);
-  const priceBelowMin = (min.params.min as number) - 1;
-
-  getTest(priceSchema, 'currency');
-
-  const priceNotMoney = (min.params.min as number) + 0.001;
-
-  const priceNotNumeric = 'not-a-number';
-
-  return {
-    PriceRequired: errorCase(''),
-    PriceAboveMax: errorCase(priceAboveMax),
-    PriceBelowMin: errorCase(priceBelowMin),
-    PriceNotMoney: errorCase(priceNotMoney),
-    PriceNotNumeric: errorCase(priceNotNumeric),
-  };
-};
-
-const createImageUrlErrorCases = () => {
-  const errorCase = getErrorCaseFactory('imageUrl');
-  const imageUrlSchema = getFieldSchema(
-    validationSchema.fields.imageUrl.describe(),
-    3,
-  );
-
-  getTest(imageUrlSchema, 'required');
-  const max = getTest(imageUrlSchema, 'max');
-  assertTestParamsDefined(max.params);
-  const urlTooLong =
-    'http://www.example.com/image123-' + 'e'.repeat(max.params.max as number);
-
-  getTest(imageUrlSchema, 'url');
-  const notAUrl = 'http / not-a-url';
-  return {
-    ImageUrlRequired: errorCase(''),
-    ImageUrlMaxLength: errorCase(urlTooLong),
-    ImageUrlIsValidUrl: errorCase(notAUrl),
-  };
-};
-
-const createDescriptionErrorCases = () => {
-  const errorCase = getErrorCaseFactory('description');
-  const descriptionSchema = getFieldSchema(
-    validationSchema.fields.description.describe(),
-    2,
-  );
-  getTest(descriptionSchema, 'required');
-  const max = getTest(descriptionSchema, 'max');
-  assertTestParamsDefined(max.params);
-  const tooLongDescription =
-    'Lorem ' + 'ipsum '.repeat(Math.ceil((max.params.max as number) / 6));
-  return {
-    DescriptionRequired: errorCase(''),
-    DescriptionMaxLength: errorCase(tooLongDescription),
-  };
-};
-
-const createNameErrorCases = () => {
-  const errorCase = getErrorCaseFactory('name');
-  const nameSchema = getFieldSchema(validationSchema.fields.name.describe(), 2);
-  const max = getTest(nameSchema, 'max');
-  assertTestParamsDefined(max.params);
-  const tooLongName = 'Jane Doe' + 'e'.repeat(max.params.max as number);
-
-  getTest(nameSchema, 'required');
-
-  return {
-    NameMaxLength: errorCase(tooLongName),
-    NameRequired: errorCase(''),
-  };
-};
-
-const createErrorCases = () => {
-  //expect(validationSchema.describe().fields).toHaveLength(4);
-
-  return {
-    name: createNameErrorCases(),
-    description: createDescriptionErrorCases(),
-    imageUrl: createImageUrlErrorCases(),
-    price: createPriceErrorCases(),
-  };
-};
-
-export const ErrorCases = createErrorCases();
-
 const tlNormaliseString = (s: string) => '{backspace}' + (s || ' {backspace}');
 
 type Story = StoryObj<typeof AddProductPage>;
 
 export const Primary: Story = {};
+export const InputModes: Story = {};
+export const Autocomplete: Story = {};
+export const SubmitValidateAllFieldsAndJumpsToFirstError: Story = {};
+export const SubmitWhenThereAreAlreadyErrorsJumpsToFirstError: Story = {};
+export const ValidateOnTypeButAfterFirstTabOff: Story = {};
+export const AsterisksOnRequiredFieldsNotPartOfAccessibleName: Story = {};
+export const RequiredFieldsIdentifiedAsSuch: Story = {};
 
-export const NameErrors: Story = {
-  play: async ({ canvasElement }) => {
+export const AllNameErrors_ValidateOnTabOff: Story = {
+  play: async ({ canvasElement, step }) => {
     //initialise
     const form = createAddProductPagePOM(canvasElement).getAddProductForm();
-    const nameTextbox = form.getName();
 
+    const nameTextbox = form.getName();
     let errorCaseName: keyof typeof ErrorCases.name;
 
     nameTextbox.focus();
@@ -278,7 +71,8 @@ export const NameErrors: Story = {
       await expect(
         form.queryName_withAccessibleDescription(errorCase.ErrorMessage),
       ).not.toBeNull();
-      // const nameError = await form.getNameErrorByText(errorCase.ErrorMessage);
+      await expect(nameTextbox.ariaInvalid).not.toBe('false');
+      await expect(nameTextbox.ariaInvalid).not.toBeFalsy();
 
       await await userEvent.tab({ shift: true });
     }

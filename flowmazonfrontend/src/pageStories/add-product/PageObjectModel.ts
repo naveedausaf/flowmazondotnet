@@ -1,4 +1,5 @@
 import { fn, within, userEvent, expect } from '@storybook/test';
+import { ByRoleOptions } from '@testing-library/dom';
 
 const createAddProductPagePOM = (canvasElement: HTMLElement) => {
   const canvas = within(canvasElement);
@@ -9,9 +10,15 @@ const createAddProductPagePOM = (canvasElement: HTMLElement) => {
       );
       return {
         tlFormContainer: tlFormContainer,
-        getName: (required: boolean) =>
-          tlFormContainer.getByRole('textbox', { name: /^Name/ }),
+        getName: (options?: Omit<ByRoleOptions, 'name'>) => {
+          let y: keyof Parameters<typeof tlFormContainer.getByRole>;
+          y = 1;
 
+          return tlFormContainer.getByRole('textbox', {
+            name: /^Name/,
+            ...options,
+          });
+        },
         queryName_withAccessibleDescription: (accessibleDescription: string) =>
           tlFormContainer.queryByRole('textbox', {
             name: /^Name/,

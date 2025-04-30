@@ -4,8 +4,7 @@ import AddProductScreen from './AddProductScreen';
 import { fn } from '@storybook/test';
 import { allModes } from '../../../.storybook/modes.js';
 
-import { ErrorCase, ErrorCases } from '@/pageStories/add-product/index.stories';
-import { error } from 'node:console';
+import { ErrorCase, ErrorCases } from '@/pageStories/add-product/testdata';
 //import { action } from '@storybook/addon-actions';
 
 const meta: Meta<typeof AddProductScreen> = {
@@ -30,6 +29,12 @@ type Story = StoryObj<typeof AddProductScreen>;
 
 const primaryArgs = {
   errors: {},
+  required: {
+    name: true,
+    description: true,
+    imageUrl: true,
+    price: true,
+  },
   values: {
     name: '',
     description: '',
