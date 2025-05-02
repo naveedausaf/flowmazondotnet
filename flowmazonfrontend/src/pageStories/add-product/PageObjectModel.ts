@@ -3,13 +3,13 @@ import { ByRoleOptions } from '@testing-library/dom';
 
 const createAddProductPagePOM = (canvasElement: HTMLElement) => {
   const canvas = within(canvasElement);
+  const formElement = canvas.getByRole('form', { name: 'add product form' });
   return {
     getAddProductForm: () => {
-      const tlFormContainer = within(
-        canvas.getByRole('form', { name: 'add product form' }),
-      );
+      const tlFormContainer = within(formElement);
       return {
         tlFormContainer: tlFormContainer,
+        formElement,
         getName: (options?: Omit<ByRoleOptions, 'name'>) => {
           let y: keyof Parameters<typeof tlFormContainer.getByRole>;
           y = 1;

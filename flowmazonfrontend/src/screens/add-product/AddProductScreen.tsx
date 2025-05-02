@@ -79,10 +79,13 @@ export default function AddProductScreen({
               onBlur={onBlur}
               aria-invalid={hasError.name}
               aria-describedby={(hasError.name && nameErrorId) || ''}
-              aria-live='polite'
             />
             <div className='mt-0 mb-2'>
-              <span id={nameErrorId} className='text-sm text-red-500'>
+              <span
+                id={nameErrorId}
+                className='text-sm text-red-500'
+                aria-live='polite'
+              >
                 {hasError.name && errors.name}
               </span>
               &nbsp;

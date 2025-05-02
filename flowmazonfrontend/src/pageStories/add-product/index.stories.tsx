@@ -22,6 +22,7 @@ import { AssertionError } from 'assert';
 import { ErrorMessage } from 'formik';
 import { Meta, StoryObj } from '@storybook/react';
 import createAddProductPagePOM from './PageObjectModel';
+import { virtual as virtualScreenReader } from '@guidepup/virtual-screen-reader';
 
 const meta: Meta<typeof AddProductPage> = {
   component: AddProductPage,
@@ -46,6 +47,8 @@ export const Primary: Story = {};
 export const InputModes: Story = {};
 export const Autocomplete: Story = {};
 export const SubmitSuccessfully: Story = {};
+
+//error stories
 export const SubmitValidateAllFieldsAndJumpsToFirstError: Story = {};
 export const SubmitWhenThereAreAlreadyErrorsJumpsToFirstError: Story = {};
 export const ValidateOnTypeButAfterFirstTabOff: Story = {};
@@ -60,6 +63,7 @@ export const AllNameErrors_ValidateOnTabOff: Story = {
     const nameTextbox = form.getName();
     let errorCaseName: keyof typeof ErrorCases.name;
 
+    await virtualScreenReader.start({ container: form.formElement });
     nameTextbox.focus();
 
     //iterate over error test cases
