@@ -112,9 +112,9 @@ export type ErrorCase = {
 function getErrorCaseFactory(fieldPath: string) {
   return (invalidValue: any): ErrorCase => {
     const errorMessage = getValidationErrorMessage(fieldPath, invalidValue);
-    console.log(
-      `for fieldPath ${fieldPath} I have value '${invalidValue}' and error message '${errorMessage}'`,
-    );
+    // console.log(
+    //   `for fieldPath ${fieldPath} I have value '${invalidValue}' and error message '${errorMessage}'`,
+    // );
     return {
       InvalidValue: invalidValue,
       ErrorMessage: errorMessage,
@@ -197,7 +197,7 @@ const createNameErrorCases = () => {
   const nameSchema = getFieldSchema(validationSchema.fields.name.describe(), 2);
   const max = getTest(nameSchema, 'max');
   assertTestParamsDefined(max.params);
-  const tooLongName = 'Jane Doe' + 'e'.repeat(max.params.max as number);
+  const tooLongName = 'John Doe' + 'e'.repeat((max.params.max as number) - 7);
 
   getTest(nameSchema, 'required');
 

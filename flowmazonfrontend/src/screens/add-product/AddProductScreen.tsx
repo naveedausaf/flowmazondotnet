@@ -79,13 +79,10 @@ export default function AddProductScreen({
               onBlur={onBlur}
               aria-invalid={hasError.name}
               aria-describedby={(hasError.name && nameErrorId) || ''}
+              aria-live='assertive'
             />
             <div className='mt-0 mb-2'>
-              <span
-                id={nameErrorId}
-                className='text-sm text-red-500'
-                aria-live='polite'
-              >
+              <span id={nameErrorId} className='0 text-sm text-red-50'>
                 {hasError.name && errors.name}
               </span>
               &nbsp;
@@ -109,11 +106,7 @@ export default function AddProductScreen({
               aria-describedby='descriptionError'
             />
             <div className='mt-0 mb-2'>
-              <span
-                id='descriptionError'
-                aria-live='assertive'
-                className='text-sm text-red-500'
-              >
+              <span id='descriptionError' className='text-sm text-red-500'>
                 {hasError.description && errors.description}
               </span>
               &nbsp;
@@ -138,11 +131,7 @@ export default function AddProductScreen({
               aria-describedby='imageUrlError'
             />
             <div className='mt-0 mb-2'>
-              <span
-                id='imageUrlError'
-                aria-live='assertive'
-                className='text-sm text-red-500'
-              >
+              <span id='imageUrlError' className='text-sm text-red-500'>
                 {hasError.imageUrl && errors.imageUrl}
               </span>
               &nbsp;
@@ -167,11 +156,7 @@ export default function AddProductScreen({
               aria-describedby='priceError'
             />
             <div className='mt-0 mb-2'>
-              <span
-                id='priceError'
-                aria-live='assertive'
-                className='text-sm text-red-500'
-              >
+              <span id='priceError' className='text-sm text-red-500'>
                 {hasError.price && errors.price}
               </span>
               &nbsp;

@@ -39,7 +39,6 @@ export default function useForm<Values extends FormikValues>(
   const handleChange = (
     e: FormEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => {
-    console.log('CHANGE handler called.');
     formik.handleChange(e);
     setInputsChanged({
       ...inputsChanged,
@@ -53,7 +52,6 @@ export default function useForm<Values extends FormikValues>(
   );
 
   const handleBlur = (e: FormEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    console.log('BLUR handler called.');
     formik.handleBlur(e);
     setInputsChangedThenBlurred({
       ...inputsChangedThenBlurred,
@@ -68,7 +66,6 @@ export default function useForm<Values extends FormikValues>(
   };
 
   const handleSubmit = (e?: FormEvent<HTMLFormElement>) => {
-    console.log('SUBMIT handler called.');
     formik.handleSubmit(e);
 
     setInputsChangedThenBlurred(sameValueAgainstEachValidatedControl(true));

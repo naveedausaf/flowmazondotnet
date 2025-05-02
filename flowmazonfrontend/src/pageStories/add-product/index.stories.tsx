@@ -41,6 +41,8 @@ export default meta;
 
 const tlNormaliseString = (s: string) => '{backspace}' + (s || ' {backspace}');
 
+const formName = 'add product';
+
 type Story = StoryObj<typeof AddProductPage>;
 
 export const Primary: Story = {};
@@ -54,6 +56,7 @@ export const SubmitWhenThereAreAlreadyErrorsJumpsToFirstError: Story = {};
 export const ValidateOnTypeButAfterFirstTabOff: Story = {};
 export const AsterisksOnRequiredFieldsNotPartOfAccessibleName: Story = {};
 export const RequiredFieldsIdentifiedAsSuch: Story = {};
+export const FormNameIsCorrect: Story = {};
 
 export const AllNameErrors_ValidateOnTabOff: Story = {
   play: async ({ canvasElement, step }) => {
@@ -62,13 +65,28 @@ export const AllNameErrors_ValidateOnTabOff: Story = {
 
     const nameTextbox = form.getName();
     let errorCaseName: keyof typeof ErrorCases.name;
-
     await virtualScreenReader.start({ container: form.formElement });
     nameTextbox.focus();
 
+    let isFirstElement = true;
+    let lastErrorCaseValue = '';
+    let lastErrorCaseMessage;
     //iterate over error test cases
     for (errorCaseName in ErrorCases.name) {
+      if (isFirstElement) {
+        //the form would be announced, which we want to ignore
+        await expect(await virtualScreenReader.lastSpokenPhrase()).toEqual(
+          'textbox, Name, not invalid, required',
+        );
+        isFirstElement = false;
+      } else {
+        await expect(await virtualScreenReader.lastSpokenPhrase()).toEqual(
+          `textbox, Name, ${lastErrorCaseValue}, ${lastErrorCaseMessage}, invalid, required`,
+        );
+      }
+
       const errorCase = ErrorCases.name[errorCaseName];
+
       await userEvent.keyboard(tlNormaliseString(errorCase.InvalidValue));
 
       await userEvent.tab();
@@ -79,7 +97,9 @@ export const AllNameErrors_ValidateOnTabOff: Story = {
       await expect(nameTextbox.ariaInvalid).not.toBe('false');
       await expect(nameTextbox.ariaInvalid).not.toBeFalsy();
 
-      await await userEvent.tab({ shift: true });
+      await userEvent.tab({ shift: true });
+      lastErrorCaseValue = errorCase.InvalidValue;
+      lastErrorCaseMessage = errorCase.ErrorMessage;
     }
   },
 };
