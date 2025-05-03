@@ -22,7 +22,9 @@ import { AssertionError } from 'assert';
 import { ErrorMessage } from 'formik';
 import { Meta, StoryObj } from '@storybook/react';
 import createAddProductPagePOM from './PageObjectModel';
-import { virtual as virtualScreenReader } from '@guidepup/virtual-screen-reader';
+import { virtual } from '@guidepup/virtual-screen-reader';
+
+import { TestCase } from 'vitest/node';
 
 const meta: Meta<typeof AddProductPage> = {
   component: AddProductPage,
@@ -65,22 +67,28 @@ export const AllNameErrors_ValidateOnTabOff: Story = {
 
     const nameTextbox = form.getName();
     let errorCaseName: keyof typeof ErrorCases.name;
-    await virtualScreenReader.start({ container: form.formElement });
+
+    await virtual.start({ container: form.formElement });
+
     nameTextbox.focus();
 
-    let isFirstElement = true;
+    //tabbing back out and tabbing in again seems to make
+    //the unit test more robust in storybook
+    await userEvent.tab({ shift: true });
+    await userEvent.tab();
+
+    let isFirstTimeStoppingOnElement = true;
     let lastErrorCaseValue = '';
     let lastErrorCaseMessage;
     //iterate over error test cases
     for (errorCaseName in ErrorCases.name) {
-      if (isFirstElement) {
-        //the form would be announced, which we want to ignore
-        await expect(await virtualScreenReader.lastSpokenPhrase()).toEqual(
+      if (isFirstTimeStoppingOnElement) {
+        await expect(await virtual.lastSpokenPhrase()).toEqual(
           'textbox, Name, not invalid, required',
         );
-        isFirstElement = false;
+        isFirstTimeStoppingOnElement = false;
       } else {
-        await expect(await virtualScreenReader.lastSpokenPhrase()).toEqual(
+        await expect(await virtual.lastSpokenPhrase()).toEqual(
           `textbox, Name, ${lastErrorCaseValue}, ${lastErrorCaseMessage}, invalid, required`,
         );
       }
@@ -101,6 +109,8 @@ export const AllNameErrors_ValidateOnTabOff: Story = {
       lastErrorCaseValue = errorCase.InvalidValue;
       lastErrorCaseMessage = errorCase.ErrorMessage;
     }
+
+    await virtual.stop();
   },
 };
 
