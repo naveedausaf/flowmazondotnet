@@ -82,7 +82,7 @@ export default function AddProductScreen({
               aria-live='assertive'
             />
             <div className='mt-0 mb-2'>
-              <span id={nameErrorId} className='0 text-sm text-red-50'>
+              <span id={nameErrorId} className='0 text-sm text-red-500'>
                 {hasError.name && errors.name}
               </span>
               &nbsp;

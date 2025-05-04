@@ -11,30 +11,16 @@ const createAddProductPagePOM = (canvasElement: HTMLElement) => {
         tlFormContainer: tlFormContainer,
         formElement,
         getName: (options?: Omit<ByRoleOptions, 'name'>) => {
-          let y: keyof Parameters<typeof tlFormContainer.getByRole>;
-          y = 1;
-
           return tlFormContainer.getByRole('textbox', {
             name: /^Name/,
             ...options,
           });
         },
-        queryName_withAccessibleDescription: (accessibleDescription: string) =>
-          tlFormContainer.queryByRole('textbox', {
-            name: /^Name/,
-            description: accessibleDescription,
-          }),
-        // getNameErrorByText: async (errorMessage) => {
-        //   return await tlFormContainer.getByText(
-        //     errorMessage,
-        //     {
 
-        //     }
-        //   )
-        // }
-        getDescription: async (requried: boolean) => {
-          return await tlFormContainer.getByRole('textbox', {
+        getDescription: (options?: Omit<ByRoleOptions, 'name'>) => {
+          return tlFormContainer.getByRole('textbox', {
             name: /^Description/,
+            ...options,
           });
         },
         getImageUrl: async (required: boolean) => {

@@ -47,6 +47,16 @@ const formName = 'add product';
 
 type Story = StoryObj<typeof AddProductPage>;
 
+//TODO: Write a test in Playwright to pick up
+//aria-live="assertive" set on name textbox
+//I can pick it up with NVDA but not Guiepup's
+//virtual screen reader.
+
+//TODO: Add a beforeEach to meta that returns
+//a function to run after each test that
+//runs axe against the final (after play function)
+//state of the rendered story.
+
 export const Primary: Story = {};
 export const InputModes: Story = {};
 export const Autocomplete: Story = {};
@@ -60,15 +70,15 @@ export const AsterisksOnRequiredFieldsNotPartOfAccessibleName: Story = {};
 export const RequiredFieldsIdentifiedAsSuch: Story = {};
 export const FormNameIsCorrect: Story = {};
 
-export const AllNameErrors_ValidateOnTabOff: Story = {
-  play: async ({ canvasElement, step }) => {
+export const NameErrors_ValidateOnTabOff: Story = {
+  play: async ({ canvasElement }) => {
     //initialise
     const form = createAddProductPagePOM(canvasElement).getAddProductForm();
 
+    await virtual.start({ container: form.formElement });
+
     const nameTextbox = form.getName();
     let errorCaseName: keyof typeof ErrorCases.name;
-
-    await virtual.start({ container: form.formElement });
 
     nameTextbox.focus();
 
@@ -99,11 +109,59 @@ export const AllNameErrors_ValidateOnTabOff: Story = {
 
       await userEvent.tab();
 
-      await expect(
-        form.queryName_withAccessibleDescription(errorCase.ErrorMessage),
-      ).not.toBeNull();
-      await expect(nameTextbox.ariaInvalid).not.toBe('false');
-      await expect(nameTextbox.ariaInvalid).not.toBeFalsy();
+      form.getName({ description: errorCase.ErrorMessage });
+
+      await expect(nameTextbox.ariaInvalid).toBeTruthy();
+
+      await userEvent.tab({ shift: true });
+      lastErrorCaseValue = errorCase.InvalidValue;
+      lastErrorCaseMessage = errorCase.ErrorMessage;
+    }
+
+    await virtual.stop();
+  },
+};
+
+export const DescriptionErrors_ValidateOnTabOff: Story = {
+  play: async ({ canvasElement }) => {
+    //initialise
+    const form = createAddProductPagePOM(canvasElement).getAddProductForm();
+
+    const descriptionTextbox = form.getDescription();
+    let errorCaseDescription: keyof typeof ErrorCases.description;
+
+    descriptionTextbox.focus();
+
+    await virtual.start({ container: form.formElement });
+    //tabbing back out and tabbing in again seems to make
+    //the unit test more robust in storybook
+    await userEvent.tab({ shift: true });
+    await userEvent.tab();
+
+    let isFirstTimeStoppingOnElement = true;
+    let lastErrorCaseValue = '';
+    let lastErrorCaseMessage;
+    //iterate over error test cases
+    for (errorCaseDescription in ErrorCases.description) {
+      if (isFirstTimeStoppingOnElement) {
+        await expect(await virtual.lastSpokenPhrase()).toEqual(
+          'textbox, Description, not invalid, required',
+        );
+        isFirstTimeStoppingOnElement = false;
+      } else {
+        await expect(await virtual.lastSpokenPhrase()).toEqual(
+          `textbox, Description, ${lastErrorCaseValue ? lastErrorCaseValue + ', ' : ''}${lastErrorCaseMessage}, invalid, required`,
+        );
+      }
+
+      const errorCase = ErrorCases.description[errorCaseDescription];
+
+      await userEvent.keyboard(tlNormaliseString(errorCase.InvalidValue));
+
+      await userEvent.tab();
+
+      form.getDescription({ description: errorCase.ErrorMessage });
+      await expect(descriptionTextbox.ariaInvalid).toBeTruthy();
 
       await userEvent.tab({ shift: true });
       lastErrorCaseValue = errorCase.InvalidValue;
