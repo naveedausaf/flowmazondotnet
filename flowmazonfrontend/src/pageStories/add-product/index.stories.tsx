@@ -76,50 +76,21 @@ export const NameErrors_ValidateOnTabOff: Story = {
     //initialise
     const form = createAddProductPagePOM(canvasElement).getAddProductForm();
 
-    await virtual.start({ container: form.formElement });
+    await testTextbox(form.getName, form.formElement, 'Name', ErrorCases.name);
+  },
+};
 
-    const nameTextbox = form.getName();
-    let errorCaseName: keyof typeof ErrorCases.name;
+export const DescriptionErrors_ValidateOnTabOff: Story = {
+  play: async ({ canvasElement }) => {
+    //initialise
+    const form = createAddProductPagePOM(canvasElement).getAddProductForm();
 
-    nameTextbox.focus();
-
-    //tabbing back out and tabbing in again seems to make
-    //the unit test more robust in storybook
-    await userEvent.tab({ shift: true });
-    await userEvent.tab();
-
-    let isFirstTimeStoppingOnElement = true;
-    let lastErrorCaseValue = '';
-    let lastErrorCaseMessage;
-    //iterate over error test cases
-    for (errorCaseName in ErrorCases.name) {
-      if (isFirstTimeStoppingOnElement) {
-        await expect(await virtual.lastSpokenPhrase()).toEqual(
-          'textbox, Name, not invalid, required',
-        );
-        isFirstTimeStoppingOnElement = false;
-      } else {
-        await expect(await virtual.lastSpokenPhrase()).toEqual(
-          `textbox, Name, ${lastErrorCaseValue}, ${lastErrorCaseMessage}, invalid, required`,
-        );
-      }
-
-      const errorCase = ErrorCases.name[errorCaseName];
-
-      await userEvent.keyboard(tlNormaliseString(errorCase.InvalidValue));
-
-      await userEvent.tab();
-
-      form.getName({ description: errorCase.ErrorMessage });
-
-      await expect(nameTextbox.ariaInvalid).toBeTruthy();
-
-      await userEvent.tab({ shift: true });
-      lastErrorCaseValue = errorCase.InvalidValue;
-      lastErrorCaseMessage = errorCase.ErrorMessage;
-    }
-
-    await virtual.stop();
+    await testTextbox(
+      form.getDescription,
+      form.formElement,
+      'Description',
+      ErrorCases.description,
+    );
   },
 };
 
@@ -183,19 +154,4 @@ const testTextbox = async <TErrorCaseNames extends string>(
   }
 
   await virtual.stop();
-};
-
-export const DescriptionErrors_ValidateOnTabOff: Story = {
-  play: async ({ canvasElement }) => {
-    //initialise
-    const form = createAddProductPagePOM(canvasElement).getAddProductForm();
-
-    const descriptionTextbox = form.getDescription();
-    await testTextbox(
-      form.getDescription,
-      form.formElement,
-      'Description',
-      ErrorCases.description,
-    );
-  },
 };
