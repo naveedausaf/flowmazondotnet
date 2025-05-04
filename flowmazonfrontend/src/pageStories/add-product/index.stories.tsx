@@ -133,8 +133,12 @@ export const DescriptionErrors_ValidateOnTabOff: Story = {
     descriptionTextbox.focus();
 
     await virtual.start({ container: form.formElement });
-    //tabbing back out and tabbing in again seems to make
-    //the unit test more robust in storybook
+
+    //tabbing back and tabbing in again eansures that
+    //the announcement of the form by screen reader
+    //has already taken place otherwise my screen reader
+    //assert fails.
+    //It also seems to make the test more robust in storybook
     await userEvent.tab({ shift: true });
     await userEvent.tab();
 
@@ -155,9 +159,19 @@ export const DescriptionErrors_ValidateOnTabOff: Story = {
       }
 
       const errorCase = ErrorCases.description[errorCaseDescription];
+      console.log(errorCase);
 
-      await userEvent.keyboard(tlNormaliseString(errorCase.InvalidValue));
-
+      //For performance, test input is pasted in
+      //as passing long input to userEvent.type or
+      //userEvent.keybaord can have excruciatingly slow
+      //the test down. However, this doesn't cause any
+      //onchange to fire in the input. Instead of using
+      //fireEvent API, I do this by typing a space
+      //the typing backspace.
+      await userEvent.keyboard(' {backspace}');
+      if (errorCase.InvalidValue) {
+        await userEvent.paste(errorCase.InvalidValue);
+      }
       await userEvent.tab();
 
       form.getDescription({ description: errorCase.ErrorMessage });
@@ -171,10 +185,3 @@ export const DescriptionErrors_ValidateOnTabOff: Story = {
     await virtual.stop();
   },
 };
-
-// export const DescriptionErrors: Story = {
-//   play: async ({ canvasElement }) => {
-//     const form = createAddProductPagePOM(canvasElement).getAddProductForm();
-//     const descriptionTextbox = form.getDescription();
-//   },
-// };

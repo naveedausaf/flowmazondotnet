@@ -103,10 +103,10 @@ export default function AddProductScreen({
               onChange={onChange}
               onBlur={onBlur}
               aria-invalid={hasError.description}
-              aria-describedby='descriptionError'
+              aria-describedby={descErrorId}
             />
             <div className='mt-0 mb-2'>
-              <span id='descriptionError' className='text-sm text-red-500'>
+              <span id={descErrorId} className='text-sm text-red-500'>
                 {hasError.description && errors.description}
               </span>
               &nbsp;
