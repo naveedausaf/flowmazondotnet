@@ -39,13 +39,17 @@ const createAddProductPagePOM = (canvasElement: HTMLElement) => {
             ...options,
           });
         },
-        getImageUrl: async (required: boolean) => {
-          return await tlFormContainer.getByRole('textbox', {
+        getImageUrl: (options?: Omit<ByRoleOptions, 'name'>) => {
+          return tlFormContainer.getByRole('textbox', {
             name: /^Image URL/,
+            ...options,
           });
         },
-        getPrice: async (required: boolean) => {
-          return await tlFormContainer.getByRole('textbox', { name: /^Price/ });
+        getPrice: (options?: Omit<ByRoleOptions, 'name'>) => {
+          return tlFormContainer.getByRole('textbox', {
+            name: /^Price/,
+            ...options,
+          });
         },
         getSubmitButton: async () => {
           return await tlFormContainer.getByRole('button', {

@@ -22,7 +22,6 @@ import { AssertionError } from 'assert';
 import { ErrorMessage } from 'formik';
 import { Meta, StoryObj } from '@storybook/react';
 import createAddProductPagePOM, { TextboxGetter } from './PageObjectModel';
-import { virtual } from '@guidepup/virtual-screen-reader';
 
 import { TestCase } from 'vitest/node';
 import { access } from 'fs';
@@ -41,10 +40,6 @@ const meta: Meta<typeof AddProductPage> = {
 };
 
 export default meta;
-
-const tlNormaliseString = (s: string) => '{backspace}' + (s || ' {backspace}');
-
-const formName = 'add product';
 
 type Story = StoryObj<typeof AddProductPage>;
 
@@ -94,6 +89,33 @@ export const DescriptionErrors_ValidateOnTabOff: Story = {
   },
 };
 
+export const ImageUrlErrors_ValidateOnTabOff: Story = {
+  play: async ({ canvasElement }) => {
+    //initialise
+    const form = createAddProductPagePOM(canvasElement).getAddProductForm();
+
+    await testTextbox(
+      form.getImageUrl,
+      form.formElement,
+      'Image URL',
+      ErrorCases.imageUrl,
+    );
+  },
+};
+
+export const PriceErrors_ValidateOnTabOff: Story = {
+  play: async ({ canvasElement }) => {
+    //initialise
+    const form = createAddProductPagePOM(canvasElement).getAddProductForm();
+
+    await testTextbox(
+      form.getPrice,
+      form.formElement,
+      'Price',
+      ErrorCases.price,
+    );
+  },
+};
 const testTextbox = async <TErrorCaseNames extends string>(
   textboxGetter: TextboxGetter,
   form: HTMLElement,
@@ -101,36 +123,23 @@ const testTextbox = async <TErrorCaseNames extends string>(
   testCases: Record<TErrorCaseNames, ErrorCase>,
 ) => {
   const textbox = textboxGetter();
-  textbox.focus();
 
-  await virtual.start({ container: form });
-
-  //tabbing back and tabbing in again eansures that
-  //the announcement of the form by screen reader
-  //has already taken place otherwise my screen reader
-  //assert fails.
-  //It also seems to make the test more robust in storybook
-  await userEvent.tab({ shift: true });
-  await userEvent.tab();
-
-  let isFirstTimeStoppingOnElement = true;
-  let lastErrorCaseValue = '';
-  let lastErrorCaseMessage;
   //iterate over error test cases
   for (const errorCaseName in testCases) {
-    if (isFirstTimeStoppingOnElement) {
-      await expect(await virtual.lastSpokenPhrase()).toEqual(
-        `textbox, ${accessibleName}, not invalid, required`,
-      );
-      isFirstTimeStoppingOnElement = false;
-    } else {
-      await expect(await virtual.lastSpokenPhrase()).toEqual(
-        `textbox, ${accessibleName}, ${lastErrorCaseValue ? lastErrorCaseValue + ', ' : ''}${lastErrorCaseMessage}, invalid, required`,
-      );
-    }
+    textbox.focus();
+
+    //tabbing back and tabbing in again eansures that
+    //the announcement of the form by screen reader
+    //has already taken place otherwise my screen reader
+    //assert fails.
+    //It also seems to make the test more robust in storybook
+    await userEvent.tab({ shift: true });
+    await userEvent.tab();
 
     const errorCase = testCases[errorCaseName];
-    console.log(`testing against error case ${errorCase}`);
+    console.log(
+      `testing against error case named ${errorCaseName} and values ${JSON.stringify(errorCase)}`,
+    );
 
     //For performance, test input is pasted in
     //as passing long input to userEvent.type or
@@ -141,7 +150,11 @@ const testTextbox = async <TErrorCaseNames extends string>(
     //the typing backspace.
     await userEvent.keyboard(' {backspace}');
     if (errorCase.InvalidValue) {
-      await userEvent.paste(errorCase.InvalidValue);
+      await userEvent.paste(
+        //not converting numbers in input of tests case
+        //to string results in errors
+        String(errorCase.InvalidValue),
+      );
     }
     await userEvent.tab();
 
@@ -149,9 +162,5 @@ const testTextbox = async <TErrorCaseNames extends string>(
     await expect(textbox.ariaInvalid).toBeTruthy();
 
     await userEvent.tab({ shift: true });
-    lastErrorCaseValue = errorCase.InvalidValue;
-    lastErrorCaseMessage = errorCase.ErrorMessage;
   }
-
-  await virtual.stop();
 };

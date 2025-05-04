@@ -9,7 +9,7 @@ import { TestDataError } from '@/utils/TestDataError';
 //so painful:
 //
 // The abomination below necessary to get `max` value
-//in a max constraint.
+//from a max constraint.
 //
 //validationSchema.describe()
 // .fields.name.tests.find((obj) => obj.name === 'max').params.max + 1
@@ -145,7 +145,18 @@ const createPriceErrorCases = () => {
   const priceNotNumeric = 'not-a-number';
 
   return {
-    PriceRequired: errorCase(''),
+    //In other fields, which are declared to be .string() and not
+    //.number() in the YUP schema, passing in '' to errorCase
+    //would have returned an error case object with the error message
+    //indicating the field was required.
+    //However, in the following error case, we pass undefined
+    //to get the same error message as passing in empty string would
+    // instead trigger the `.number() constraint.
+    //Formik presumably converts an empty string in a text box to
+    //undefined also because it correctly shows "Price is required"
+    //message when yo uenter empty string (no text at all) in the
+    //price text box
+    PriceRequired: errorCase(undefined),
     PriceAboveMax: errorCase(priceAboveMax),
     PriceBelowMin: errorCase(priceBelowMin),
     PriceNotMoney: errorCase(priceNotMoney),
