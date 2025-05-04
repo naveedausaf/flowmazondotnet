@@ -1,6 +1,22 @@
 import { fn, within, userEvent, expect } from '@storybook/test';
 import { ByRoleOptions } from '@testing-library/dom';
 
+export type TextboxGetter = (
+  options?: Omit<ByRoleOptions, 'name'>,
+) => HTMLElement;
+
+export type AddProductPagePOM = {
+  getAddProductForm: () => {
+    tlFormContainer: ReturnType<typeof within>;
+    formElement: HTMLElement;
+    getName: TextboxGetter;
+    getDescription: TextboxGetter;
+    getImageUrl: (required: boolean) => Promise<HTMLElement>;
+    getPrice: (required: boolean) => Promise<HTMLElement>;
+    getSubmitButton: () => Promise<HTMLElement>;
+  };
+};
+
 const createAddProductPagePOM = (canvasElement: HTMLElement) => {
   const canvas = within(canvasElement);
   const formElement = canvas.getByRole('form', { name: 'add product form' });
