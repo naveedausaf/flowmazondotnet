@@ -22,7 +22,8 @@ import { AssertionError } from 'assert';
 import { ErrorMessage } from 'formik';
 import { Meta, StoryObj } from '@storybook/react';
 import createAddProductPagePOM, {
-  TextboxGetter,
+  TextboxGet,
+  TextboxQueries,
   accessibleNames,
 } from './PageObjectModel';
 
@@ -70,50 +71,57 @@ export const ValidateOnTypeButAfterFirstTabOff: Story = {
   play: async ({ canvasElement }) => {
     //initialise
     const form = createAddProductPagePOM(canvasElement).getAddProductForm();
-
-    const nameErrorCase = ErrorCases.name.NameMaxLength;
-    const input = String(nameErrorCase.InvalidValue);
-    const textbox = form.name.get();
-    textbox.focus();
-    //we type all but one char of the input by just
-    //pasting it in order to increase performance
-    await userEvent.paste(input.substring(0, input.length - 2));
-
-    //now type the last character to ensure the invalid
-    //input is complete but validation doesn't take place
-    await userEvent.keyboard(input.substring(input.length - 2));
-
-    await expect(
-      await form.name.query({ description: nameErrorCase.ErrorMessage }),
-    ).toBeFalsy(); //because control with error message should not exist
-
-    //now go away from the control
-    await userEvent.tab();
-    await expect(
-      form.name.get({ description: nameErrorCase.ErrorMessage }),
-    ).toBeTruthy();
-
-    //and come back to the control
-    await userEvent.tab({ shift: true });
-
-    //get to end of text which would be selected
-    await userEvent.keyboard('{arrowright}');
-
-    //now delete one character
-    await userEvent.keyboard('{backspace}');
-
-    //and type it back again
-    await userEvent.keyboard(input.substring(input.length - 1));
-
-    //having tabbed off once and come back to the control,
-    //this type validation should have happened o ntype and
-    //so the error message should have appeared:
-    await expect(
-      form.name.get({ description: nameErrorCase.ErrorMessage }),
-    ).toBeTruthy();
+    validateTextboxOnTypeButAfterFirstTabOff(
+      form.name,
+      ErrorCases.name.NameMaxLength,
+    );
   },
 };
 
+const validateTextboxOnTypeButAfterFirstTabOff = async (
+  textboxQueries: TextboxQueries,
+  errorCase: ErrorCase,
+) => {
+  const input = String(errorCase.InvalidValue);
+  const textbox = textboxQueries.get();
+  textbox.focus();
+  //we type all but one char of the input by just
+  //pasting it in order to increase performance
+  await userEvent.paste(input.substring(0, input.length - 2));
+
+  //now type the last character to ensure the invalid
+  //input is complete but validation doesn't take place
+  await userEvent.keyboard(input.substring(input.length - 2));
+
+  await expect(
+    await textboxQueries.query({ description: errorCase.ErrorMessage }),
+  ).toBeFalsy(); //because control with error message should not exist
+
+  //now go away from the control
+  await userEvent.tab();
+  await expect(
+    textboxQueries.get({ description: errorCase.ErrorMessage }),
+  ).toBeTruthy();
+
+  //and come back to the control
+  await userEvent.tab({ shift: true });
+
+  //get to end of text which would be selected
+  await userEvent.keyboard('{arrowright}');
+
+  //now delete one character
+  await userEvent.keyboard('{backspace}');
+
+  //and type it back again
+  await userEvent.keyboard(input.substring(input.length - 1));
+
+  //having tabbed off once and come back to the control,
+  //this type validation should have happened o ntype and
+  //so the error message should have appeared:
+  await expect(
+    textboxQueries.get({ description: errorCase.ErrorMessage }),
+  ).toBeTruthy();
+};
 //Not writing the following as checking for name without asterisk
 //is part of most other tests because names without asterisks
 //are exported as consts from the page object model.
@@ -192,7 +200,7 @@ export const PriceErrors_ValidateOnTabOff: Story = {
 };
 
 const testTextbox = async <TErrorCaseNames extends string>(
-  textboxGetter: TextboxGetter,
+  textboxGetter: TextboxGet,
   form: HTMLElement,
   accessibleName: string,
   testCases: Record<TErrorCaseNames, ErrorCase>,
