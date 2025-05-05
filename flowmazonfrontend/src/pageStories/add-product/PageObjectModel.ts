@@ -5,6 +5,10 @@ export type TextboxGetter = (
   options?: Omit<ByRoleOptions, 'name'>,
 ) => HTMLElement;
 
+export type TextboxQuerier = (
+  options?: Omit<ByRoleOptions, 'name'>,
+) => HTMLElement | null;
+
 export type AddProductPagePOM = {
   getAddProductForm: () => {
     tlFormContainer: ReturnType<typeof within>;
@@ -17,47 +21,50 @@ export type AddProductPagePOM = {
   };
 };
 
+const createTextboxQueries = (
+  tlFormContainer: ReturnType<typeof within>,
+  accessibleName: string,
+): {
+  get: TextboxGetter;
+  query: TextboxQuerier;
+} => ({
+  get: (options?: Omit<ByRoleOptions, 'name'>) => {
+    return tlFormContainer.getByRole('textbox', {
+      name: new RegExp(`^${accessibleName}`),
+      ...options,
+    });
+  },
+  query: (options?: Omit<ByRoleOptions, 'name'>) => {
+    return tlFormContainer.queryByRole('textbox', {
+      name: new RegExp(`^${accessibleName}`),
+      ...options,
+    });
+  },
+});
+
 const createAddProductPagePOM = (canvasElement: HTMLElement) => {
   const canvas = within(canvasElement);
   const formElement = canvas.getByRole('form', {
     name: accessibleNames.FormName,
   });
+
+  const tlFormContainer = within(formElement);
+
   return {
     getAddProductForm: () => {
-      const tlFormContainer = within(formElement);
       return {
-        tlFormContainer: tlFormContainer,
+        tlFormContainer,
         formElement,
-        getName: (options?: Omit<ByRoleOptions, 'name'>) => {
-          return tlFormContainer.getByRole('textbox', {
-            name: new RegExp(`^${accessibleNames.Name}`),
-            ...options,
-          });
-        },
-        queryName: (options?: Omit<ByRoleOptions, 'name'>) => {
-          return tlFormContainer.queryByRole('textbox', {
-            name: new RegExp(`^${accessibleNames.Name}`),
-            ...options,
-          });
-        },
-        getDescription: (options?: Omit<ByRoleOptions, 'name'>) => {
-          return tlFormContainer.getByRole('textbox', {
-            name: new RegExp(`^${accessibleNames.Description}`),
-            ...options,
-          });
-        },
-        getImageUrl: (options?: Omit<ByRoleOptions, 'name'>) => {
-          return tlFormContainer.getByRole('textbox', {
-            name: new RegExp(`^${accessibleNames.ImageUrl}`),
-            ...options,
-          });
-        },
-        getPrice: (options?: Omit<ByRoleOptions, 'name'>) => {
-          return tlFormContainer.getByRole('textbox', {
-            name: new RegExp(`^${accessibleNames.Price}`),
-            ...options,
-          });
-        },
+        name: createTextboxQueries(tlFormContainer, accessibleNames.Name),
+        description: createTextboxQueries(
+          tlFormContainer,
+          accessibleNames.Description,
+        ),
+        imageUrl: createTextboxQueries(
+          tlFormContainer,
+          accessibleNames.ImageUrl,
+        ),
+        price: createTextboxQueries(tlFormContainer, accessibleNames.Price),
         getSubmitButton: async () => {
           return await tlFormContainer.getByRole('button', {
             name: new RegExp(`^${accessibleNames.SubmitButton}`),

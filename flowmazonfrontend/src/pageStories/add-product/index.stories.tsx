@@ -73,7 +73,7 @@ export const ValidateOnTypeButAfterFirstTabOff: Story = {
 
     const nameErrorCase = ErrorCases.name.NameMaxLength;
     const input = String(nameErrorCase.InvalidValue);
-    const textbox = form.getName();
+    const textbox = form.name.get();
     textbox.focus();
     //we type all but one char of the input by just
     //pasting it in order to increase performance
@@ -84,13 +84,13 @@ export const ValidateOnTypeButAfterFirstTabOff: Story = {
     await userEvent.keyboard(input.substring(input.length - 2));
 
     await expect(
-      form.queryName({ description: nameErrorCase.ErrorMessage }),
+      await form.name.query({ description: nameErrorCase.ErrorMessage }),
     ).toBeFalsy(); //because control with error message should not exist
 
     //now go away from the control
     await userEvent.tab();
     await expect(
-      form.getName({ description: nameErrorCase.ErrorMessage }),
+      form.name.get({ description: nameErrorCase.ErrorMessage }),
     ).toBeTruthy();
 
     //and come back to the control
@@ -109,7 +109,7 @@ export const ValidateOnTypeButAfterFirstTabOff: Story = {
     //this type validation should have happened o ntype and
     //so the error message should have appeared:
     await expect(
-      form.getName({ description: nameErrorCase.ErrorMessage }),
+      form.name.get({ description: nameErrorCase.ErrorMessage }),
     ).toBeTruthy();
   },
 };
@@ -124,10 +124,10 @@ export const RequiredFieldsIdentifiedAsSuch: Story = {
   play: async ({ canvasElement }) => {
     const form = createAddProductPagePOM(canvasElement).getAddProductForm();
     //check that the required fields are identified as such
-    expect(form.getName().ariaRequired).toBeTruthy();
-    expect(form.getDescription().ariaRequired).toBeTruthy();
-    expect(form.getImageUrl().ariaRequired).toBeTruthy();
-    expect(form.getPrice()).toBeTruthy();
+    expect(form.name.get().ariaRequired).toBeTruthy();
+    expect(form.description.get().ariaRequired).toBeTruthy();
+    expect(form.imageUrl.get().ariaRequired).toBeTruthy();
+    expect(form.price.get()).toBeTruthy();
   },
 };
 
@@ -145,7 +145,7 @@ export const NameErrors_ValidateOnTabOff: Story = {
     //initialise
     const form = createAddProductPagePOM(canvasElement).getAddProductForm();
 
-    await testTextbox(form.getName, form.formElement, 'Name', ErrorCases.name);
+    await testTextbox(form.name.get, form.formElement, 'Name', ErrorCases.name);
   },
 };
 
@@ -155,7 +155,7 @@ export const DescriptionErrors_ValidateOnTabOff: Story = {
     const form = createAddProductPagePOM(canvasElement).getAddProductForm();
 
     await testTextbox(
-      form.getDescription,
+      form.description.get,
       form.formElement,
       'Description',
       ErrorCases.description,
@@ -169,7 +169,7 @@ export const ImageUrlErrors_ValidateOnTabOff: Story = {
     const form = createAddProductPagePOM(canvasElement).getAddProductForm();
 
     await testTextbox(
-      form.getImageUrl,
+      form.imageUrl.get,
       form.formElement,
       'Image URL',
       ErrorCases.imageUrl,
@@ -183,7 +183,7 @@ export const PriceErrors_ValidateOnTabOff: Story = {
     const form = createAddProductPagePOM(canvasElement).getAddProductForm();
 
     await testTextbox(
-      form.getPrice,
+      form.price.get,
       form.formElement,
       accessibleNames.Price,
       ErrorCases.price,
