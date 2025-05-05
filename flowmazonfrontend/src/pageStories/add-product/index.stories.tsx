@@ -21,14 +21,18 @@ import { fn, within, userEvent, expect } from '@storybook/test';
 import { AssertionError } from 'assert';
 import { ErrorMessage } from 'formik';
 import { Meta, StoryObj } from '@storybook/react';
-import createAddProductPagePOM, { TextboxGetter } from './PageObjectModel';
+import createAddProductPagePOM, {
+  TextboxGetter,
+  accessibleNames,
+} from './PageObjectModel';
 
 import { TestCase } from 'vitest/node';
 import { access } from 'fs';
+import { assert } from 'console';
 
 const meta: Meta<typeof AddProductPage> = {
   component: AddProductPage,
-  excludeStories: ['ErrorCases'],
+  //excludeStories: ['accessibleNames'],
 
   parameters: {
     // 👇 Set default viewport for all component stories
@@ -61,10 +65,80 @@ export const SubmitSuccessfully: Story = {};
 //error stories
 export const SubmitValidateAllFieldsAndJumpsToFirstError: Story = {};
 export const SubmitWhenThereAreAlreadyErrorsJumpsToFirstError: Story = {};
-export const ValidateOnTypeButAfterFirstTabOff: Story = {};
-export const AsterisksOnRequiredFieldsNotPartOfAccessibleName: Story = {};
-export const RequiredFieldsIdentifiedAsSuch: Story = {};
-export const FormNameIsCorrect: Story = {};
+
+export const ValidateOnTypeButAfterFirstTabOff: Story = {
+  play: async ({ canvasElement }) => {
+    //initialise
+    const form = createAddProductPagePOM(canvasElement).getAddProductForm();
+
+    const nameErrorCase = ErrorCases.name.NameMaxLength;
+    const input = String(nameErrorCase.InvalidValue);
+    const textbox = form.getName();
+    textbox.focus();
+    //we type all but one char of the input by just
+    //pasting it in order to increase performance
+    await userEvent.paste(input.substring(0, input.length - 2));
+
+    //now type the last character to ensure the invalid
+    //input is complete but validation doesn't take place
+    await userEvent.keyboard(input.substring(input.length - 2));
+
+    await expect(
+      form.queryName({ description: nameErrorCase.ErrorMessage }),
+    ).toBeFalsy(); //because control with error message should not exist
+
+    //now go away from the control
+    await userEvent.tab();
+    await expect(
+      form.getName({ description: nameErrorCase.ErrorMessage }),
+    ).toBeTruthy();
+
+    //and come back to the control
+    await userEvent.tab({ shift: true });
+
+    //get to end of text which would be selected
+    await userEvent.keyboard('{arrowright}');
+
+    //now delete one character
+    await userEvent.keyboard('{backspace}');
+
+    //and type it back again
+    await userEvent.keyboard(input.substring(input.length - 1));
+
+    //having tabbed off once and come back to the control,
+    //this type validation should have happened o ntype and
+    //so the error message should have appeared:
+    await expect(
+      form.getName({ description: nameErrorCase.ErrorMessage }),
+    ).toBeTruthy();
+  },
+};
+
+//Not writing the following as checking for name without asterisk
+//is part of most other tests because names without asterisks
+//are exported as consts from the page object model.
+//
+//export const AsterisksOnRequiredFieldsNotPartOfAccessibleName: Story = {};
+
+export const RequiredFieldsIdentifiedAsSuch: Story = {
+  play: async ({ canvasElement }) => {
+    const form = createAddProductPagePOM(canvasElement).getAddProductForm();
+    //check that the required fields are identified as such
+    expect(form.getName().ariaRequired).toBeTruthy();
+    expect(form.getDescription().ariaRequired).toBeTruthy();
+    expect(form.getImageUrl().ariaRequired).toBeTruthy();
+    expect(form.getPrice()).toBeTruthy();
+  },
+};
+
+export const FormNameIsCorrect: Story = {
+  play: async ({ canvasElement }) => {
+    const formElement = within(canvasElement).getByRole('form', {
+      name: accessibleNames.FormName,
+    });
+    expect(formElement).toBeTruthy();
+  },
+};
 
 export const NameErrors_ValidateOnTabOff: Story = {
   play: async ({ canvasElement }) => {
@@ -111,11 +185,12 @@ export const PriceErrors_ValidateOnTabOff: Story = {
     await testTextbox(
       form.getPrice,
       form.formElement,
-      'Price',
+      accessibleNames.Price,
       ErrorCases.price,
     );
   },
 };
+
 const testTextbox = async <TErrorCaseNames extends string>(
   textboxGetter: TextboxGetter,
   form: HTMLElement,

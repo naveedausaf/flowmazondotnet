@@ -36,7 +36,7 @@ export const validationSchema = Yup.object({
     .max(50000)
     //TODO: Note: other than than the two instances of
     //of difficulty in reflecting on the schema pointed out in
-    //the stories file, this is anotner reason why I would
+    //the stories file, this is another reason why I would
     //switch away fro Yup: no build in constraint for
     //money!!!
     .test(

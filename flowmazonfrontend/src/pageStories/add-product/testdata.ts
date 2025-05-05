@@ -5,6 +5,12 @@ import {
 } from 'yup';
 import AddProductPage, { validationSchema } from '@/pages/add-product';
 import { TestDataError } from '@/utils/TestDataError';
+
+export type ErrorCase = {
+  InvalidValue: any;
+  ErrorMessage: string;
+};
+
 //TODO: NOTE FIRST INSTANCE of why reflecting on Yup schema is
 //so painful:
 //
@@ -103,11 +109,6 @@ function getTest(fieldSchema: SchemaDescription, testName: string) {
     `The test named ${testName} in YUP field schema does not exist.`,
   );
 }
-
-export type ErrorCase = {
-  InvalidValue: any;
-  ErrorMessage: string;
-};
 
 function getErrorCaseFactory(fieldPath: string) {
   return (invalidValue: any): ErrorCase => {

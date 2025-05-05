@@ -19,7 +19,9 @@ export type AddProductPagePOM = {
 
 const createAddProductPagePOM = (canvasElement: HTMLElement) => {
   const canvas = within(canvasElement);
-  const formElement = canvas.getByRole('form', { name: 'add product form' });
+  const formElement = canvas.getByRole('form', {
+    name: accessibleNames.FormName,
+  });
   return {
     getAddProductForm: () => {
       const tlFormContainer = within(formElement);
@@ -28,32 +30,37 @@ const createAddProductPagePOM = (canvasElement: HTMLElement) => {
         formElement,
         getName: (options?: Omit<ByRoleOptions, 'name'>) => {
           return tlFormContainer.getByRole('textbox', {
-            name: /^Name/,
+            name: new RegExp(`^${accessibleNames.Name}`),
             ...options,
           });
         },
-
+        queryName: (options?: Omit<ByRoleOptions, 'name'>) => {
+          return tlFormContainer.queryByRole('textbox', {
+            name: new RegExp(`^${accessibleNames.Name}`),
+            ...options,
+          });
+        },
         getDescription: (options?: Omit<ByRoleOptions, 'name'>) => {
           return tlFormContainer.getByRole('textbox', {
-            name: /^Description/,
+            name: new RegExp(`^${accessibleNames.Description}`),
             ...options,
           });
         },
         getImageUrl: (options?: Omit<ByRoleOptions, 'name'>) => {
           return tlFormContainer.getByRole('textbox', {
-            name: /^Image URL/,
+            name: new RegExp(`^${accessibleNames.ImageUrl}`),
             ...options,
           });
         },
         getPrice: (options?: Omit<ByRoleOptions, 'name'>) => {
           return tlFormContainer.getByRole('textbox', {
-            name: /^Price/,
+            name: new RegExp(`^${accessibleNames.Price}`),
             ...options,
           });
         },
         getSubmitButton: async () => {
           return await tlFormContainer.getByRole('button', {
-            name: /^Add Product/,
+            name: new RegExp(`^${accessibleNames.SubmitButton}`),
           });
         },
       };
@@ -61,3 +68,12 @@ const createAddProductPagePOM = (canvasElement: HTMLElement) => {
   };
 };
 export default createAddProductPagePOM;
+
+export const accessibleNames = Object.freeze({
+  FormName: 'add product form',
+  Name: 'Name',
+  Description: 'Description',
+  ImageUrl: 'Image URL',
+  Price: 'Price',
+  SubmitButton: 'Add Product',
+});
