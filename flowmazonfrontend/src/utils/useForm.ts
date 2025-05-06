@@ -85,7 +85,7 @@ export default function useForm<Values extends FormikValues>(
   const required = sameValueAgainstEachValidatedControl(false);
   namesOfValidatedControl.forEach((controlName) => {
     /*eslint-disable @typescript-eslint/no-unsafe-member-access */
-    /*eslint-disable @typescript-eslint/no-unsafe-call */
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
     const fieldSchema = config.validationSchema.fields[controlName].describe();
     /*eslint-disable @typescript-eslint/no-unsafe-member-access */
     required[controlName] = !fieldSchema.optional && !fieldSchema.nullable;
