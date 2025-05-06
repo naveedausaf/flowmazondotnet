@@ -53,10 +53,71 @@ export const Autocomplete: Story = {};
 export const SubmitSuccessfully: Story = {};
 
 //error stories
-export const SubmitValidateAllFieldsAndJumpsToFirstError: Story = {};
+
+//Not writing the following as checking for name without asterisk
+//is part of most other tests because names without asterisks
+//are exported as consts from the page object model.
+//
+//export const AsterisksOnRequiredFieldsNotPartOfAccessibleName: Story = {};
+
+export const RequiredFieldsIdentifiedAsSuch: Story = {
+  play: async ({ canvasElement }) => {
+    const form = createAddProductPagePOM(canvasElement).getAddProductForm();
+    //check that the required fields are identified as such
+    await expect(form.name.get().ariaRequired).toBeTruthy();
+    await expect(form.description.get().ariaRequired).toBeTruthy();
+    await expect(form.imageUrl.get().ariaRequired).toBeTruthy();
+    await expect(form.price.get()).toBeTruthy();
+  },
+};
+
+export const FormNameIsCorrect: Story = {
+  play: async ({ canvasElement }) => {
+    const formElement = within(canvasElement).getByRole('form', {
+      name: accessibleNames.FormName,
+    });
+    await expect(formElement).toBeTruthy();
+  },
+};
+
+export const SubmitValidateAllFieldsAndJumpsToFirstError: Story = {
+  name: 'Validate - All fields on Submit and  jump to first error',
+  play: async ({ canvasElement }) => {
+    //initialise
+    const form = createAddProductPagePOM(canvasElement).getAddProductForm();
+
+    //submit the form
+    await userEvent.click(form.getSubmitButton());
+
+    //check that the error messages are displayed
+    await expect(
+      form.name.get({ description: ErrorCases.name.NameRequired.ErrorMessage }),
+    ).toBeTruthy();
+    await expect(
+      form.description.get({
+        description: ErrorCases.description.DescriptionRequired.ErrorMessage,
+      }),
+    ).toBeTruthy();
+    await expect(
+      form.imageUrl.get({
+        description: ErrorCases.imageUrl.ImageUrlRequired.ErrorMessage,
+      }),
+    ).toBeTruthy();
+    await expect(
+      form.price.get({
+        description: ErrorCases.price.PriceRequired.ErrorMessage,
+      }),
+    ).toBeTruthy();
+
+    //check that the first error message is focused
+    await expect(form.name.get()).toHaveFocus();
+  },
+};
+
 export const SubmitWhenThereAreAlreadyErrorsJumpsToFirstError: Story = {};
 
 export const ValidateOnTypeButAfterFirstTabOff: Story = {
+  name: 'Validate - On Type but after first Tab Off',
   play: async ({ canvasElement }) => {
     //initialise
     const form = createAddProductPagePOM(canvasElement).getAddProductForm();
@@ -124,33 +185,9 @@ async function validateTextboxOnTypeButAfterFirstTabOff<TInput>(
     textboxQueries.get({ description: errorCase.ErrorMessage }),
   ).toBeTruthy();
 }
-//Not writing the following as checking for name without asterisk
-//is part of most other tests because names without asterisks
-//are exported as consts from the page object model.
-//
-//export const AsterisksOnRequiredFieldsNotPartOfAccessibleName: Story = {};
-
-export const RequiredFieldsIdentifiedAsSuch: Story = {
-  play: async ({ canvasElement }) => {
-    const form = createAddProductPagePOM(canvasElement).getAddProductForm();
-    //check that the required fields are identified as such
-    await expect(form.name.get().ariaRequired).toBeTruthy();
-    await expect(form.description.get().ariaRequired).toBeTruthy();
-    await expect(form.imageUrl.get().ariaRequired).toBeTruthy();
-    await expect(form.price.get()).toBeTruthy();
-  },
-};
-
-export const FormNameIsCorrect: Story = {
-  play: async ({ canvasElement }) => {
-    const formElement = within(canvasElement).getByRole('form', {
-      name: accessibleNames.FormName,
-    });
-    await expect(formElement).toBeTruthy();
-  },
-};
 
 export const NameErrors_ValidateOnTabOff: Story = {
+  name: 'Validate - Name Errors on Tab Off',
   play: async ({ canvasElement }) => {
     //initialise
     const form = createAddProductPagePOM(canvasElement).getAddProductForm();
@@ -160,6 +197,7 @@ export const NameErrors_ValidateOnTabOff: Story = {
 };
 
 export const DescriptionErrors_ValidateOnTabOff: Story = {
+  name: 'Validate - Description Errors on Tab Off',
   play: async ({ canvasElement }) => {
     //initialise
     const form = createAddProductPagePOM(canvasElement).getAddProductForm();
@@ -174,6 +212,7 @@ export const DescriptionErrors_ValidateOnTabOff: Story = {
 };
 
 export const ImageUrlErrors_ValidateOnTabOff: Story = {
+  name: 'Validate - ImageUrl Errors on Tab Off',
   play: async ({ canvasElement }) => {
     //initialise
     const form = createAddProductPagePOM(canvasElement).getAddProductForm();
@@ -188,6 +227,7 @@ export const ImageUrlErrors_ValidateOnTabOff: Story = {
 };
 
 export const PriceErrors_ValidateOnTabOff: Story = {
+  name: 'Validate - Price Errors on Tab Off',
   play: async ({ canvasElement }) => {
     //initialise
     const form = createAddProductPagePOM(canvasElement).getAddProductForm();
