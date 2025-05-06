@@ -80,7 +80,7 @@ export const FormNameIsCorrect: Story = {
   },
 };
 
-export const SubmitValidateAllFieldsAndJumpsToFirstError: Story = {
+export const SubmitValidatesAllFieldsAndJumpsToFirstError: Story = {
   name: 'Validate - All fields on Submit and  jump to first error',
   play: async ({ canvasElement }) => {
     //initialise

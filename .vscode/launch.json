@@ -18,7 +18,7 @@
       }
     },
     {
-      "name": ".NET Core Launch (web)",
+      "name": ".NET Core Launch ( web)",
       "type": "coreclr",
       "request": "launch",
       "preLaunchTask": "build-backend",
@@ -72,6 +72,18 @@
       "webRoot": "${workspaceRoot}",
       "suggestPathMappingWizard": true,
       "pathMappings": [
+        {
+          "url": "webpack://flowmazonfrontend/src/utils",
+          "path": "${workspaceFolder}/flowmazonfrontend/src/utils"
+        },
+        {
+          "url": "webpack://flowmazonfrontend/src/pages",
+          "path": "${workspaceFolder}/flowmazonfrontend/src/pages"
+        },
+        {
+          "url": "webpack://flowmazonfrontend/src/pages",
+          "path": "${workspaceFolder}/flowmazonfrontend/src/pages"
+        },
         {
           "url": "webpack://flowmazonfrontend/src/pageStories",
           "path": "${workspaceFolder}/flowmazonfrontend/src/pageStories"
