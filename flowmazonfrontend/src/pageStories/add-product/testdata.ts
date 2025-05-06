@@ -3,11 +3,11 @@ import {
   SchemaFieldDescription,
   ValidationError,
 } from 'yup';
-import AddProductPage, { validationSchema } from '@/pages/add-product';
+import { validationSchema } from '@/pages/add-product';
 import { TestDataError } from '@/utils/TestDataError';
 
-export type ErrorCase = {
-  InvalidValue: any;
+export type ErrorCase<T> = {
+  InvalidValue: T;
   ErrorMessage: string;
 };
 
@@ -27,7 +27,8 @@ export type ErrorCase = {
 function assertFieldSchemaIsSchemaDescription(
   fieldSchema: SchemaFieldDescription,
 ): asserts fieldSchema is SchemaDescription {
-  if ((fieldSchema as SchemaDescription).tests === undefined) {
+  /*eslint-disable @typescript-eslint/no-unnecessary-condition */
+  if ((fieldSchema as SchemaDescription)?.tests === undefined) {
     throw new TestDataError(
       'The provided Yup schema for a field was not of type SchemaDescription',
     );
@@ -60,7 +61,7 @@ const getValidationErrorMessage = (path: string, value: unknown) => {
     //as a fallback, if no ValidationError is thrown then
     //we throw an TestDataError
     throw new TestDataError(
-      `An error should have been thrown whan validating value "${value}" at path ${path} using the YUP schema`,
+      `An error should have been thrown whan validating value "${String(value)}" at path ${path} using the YUP schema`,
     );
   } catch (ex) {
     //we know for a fact that ex is ValidationError
@@ -76,7 +77,7 @@ const getFieldSchema = (
   assertFieldSchemaIsSchemaDescription(fieldSchema);
   if (fieldSchema.tests.length !== expectedNumOfTests)
     throw new TestDataError(
-      `field schema for field ${fieldSchema?.label} was expected to have ${expectedNumOfTests} but had ${fieldSchema?.tests?.length} tests`,
+      `field schema for field ${String(fieldSchema?.label)} was expected to have ${String(expectedNumOfTests)} but had ${String(fieldSchema?.tests?.length)} tests`,
     );
 
   return fieldSchema;
@@ -110,8 +111,8 @@ function getTest(fieldSchema: SchemaDescription, testName: string) {
   );
 }
 
-function getErrorCaseFactory(fieldPath: string) {
-  return (invalidValue: any): ErrorCase => {
+function getErrorCaseFactory<T>(fieldPath: string) {
+  return (invalidValue: T): ErrorCase<T> => {
     const errorMessage = getValidationErrorMessage(fieldPath, invalidValue);
     // console.log(
     //   `for fieldPath ${fieldPath} I have value '${invalidValue}' and error message '${errorMessage}'`,
@@ -227,7 +228,7 @@ const createErrorCases = () => {
 
   if (actualNumOfFields !== expectedNumOfFields)
     throw new TestDataError(
-      `expected ${expectedNumOfFields} fields to be defined in the schema but there were ${actualNumOfFields}`,
+      `expected ${String(expectedNumOfFields)} fields to be defined in the schema but there were ${String(actualNumOfFields)}`,
     );
 
   return {

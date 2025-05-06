@@ -53,7 +53,7 @@ export const Primary: Story = {
   args: { ...primaryArgs },
 };
 
-const makeArgs = (arg: string, errorCase: ErrorCase) => {
+function makeArgs<TInput>(arg: string, errorCase: ErrorCase<TInput>) {
   return {
     ...primaryArgs, //redundant to do this
     values: {
@@ -69,11 +69,7 @@ const makeArgs = (arg: string, errorCase: ErrorCase) => {
       [arg]: errorCase.ErrorMessage,
     },
   };
-};
-
-export const ErrorNameMaxLength: Story = {
-  args: makeArgs('name', ErrorCases.name.NameMaxLength),
-};
+}
 
 export const ErrorNameIsRequired: Story = {
   args: makeArgs('name', ErrorCases.name.NameRequired),

@@ -1,4 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
+/*eslint-disable @typescript-eslint/no-unsafe-assignment */
+
 import { useFormik, FormikConfig, FormikValues, FormikProps } from 'formik';
 
 import { FormEvent, useEffect, useState } from 'react';
@@ -82,7 +84,10 @@ export default function useForm<Values extends FormikValues>(
 
   const required = sameValueAgainstEachValidatedControl(false);
   namesOfValidatedControl.forEach((controlName) => {
+    /*eslint-disable @typescript-eslint/no-unsafe-member-access */
+    /*eslint-disable @typescript-eslint/no-unsafe-call */
     const fieldSchema = config.validationSchema.fields[controlName].describe();
+    /*eslint-disable @typescript-eslint/no-unsafe-member-access */
     required[controlName] = !fieldSchema.optional && !fieldSchema.nullable;
   });
 

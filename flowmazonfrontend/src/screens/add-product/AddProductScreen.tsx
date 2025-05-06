@@ -128,10 +128,10 @@ export default function AddProductScreen({
               onChange={onChange}
               onBlur={onBlur}
               aria-invalid={hasError.imageUrl}
-              aria-describedby='imageUrlError'
+              aria-describedby={imageUrlErrorId}
             />
             <div className='mt-0 mb-2'>
-              <span id='imageUrlError' className='text-sm text-red-500'>
+              <span id={imageUrlErrorId} className='text-sm text-red-500'>
                 {hasError.imageUrl && errors.imageUrl}
               </span>
               &nbsp;
@@ -153,10 +153,10 @@ export default function AddProductScreen({
               onChange={onChange}
               onBlur={onBlur}
               aria-invalid={hasError.price}
-              aria-describedby='priceError'
+              aria-describedby={priceErrorId}
             />
             <div className='mt-0 mb-2'>
-              <span id='priceError' className='text-sm text-red-500'>
+              <span id={priceErrorId} className='text-sm text-red-500'>
                 {hasError.price && errors.price}
               </span>
               &nbsp;

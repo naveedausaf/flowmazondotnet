@@ -8,28 +8,17 @@
 //I would have had to install the jest package.
 /* eslint-disable storybook/use-storybook-expect */
 
-import AddProductPage, { validationSchema } from '@/pages/add-product';
+import AddProductPage from '@/pages/add-product';
 import { ErrorCase, ErrorCases } from './testdata';
 import { allModes } from '../../../.storybook/modes.js';
-import {
-  SchemaFieldDescription,
-  SchemaDescription,
-  ValidationError,
-} from 'yup';
 
-import { fn, within, userEvent, expect } from '@storybook/test';
-import { AssertionError } from 'assert';
-import { ErrorMessage } from 'formik';
+import { within, userEvent, expect } from '@storybook/test';
 import { Meta, StoryObj } from '@storybook/react';
 import createAddProductPagePOM, {
   TextboxGet,
   TextboxQueries,
   accessibleNames,
 } from './PageObjectModel';
-
-import { TestCase } from 'vitest/node';
-import { access } from 'fs';
-import { assert } from 'console';
 
 const meta: Meta<typeof AddProductPage> = {
   component: AddProductPage,
@@ -71,17 +60,30 @@ export const ValidateOnTypeButAfterFirstTabOff: Story = {
   play: async ({ canvasElement }) => {
     //initialise
     const form = createAddProductPagePOM(canvasElement).getAddProductForm();
-    validateTextboxOnTypeButAfterFirstTabOff(
+    await validateTextboxOnTypeButAfterFirstTabOff(
       form.name,
       ErrorCases.name.NameMaxLength,
+    );
+    await validateTextboxOnTypeButAfterFirstTabOff(
+      form.description,
+      ErrorCases.description.DescriptionMaxLength,
+    );
+    await validateTextboxOnTypeButAfterFirstTabOff(
+      form.imageUrl,
+      ErrorCases.imageUrl.ImageUrlIsValidUrl,
+    );
+
+    await validateTextboxOnTypeButAfterFirstTabOff(
+      form.price,
+      ErrorCases.price.PriceNotNumeric,
     );
   },
 };
 
-const validateTextboxOnTypeButAfterFirstTabOff = async (
+async function validateTextboxOnTypeButAfterFirstTabOff<TInput>(
   textboxQueries: TextboxQueries,
-  errorCase: ErrorCase,
-) => {
+  errorCase: ErrorCase<TInput>,
+) {
   const input = String(errorCase.InvalidValue);
   const textbox = textboxQueries.get();
   textbox.focus();
@@ -94,7 +96,7 @@ const validateTextboxOnTypeButAfterFirstTabOff = async (
   await userEvent.keyboard(input.substring(input.length - 2));
 
   await expect(
-    await textboxQueries.query({ description: errorCase.ErrorMessage }),
+    textboxQueries.query({ description: errorCase.ErrorMessage }),
   ).toBeFalsy(); //because control with error message should not exist
 
   //now go away from the control
@@ -121,7 +123,7 @@ const validateTextboxOnTypeButAfterFirstTabOff = async (
   await expect(
     textboxQueries.get({ description: errorCase.ErrorMessage }),
   ).toBeTruthy();
-};
+}
 //Not writing the following as checking for name without asterisk
 //is part of most other tests because names without asterisks
 //are exported as consts from the page object model.
@@ -132,10 +134,10 @@ export const RequiredFieldsIdentifiedAsSuch: Story = {
   play: async ({ canvasElement }) => {
     const form = createAddProductPagePOM(canvasElement).getAddProductForm();
     //check that the required fields are identified as such
-    expect(form.name.get().ariaRequired).toBeTruthy();
-    expect(form.description.get().ariaRequired).toBeTruthy();
-    expect(form.imageUrl.get().ariaRequired).toBeTruthy();
-    expect(form.price.get()).toBeTruthy();
+    await expect(form.name.get().ariaRequired).toBeTruthy();
+    await expect(form.description.get().ariaRequired).toBeTruthy();
+    await expect(form.imageUrl.get().ariaRequired).toBeTruthy();
+    await expect(form.price.get()).toBeTruthy();
   },
 };
 
@@ -144,7 +146,7 @@ export const FormNameIsCorrect: Story = {
     const formElement = within(canvasElement).getByRole('form', {
       name: accessibleNames.FormName,
     });
-    expect(formElement).toBeTruthy();
+    await expect(formElement).toBeTruthy();
   },
 };
 
@@ -199,12 +201,12 @@ export const PriceErrors_ValidateOnTabOff: Story = {
   },
 };
 
-const testTextbox = async <TErrorCaseNames extends string>(
+async function testTextbox<TErrorCaseNames extends string, TInput>(
   textboxGetter: TextboxGet,
   form: HTMLElement,
   accessibleName: string,
-  testCases: Record<TErrorCaseNames, ErrorCase>,
-) => {
+  testCases: Record<TErrorCaseNames, ErrorCase<TInput>>,
+) {
   const textbox = textboxGetter();
 
   //iterate over error test cases
@@ -246,4 +248,4 @@ const testTextbox = async <TErrorCaseNames extends string>(
 
     await userEvent.tab({ shift: true });
   }
-};
+}

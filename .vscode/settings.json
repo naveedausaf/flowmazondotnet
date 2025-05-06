@@ -4,7 +4,8 @@
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
   "[typescript]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode"
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "eslint.workingDirectories": ["./flowmazonfrontend"]
   },
   "[typescriptreact]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
@@ -16,5 +17,6 @@
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
   "stylelint.validate": ["css", "scss"],
-  "editor.formatOnSave": true
+  "editor.formatOnSave": true,
+  "eslint.workingDirectories": ["./flowmazonfrontend"]
 }
