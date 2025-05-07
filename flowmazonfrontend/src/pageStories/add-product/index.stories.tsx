@@ -47,10 +47,17 @@ type Story = StoryObj<typeof AddProductPage>;
 //runs axe against the final (after play function)
 //state of the rendered story.
 
+//TODO: Replace fgetch API with reliable method with retry
+//This is the next task in my GitHub project after crearing
+//Storybook for the Add Product form.
+
 export const Primary: Story = {};
+
 export const InputModes: Story = {};
 export const Autocomplete: Story = {};
 export const SubmitSuccessfully: Story = {};
+export const ServerErrorOnSubmit: Story = {};
+export const LoadingStateOnSubmit: Story = {};
 
 //error stories
 

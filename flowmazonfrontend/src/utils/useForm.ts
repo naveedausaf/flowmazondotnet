@@ -17,12 +17,11 @@ export default function useForm<Values extends FormikValues>(
   config: FormikConfig<Values>,
 ): FormikProps<Values> & {
   hasError: { [InputControl in keyof Values]: boolean };
-  isFirstInputWithError: { [InputControl in keyof Values]: boolean };
   required: { [InputControl in keyof Values]: boolean };
 } {
   const formik = useFormik(config);
 
-  function createObjectWithKeyForEachControlAndSameValueForAllKeys<T>(
+  function createObjectWithKeyForEachInputAndSameValueForAllKeys<T>(
     sameValueForEachKey: T,
   ): {
     [InputName in keyof typeof formik.initialValues]: T;
@@ -48,8 +47,7 @@ export default function useForm<Values extends FormikValues>(
   //this object indicates which of the inputs is reqruied
   //this could be used to set `aria-required="true"` on the
   //correpsonding form controls
-  const required =
-    createObjectWithKeyForEachControlAndSameValueForAllKeys(false);
+  const required = createObjectWithKeyForEachInputAndSameValueForAllKeys(false);
   namesOfValidatedInputs.forEach((controlName) => {
     /*eslint-disable @typescript-eslint/no-unsafe-member-access */
     // eslint-disable-next-line @typescript-eslint/no-unsafe-call
@@ -92,10 +90,10 @@ export default function useForm<Values extends FormikValues>(
   const [
     inputsThatHaveChangedAtLeastOnce,
     setInputsThatHaveChangedAtLeastOnce,
-  ] = useState(createObjectWithKeyForEachControlAndSameValueForAllKeys(false));
+  ] = useState(createObjectWithKeyForEachInputAndSameValueForAllKeys(false));
 
   const [inputsThatChangedThenBlurred, setInputsThatChangedThenBlurred] =
-    useState(createObjectWithKeyForEachControlAndSameValueForAllKeys(false));
+    useState(createObjectWithKeyForEachInputAndSameValueForAllKeys(false));
 
   const handleChange = (
     e: FormEvent<HTMLInputElement | HTMLTextAreaElement>,
@@ -128,25 +126,14 @@ export default function useForm<Values extends FormikValues>(
 
     //set all inputs to changed then blurred
     setInputsThatChangedThenBlurred(
-      createObjectWithKeyForEachControlAndSameValueForAllKeys(true),
+      createObjectWithKeyForEachInputAndSameValueForAllKeys(true),
     );
   };
 
-  const isFirstInputWithError =
-    createObjectWithKeyForEachControlAndSameValueForAllKeys(false);
-  let foundInputWithError = false;
-
-  const hasError =
-    createObjectWithKeyForEachControlAndSameValueForAllKeys(false);
+  const hasError = createObjectWithKeyForEachInputAndSameValueForAllKeys(false);
   namesOfValidatedInputs.forEach((controlName) => {
     hasError[controlName] =
       inputsThatChangedThenBlurred[controlName] && !!formik.errors[controlName];
-    if (!foundInputWithError && hasError[controlName]) {
-      foundInputWithError = true; //so we will not enter this block again
-      //in subsequent iterations of the forEach
-
-      isFirstInputWithError[controlName] = true;
-    }
   });
 
   return {
@@ -155,7 +142,6 @@ export default function useForm<Values extends FormikValues>(
     handleChange,
     handleBlur,
     hasError,
-    isFirstInputWithError,
     required,
   };
 }
