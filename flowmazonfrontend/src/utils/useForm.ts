@@ -6,13 +6,6 @@ import { useFormik, FormikConfig, FormikValues, FormikProps } from 'formik';
 import { FormEvent, useEffect, useState, useId, useLayoutEffect } from 'react';
 import * as Yup from 'yup';
 
-//TODO: Document the hook: it is just  as a decorator for the specific
-//behaviour of computing an error on a field based on whether it has
-//been changed and subsequently exited or if there was an
-//in the field when we last tried to submit (whether or not
-//we had exited or changed the field). These computed errors
-//would be made available as an additional "hasError" property.
-
 /**
  * A custom hook that extends Formik's functionality to provide additional
  * state and behavior for form validation and error handling.
@@ -23,7 +16,7 @@ import * as Yup from 'yup';
  * @returns {FormikProps<Values> & {
  *   hasError: { [InputControl in keyof Values]: boolean };
  *   required: { [InputControl in keyof Values]: boolean };
- *   ids: { [InputControl in keyof Values]: string };
+ *   id: { [InputControl in keyof Values]: string };
  * }} - Returns all Formik props along with additional properties:
  * - `hasError`: Indicates whether each input has an error that should be displayed.
  * - `required`: Indicates whether each input is required based on the validation schema.
@@ -58,7 +51,7 @@ import * as Yup from 'yup';
  *       onBlur={form.handleBlur}
  *       aria-required={form.required.name}
  *       aria-invalid={form.hasError.name}
- *       id={form.ids.name}
+ *       id={form.id.name}
  *     />
  *     <button type="submit">Submit</button>
  *   </form>
@@ -70,7 +63,7 @@ export default function useForm<Values extends FormikValues>(
 ): FormikProps<Values> & {
   hasError: { [InputControl in keyof Values]: boolean };
   required: { [InputControl in keyof Values]: boolean };
-  ids: { [InputControl in keyof Values]: string };
+  id: { [InputControl in keyof Values]: string };
 } {
   console.log('START useForm EXECUTION...');
   const formik = useFormik(config);
@@ -116,7 +109,7 @@ export default function useForm<Values extends FormikValues>(
   // (i.e. blurred). This makes it ok to show their error state
   // (if any).
   //
-  // State changes to these vriables are performed by the three custom
+  // State changes to these variables are performed by the three custom
   // handleChange, handleBlur and handleSubmit functions shown below
   // which also call `formik` object's handleChange, handlerBlur and
   // handleSubmit respectively.
@@ -159,17 +152,52 @@ export default function useForm<Values extends FormikValues>(
   const [submitFlipFlop, setSubmitFlipFlop] = useState<boolean | undefined>(
     undefined,
   );
+  const [emptyRenderFlipFlop, setEmptyRenderFlipFlop] = useState(false);
 
-  useLayoutEffect(
+  useEffect(
     () => {
       console.log('executing EFFECT...');
       console.log(`submitfliFlop: ${String(submitFlipFlop)}`);
-      console.log(`formik errors: ${JSON.stringify(formik.errors)}`);
+      console.log(
+        `formik errors: ${String(Object.keys(formik.errors).length)}`,
+      );
 
       if (submitFlipFlop === undefined) {
         //submit has not been pressed at all since mount
         //Otherwise it would have been true or false.
         //Hence do nothing:
+        return;
+      }
+
+      //As component TestStrictModeInStorybook and its stories
+      //show, Storybook does NOT render components under StrictMode.
+      //Yet my console.log statements here and in add-product page
+      //component showed that after SUBMIT button was pressed,
+      //the render function of the component was getting called
+      //twice.
+      //First time round,formik.errors would be {} (and so
+      //`hasError` would get computed as having false for ever
+      // input). Next time formik.errors would be populated.
+      // This was messing up the effect's execution as it
+      //uses a signalling flip-flop and so would execute only
+      //the first time render functrionw as called,
+      //there would be no errors and so it would do nothing. But
+      //the next time render functionw as called with correctly
+      //indicated errors, the flip flop dependenc of the
+      //effect would remain unchagned so it wouldn't run at all.
+      //THEREFORE, I detect the first of the duplicate executions
+      //of the render function which lead to the execution
+      //of the effect function (probabaly caused by Formik
+      //setting a state variable the first time round to trigger
+      //a re-render, for whatever reason). Here, I set the flip flip
+      //so that the effect would get called a second time (after the
+      //next render is complete).
+
+      if (Object.keys(formik.errors).length === 0) {
+        //we are in first of the two renders that take place
+        //when submit button is pressed. So toggle the flipflop
+        //we the effect runs the next time also:
+        setEmptyRenderFlipFlop(!emptyRenderFlipFlop);
         return;
       }
 
@@ -218,7 +246,7 @@ export default function useForm<Values extends FormikValues>(
     //though in which case we would not execute the
     //effect, as guard condition above ensures)
     /* eslint-disable-next-line react-hooks/exhaustive-deps */
-    [submitFlipFlop],
+    [submitFlipFlop, emptyRenderFlipFlop],
   );
 
   const handleChange = (
@@ -287,6 +315,6 @@ export default function useForm<Values extends FormikValues>(
     handleBlur,
     hasError,
     required,
-    ids,
+    id: ids,
   };
 }

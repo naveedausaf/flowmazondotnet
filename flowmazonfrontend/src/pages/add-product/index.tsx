@@ -74,7 +74,7 @@ export default function AddProductPage() {
     <AddProductScreen
       hasError={form.hasError}
       required={form.required}
-      ids={form.ids}
+      ids={form.id}
       errors={form.errors}
       values={form.values}
       onBlur={form.handleBlur}

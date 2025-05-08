@@ -8,11 +8,13 @@ export default function TestEffect() {
   useEffect(() => {
     console.log('EFFECT started...');
     const inputElement = document.getElementById(inputId) as HTMLInputElement;
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     if (!inputElement) {
       throw new Error(`Element with id ${inputId} not found`);
     }
     inputElement.value = counter.toString();
     console.log('EFFECT finished...');
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [counter]);
 
   console.log('RENDER function finished; About to return JSX...');
