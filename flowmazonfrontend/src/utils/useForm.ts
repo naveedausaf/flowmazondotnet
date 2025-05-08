@@ -3,7 +3,7 @@
 
 import { useFormik, FormikConfig, FormikValues, FormikProps } from 'formik';
 
-import { FormEvent, useEffect, useState } from 'react';
+import { FormEvent, useEffect, useState, useId, useLayoutEffect } from 'react';
 import * as Yup from 'yup';
 
 //TODO: Document the hook: it is just  as a decorator for the specific
@@ -13,13 +13,68 @@ import * as Yup from 'yup';
 //we had exited or changed the field). These computed errors
 //would be made available as an additional "hasError" property.
 
+/**
+ * A custom hook that extends Formik's functionality to provide additional
+ * state and behavior for form validation and error handling.
+ *
+ * @template Values - The shape of the form values.
+ * @param {FormikConfig<Values>} config - The configuration object for Formik, including
+ * initial values, validation schema, and submission logic. VERY IMPORTANT: keys in initialValues property of this object must always be the same whenever `useForm` is called by a given component. This is because they are passed in the alphabetical order to React hooks such as useId. You don't have to make sure that keys are added in the same order in `initialValues` object every time you call `useForm` but YOU DO have to make sure that keys in `initialValues` are the same every time you call `useForm` in a component.
+ * @returns {FormikProps<Values> & {
+ *   hasError: { [InputControl in keyof Values]: boolean };
+ *   required: { [InputControl in keyof Values]: boolean };
+ *   ids: { [InputControl in keyof Values]: string };
+ * }} - Returns all Formik props along with additional properties:
+ * - `hasError`: Indicates whether each input has an error that should be displayed.
+ * - `required`: Indicates whether each input is required based on the validation schema.
+ * - `ids`: Unique IDs for each input. These MUST be set on the corresponding input controls.
+ *
+ * ### Additional Behavior:
+ * - Tracks inputs that have been changed and subsequently blurred. When such an input has an error, `hasError.[inputname]` is set to true in the `hasError` property of the return value of this hook so that the calling component can show the error message and/or highlight the input as having an error.
+ * - On form submission:
+ *     - validates all fields and sets the `hasError` state for all inputs (whether or not they have changed then blurred) in `hasError` property of returned object.
+ *     - sets focus to first control with error
+ * - Returns a `required` property in the returned object, which indicates whether each input is required based on the validation schema. This can be used to render the corresponding input control as required e.g. set `aria-required="true"` and/or show a red asterisk next to the field's label.
+ * - Automatically generates unique IDs for each input field. Internally these are used to set focus to the first control that has an error when submit button is pressed.
+ * ### Example Usage:
+ * ```tsx
+ * const form = useForm({
+ *   initialValues: { name: '', email: '' },
+ *   validationSchema: Yup.object({
+ *     name: Yup.string().required('Name is required'),
+ *     email: Yup.string().email('Invalid email').required('Email is required'),
+ *   }),
+ *   onSubmit: (values) => {
+ *     console.log(values);
+ *   },
+ * });
+ *
+ * return (
+ *   <form onSubmit={form.handleSubmit}>
+ *     <input
+ *       name="name"
+ *       value={form.values.name}
+ *       onChange={form.handleChange}
+ *       onBlur={form.handleBlur}
+ *       aria-required={form.required.name}
+ *       aria-invalid={form.hasError.name}
+ *       id={form.ids.name}
+ *     />
+ *     <button type="submit">Submit</button>
+ *   </form>
+ * );
+ * ```
+ */
 export default function useForm<Values extends FormikValues>(
   config: FormikConfig<Values>,
 ): FormikProps<Values> & {
   hasError: { [InputControl in keyof Values]: boolean };
   required: { [InputControl in keyof Values]: boolean };
+  ids: { [InputControl in keyof Values]: string };
 } {
+  console.log('START useForm EXECUTION...');
   const formik = useFormik(config);
+  console.log(`In useForm, formik .errors: ${JSON.stringify(formik.errors)}`);
 
   function createObjectWithKeyForEachInputAndSameValueForAllKeys<T>(
     sameValueForEachKey: T,
@@ -44,7 +99,7 @@ export default function useForm<Values extends FormikValues>(
   const namesOfValidatedInputs: (keyof typeof formik.initialValues)[] =
     Object.keys(formik.initialValues);
 
-  //this object indicates which of the inputs is reqruied
+  //this object indicates which of the inputs is required
   //this could be used to set `aria-required="true"` on the
   //correpsonding form controls
   const required = createObjectWithKeyForEachInputAndSameValueForAllKeys(false);
@@ -95,6 +150,77 @@ export default function useForm<Values extends FormikValues>(
   const [inputsThatChangedThenBlurred, setInputsThatChangedThenBlurred] =
     useState(createObjectWithKeyForEachInputAndSameValueForAllKeys(false));
 
+  //this is a boolean that would be flipped by submit handler
+  //to force an effect to to run that should only
+  //run if submit was pressed and this was what
+  //caused the re-render of the client component of this hook.
+  //initially we set it to udnefined though so the effect
+  //doesn't run on mount.
+  const [submitFlipFlop, setSubmitFlipFlop] = useState<boolean | undefined>(
+    undefined,
+  );
+
+  useLayoutEffect(
+    () => {
+      console.log('executing EFFECT...');
+      console.log(`submitfliFlop: ${String(submitFlipFlop)}`);
+      console.log(`formik errors: ${JSON.stringify(formik.errors)}`);
+
+      if (submitFlipFlop === undefined) {
+        //submit has not been pressed at all since mount
+        //Otherwise it would have been true or false.
+        //Hence do nothing:
+        return;
+      }
+
+      const nameOfFirstInputWithError = namesOfValidatedInputs.find(
+        (key) => hasError[key],
+      );
+
+      console.log(namesOfValidatedInputs);
+      console.log(hasError);
+      console.log(nameOfFirstInputWithError);
+
+      if (!nameOfFirstInputWithError) {
+        //we shouldn't really be here but I don't want to
+        //throw an error in production code.
+        console.log(
+          'The form has been re-rendered after submit button was pressed but there are no errors',
+        );
+        return;
+      }
+
+      //if we are here, we have an error
+      //we need to set focus to the first control with error
+      const firstControlWithError = document.getElementById(
+        ids[nameOfFirstInputWithError],
+      );
+      if (!firstControlWithError)
+        throw new Error(
+          `Element was not found with id ${ids[nameOfFirstInputWithError]} for input ${String(nameOfFirstInputWithError)} that has an error`,
+        );
+
+      firstControlWithError.focus({ preventScroll: true });
+
+      firstControlWithError.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center', //avoids the complication of having to find and
+        //focus the label instead
+        inline: 'nearest', //default is fine
+      });
+    },
+    //Disabling following eslint rule as we specifically
+    //want to run this effect IF AND ONLY IF submit button
+    //press is what cause this render.
+    //This would be indicated by value of submitFlipFlop
+    //flipping from it previous value (i.e. from false to true
+    //or true to false, initially it would be undefined
+    //though in which case we would not execute the
+    //effect, as guard condition above ensures)
+    /* eslint-disable-next-line react-hooks/exhaustive-deps */
+    [submitFlipFlop],
+  );
+
   const handleChange = (
     e: FormEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => {
@@ -128,6 +254,8 @@ export default function useForm<Values extends FormikValues>(
     setInputsThatChangedThenBlurred(
       createObjectWithKeyForEachInputAndSameValueForAllKeys(true),
     );
+
+    setSubmitFlipFlop(!submitFlipFlop);
   };
 
   const hasError = createObjectWithKeyForEachInputAndSameValueForAllKeys(false);
@@ -136,6 +264,22 @@ export default function useForm<Values extends FormikValues>(
       inputsThatChangedThenBlurred[controlName] && !!formik.errors[controlName];
   });
 
+  //ids of form controls.
+  // It is convenient for this hook to generate and return
+  //these for it can then hold on to these ids and then
+  //jump to the first control with an error if there
+  //is an error on submit.
+  const ids = createObjectWithKeyForEachInputAndSameValueForAllKeys('');
+  for (const controlName of namesOfValidatedInputs) {
+    //disabling the following rule as the initialValues is documented
+    //to indicate that keys must always be the same. Plus we have
+    //ordered them already (alphabetically) so they
+    //would always be iterated in the same order as long as the
+    // set of keys remains the same.
+    /* eslint-disable-next-line react-hooks/rules-of-hooks */
+    ids[controlName] = useId();
+  }
+
   return {
     ...formik,
     handleSubmit,
@@ -143,5 +287,6 @@ export default function useForm<Values extends FormikValues>(
     handleBlur,
     hasError,
     required,
+    ids,
   };
 }

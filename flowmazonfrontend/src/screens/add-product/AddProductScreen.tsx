@@ -27,6 +27,14 @@ export type AddProductPageScreenProps = {
     imageUrl: boolean;
     price: boolean;
   };
+
+  ids: {
+    name: string;
+    description: string;
+    imageUrl: string;
+    price: string;
+  };
+
   onSubmit: (e?: FormEvent<HTMLFormElement>) => void;
 
   onBlur: (e: FormEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
@@ -39,17 +47,14 @@ export default function AddProductScreen({
   errors,
   values,
   required,
+  ids,
   onSubmit,
   onBlur,
   onChange,
 }: AddProductPageScreenProps) {
-  const nameId = useId();
   const nameErrorId = useId();
-  const descId = useId();
   const descErrorId = useId();
-  const imageUrlId = useId();
   const imageUrlErrorId = useId();
-  const priceId = useId();
   const priceErrorId = useId();
 
   return (
@@ -61,7 +66,7 @@ export default function AddProductScreen({
         <div className='mx-auto max-w-5xl px-0'>
           <h1 className='mb-4 text-lg font-bold'>Add Product</h1>
           <form action='' onSubmit={onSubmit} aria-label='add product form'>
-            <label htmlFor={nameId}>Name</label>
+            <label htmlFor={ids.name}>Name</label>
             <input
               type='text'
               className={clsx(
@@ -71,7 +76,7 @@ export default function AddProductScreen({
                 'input input-bordered mb-0 w-full focus:ring-1 focus:outline-none',
               )}
               name='name'
-              id={nameId}
+              id={ids.name}
               value={values.name}
               inputMode='text'
               aria-required={required.name}
@@ -87,10 +92,10 @@ export default function AddProductScreen({
               </span>
               &nbsp;
             </div>
-            <label htmlFor={descId}>Description</label>
+            <label htmlFor={ids.description}>Description</label>
             <textarea
               name='description'
-              id={descId}
+              id={ids.description}
               className={clsx(
                 hasError.description &&
                   'border-error focus:border-error focus:ring-error',
@@ -111,7 +116,7 @@ export default function AddProductScreen({
               </span>
               &nbsp;
             </div>
-            <label htmlFor={imageUrlId}>Image URL</label>
+            <label htmlFor={ids.imageUrl}>Image URL</label>
             <input
               type='text'
               className={clsx(
@@ -121,7 +126,7 @@ export default function AddProductScreen({
                 'input input-bordered mb-0 w-full focus:ring-1 focus:outline-none',
               )}
               name='imageUrl'
-              id={imageUrlId}
+              id={ids.imageUrl}
               value={values.imageUrl}
               inputMode='url'
               aria-required={required.imageUrl}
@@ -136,7 +141,7 @@ export default function AddProductScreen({
               </span>
               &nbsp;
             </div>
-            <label htmlFor={priceId}>Price</label>
+            <label htmlFor={ids.price}>Price</label>
             <input
               type='text'
               className={clsx(
@@ -146,7 +151,7 @@ export default function AddProductScreen({
                 'input input-bordered mb-0 w-full focus:ring-1 focus:outline-none',
               )}
               name='price'
-              id={priceId}
+              id={ids.price}
               value={values.price}
               inputMode='decimal'
               aria-required={required.price}
