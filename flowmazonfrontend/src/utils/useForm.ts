@@ -65,10 +65,8 @@ export default function useForm<Values extends FormikValues>(
   required: { [InputControl in keyof Values]: boolean };
   id: { [InputControl in keyof Values]: string };
 } {
-  console.log('START useForm EXECUTION...');
-  const formik = useFormik(config);
-  console.log(`In useForm, formik .errors: ${JSON.stringify(formik.errors)}`);
-
+  //a utility function that creates an object with the same keys as
+  //the inputs with values for all keys set to the same provided value.
   function createObjectWithKeyForEachInputAndSameValueForAllKeys<T>(
     sameValueForEachKey: T,
   ): {
@@ -86,23 +84,13 @@ export default function useForm<Values extends FormikValues>(
     };
   }
 
+  const formik = useFormik(config);
+
   //names of validated inputs. These would be used below in computing
   //and returning several objects that indicate state, with respect
   //to validation, of the corresponding controls on the form.
   const namesOfValidatedInputs: (keyof typeof formik.initialValues)[] =
     Object.keys(formik.initialValues);
-
-  //this object indicates which of the inputs is required
-  //this could be used to set `aria-required="true"` on the
-  //correpsonding form controls
-  const required = createObjectWithKeyForEachInputAndSameValueForAllKeys(false);
-  namesOfValidatedInputs.forEach((controlName) => {
-    /*eslint-disable @typescript-eslint/no-unsafe-member-access */
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-    const fieldSchema = config.validationSchema.fields[controlName].describe();
-    /*eslint-disable @typescript-eslint/no-unsafe-member-access */
-    required[controlName] = !fieldSchema.optional && !fieldSchema.nullable;
-  });
 
   // The two state variable given directly below keep track of inputs
   // that have changed at least once and have subsequently been exited
@@ -143,111 +131,144 @@ export default function useForm<Values extends FormikValues>(
   const [inputsThatChangedThenBlurred, setInputsThatChangedThenBlurred] =
     useState(createObjectWithKeyForEachInputAndSameValueForAllKeys(false));
 
-  //this is a boolean that would be flipped by submit handler
-  //to force an effect to to run that should only
-  //run if submit was pressed and this was what
-  //caused the re-render of the client component of this hook.
-  //initially we set it to udnefined though so the effect
-  //doesn't run on mount.
-  const [submitFlipFlop, setSubmitFlipFlop] = useState<boolean | undefined>(
-    undefined,
-  );
-  const [emptyRenderFlipFlop, setEmptyRenderFlipFlop] = useState(false);
+  //When there are errors on submit, then after Fromik's submit handler
+  //has executed, submit handler the client provided (e.g.
+  //to paost the form) has NOT executed, and Formik knows that there
+  //are errors. Yet after Formik's submit handler has executed,
+  //formik.errors is empty ({}).
+  //The worst bit is that the cien component would render twice
+  //once with formik.errors === {} and the next time with formik.errors
+  //being populated, BUT just after mount, when no validation has yet
+  //taken place or any input typed, if you press submit and there are
+  //errors, NOT ONE BUT TWO RENDERS TAKE PLACE WITH formik.errors === {}
+  //before on the THIRD RENDER formik.errors is populated.
+  //
+  //It seemed like a good idea to use formik.submitCount as
+  //dependency of the effect that sets focus to fist error on submit
+  //but look out for formik.errors === {}. This worked if submit
+  //was done after some data had already been typed in but if,just after
+  //load, without entering any data, you pressed submit, the first
+  //two renders sould each have a different formik.submitCount so
+  //effect would be called but each of thos times we would have
+  //formik.errors === {}. On the third render, which does have
+  //formik.errors populatred, formik.submitCount would not have changed
+  //so effect would not run.
+  //
+  //So to get around this anomalous Formik behaviour, I set
+  //the following state item to true in my own submit handler
+  //when errors occur, then the effect can execute either one or two
+  //times with formik.errors === {} and finally when formik.errors
+  //is populated (either second or third render, we proceed to
+  //set focus to first control with error
+  //and reset the signal submitWithErrorsHappened back to false.
+  //
+  //This cause an extra render but it only happens on form submit
+  //WHEN THERE ARE ERRORS. So it is not a big deal.
+  //
+  //MORE EFFICIENT ALTERNATIVES EXIST but are more complicated and
+  //I didn't want to litter my code.
+  const [submitWithErrorsHappened, setSubmitWithErrorHappened] =
+    useState(false);
 
-  useEffect(
-    () => {
-      console.log('executing EFFECT...');
-      console.log(`submitfliFlop: ${String(submitFlipFlop)}`);
+  //The following effect sets focus to the first control with error
+  // on submit
+
+  //disabling the following rule as we are using
+  //submitWithErrorsHappened as a signal that is manually
+  //reset to false when formik.errors !== {}. Until then
+  //the effect will keep returning at the guard condition at start
+  //which is similar to using a dependencies array as guard clause.
+  //
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    if (!submitWithErrorsHappened) {
+      //No errors on submit are indicated
+      //so do nothing
+      return;
+    }
+
+    //if we have come here, it's because errors occurred
+    //on submit but we haven't yet set focus to the first
+    //control with error.
+
+    if (Object.keys(formik.errors).length === 0) {
+      //TWO renders take place when submit button is pressed
+      //(actually THREE such renders happen at mount)
+      //all except last of which will have formik.errors === {}).
+      //See comments on setSubmitWithErrorHappened state variable
+      //above for more details.
+      return;
+    }
+
+    //now set focus to the first control with error:
+
+    //First, reset the signal that submit with error happened.
+    //This is unpalatable as it would cause an
+    //extra render. But - see comments on definition of this
+    //state items for details - seemed to be the least bad
+    //among the alternatives.
+    setSubmitWithErrorHappened(false);
+
+    //Second, find the first control with error
+    const nameOfFirstInputWithError = namesOfValidatedInputs.find(
+      (key) => hasError[key],
+    );
+
+    if (!nameOfFirstInputWithError) {
+      //we shouldn't really be here but I don't want to
+      //throw an error in production code.
       console.log(
-        `formik errors: ${String(Object.keys(formik.errors).length)}`,
+        'The form has been re-rendered after submit button was pressed but there are no errors',
+      );
+      return;
+    }
+
+    //Third, set focus to the first control with error
+    const firstControlWithError = document.getElementById(
+      ids[nameOfFirstInputWithError],
+    );
+    if (!firstControlWithError)
+      throw new Error(
+        `Element was not found with id ${ids[nameOfFirstInputWithError]} for input ${String(nameOfFirstInputWithError)} that has an error`,
       );
 
-      if (submitFlipFlop === undefined) {
-        //submit has not been pressed at all since mount
-        //Otherwise it would have been true or false.
-        //Hence do nothing:
-        return;
-      }
+    firstControlWithError.focus({ preventScroll: true });
 
-      //As component TestStrictModeInStorybook and its stories
-      //show, Storybook does NOT render components under StrictMode.
-      //Yet my console.log statements here and in add-product page
-      //component showed that after SUBMIT button was pressed,
-      //the render function of the component was getting called
-      //twice.
-      //First time round,formik.errors would be {} (and so
-      //`hasError` would get computed as having false for ever
-      // input). Next time formik.errors would be populated.
-      // This was messing up the effect's execution as it
-      //uses a signalling flip-flop and so would execute only
-      //the first time render functrionw as called,
-      //there would be no errors and so it would do nothing. But
-      //the next time render functionw as called with correctly
-      //indicated errors, the flip flop dependenc of the
-      //effect would remain unchagned so it wouldn't run at all.
-      //THEREFORE, I detect the first of the duplicate executions
-      //of the render function which lead to the execution
-      //of the effect function (probabaly caused by Formik
-      //setting a state variable the first time round to trigger
-      //a re-render, for whatever reason). Here, I set the flip flip
-      //so that the effect would get called a second time (after the
-      //next render is complete).
+    firstControlWithError.scrollIntoView({
+      behavior: 'smooth',
+      block: 'center', //avoids the complication of having to find and
+      //focus the label instead
+      inline: 'nearest', //default is fine
+    });
+  });
 
-      if (Object.keys(formik.errors).length === 0) {
-        //we are in first of the two renders that take place
-        //when submit button is pressed. So toggle the flipflop
-        //we the effect runs the next time also:
-        setEmptyRenderFlipFlop(!emptyRenderFlipFlop);
-        return;
-      }
+  //this object indicates which of the inputs is required
+  //this could be used to set `aria-required="true"` on the
+  //correpsonding form controls
+  const required = createObjectWithKeyForEachInputAndSameValueForAllKeys(false);
+  namesOfValidatedInputs.forEach((controlName) => {
+    /*eslint-disable @typescript-eslint/no-unsafe-member-access */
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+    const fieldSchema = config.validationSchema.fields[controlName].describe();
+    /*eslint-disable @typescript-eslint/no-unsafe-member-access */
+    required[controlName] = !fieldSchema.optional && !fieldSchema.nullable;
+  });
 
-      const nameOfFirstInputWithError = namesOfValidatedInputs.find(
-        (key) => hasError[key],
-      );
-
-      console.log(namesOfValidatedInputs);
-      console.log(hasError);
-      console.log(nameOfFirstInputWithError);
-
-      if (!nameOfFirstInputWithError) {
-        //we shouldn't really be here but I don't want to
-        //throw an error in production code.
-        console.log(
-          'The form has been re-rendered after submit button was pressed but there are no errors',
-        );
-        return;
-      }
-
-      //if we are here, we have an error
-      //we need to set focus to the first control with error
-      const firstControlWithError = document.getElementById(
-        ids[nameOfFirstInputWithError],
-      );
-      if (!firstControlWithError)
-        throw new Error(
-          `Element was not found with id ${ids[nameOfFirstInputWithError]} for input ${String(nameOfFirstInputWithError)} that has an error`,
-        );
-
-      firstControlWithError.focus({ preventScroll: true });
-
-      firstControlWithError.scrollIntoView({
-        behavior: 'smooth',
-        block: 'center', //avoids the complication of having to find and
-        //focus the label instead
-        inline: 'nearest', //default is fine
-      });
-    },
-    //Disabling following eslint rule as we specifically
-    //want to run this effect IF AND ONLY IF submit button
-    //press is what cause this render.
-    //This would be indicated by value of submitFlipFlop
-    //flipping from it previous value (i.e. from false to true
-    //or true to false, initially it would be undefined
-    //though in which case we would not execute the
-    //effect, as guard condition above ensures)
-    /* eslint-disable-next-line react-hooks/exhaustive-deps */
-    [submitFlipFlop, emptyRenderFlipFlop],
-  );
+  //ids of form controls.
+  // It is convenient for this hook to generate and return
+  //these for it can then hold on to these ids and then
+  //jump to the first control with an error if there
+  //is an error on submit.
+  const ids = createObjectWithKeyForEachInputAndSameValueForAllKeys('');
+  for (const controlName of namesOfValidatedInputs) {
+    //disabling the following rule as the initialValues is documented
+    //to indicate that keys must always be the same. Plus we have
+    //ordered them already (alphabetically) so they
+    //would always be iterated in the same order as long as the
+    // set of keys remains the same.
+    /* eslint-disable-next-line react-hooks/rules-of-hooks */
+    ids[controlName] = useId();
+  }
 
   const handleChange = (
     e: FormEvent<HTMLInputElement | HTMLTextAreaElement>,
@@ -278,12 +299,17 @@ export default function useForm<Values extends FormikValues>(
   const handleSubmit = (e?: FormEvent<HTMLFormElement>) => {
     formik.handleSubmit(e);
 
+    //if we are here, there have been errors
+
+    //setting this to signal an error, while unpalatable,
+    //was a better choice than alternatives. See comments
+    //on this state items for more details.
+    setSubmitWithErrorHappened(true);
+
     //set all inputs to changed then blurred
     setInputsThatChangedThenBlurred(
       createObjectWithKeyForEachInputAndSameValueForAllKeys(true),
     );
-
-    setSubmitFlipFlop(!submitFlipFlop);
   };
 
   const hasError = createObjectWithKeyForEachInputAndSameValueForAllKeys(false);
@@ -291,22 +317,6 @@ export default function useForm<Values extends FormikValues>(
     hasError[controlName] =
       inputsThatChangedThenBlurred[controlName] && !!formik.errors[controlName];
   });
-
-  //ids of form controls.
-  // It is convenient for this hook to generate and return
-  //these for it can then hold on to these ids and then
-  //jump to the first control with an error if there
-  //is an error on submit.
-  const ids = createObjectWithKeyForEachInputAndSameValueForAllKeys('');
-  for (const controlName of namesOfValidatedInputs) {
-    //disabling the following rule as the initialValues is documented
-    //to indicate that keys must always be the same. Plus we have
-    //ordered them already (alphabetically) so they
-    //would always be iterated in the same order as long as the
-    // set of keys remains the same.
-    /* eslint-disable-next-line react-hooks/rules-of-hooks */
-    ids[controlName] = useId();
-  }
 
   return {
     ...formik,

@@ -12,7 +12,7 @@ import AddProductPage from '@/pages/add-product';
 import { ErrorCase, ErrorCases } from './testdata';
 import { allModes } from '../../../.storybook/modes.js';
 
-import { within, userEvent, expect } from '@storybook/test';
+import { within, userEvent, expect, waitFor } from '@storybook/test';
 import { Meta, StoryObj } from '@storybook/react';
 import createAddProductPagePOM, {
   TextboxGet,
@@ -95,10 +95,8 @@ export const SubmitValidatesAllFieldsAndJumpsToFirstError: Story = {
     const form = createAddProductPagePOM(canvasElement).getAddProductForm();
 
     //submit the form
-    form.getSubmitButton().click();
+    await userEvent.click(form.getSubmitButton());
 
-    //await userEvent.click();
-    /*
     //check that the error messages are displayed
     await expect(
       form.name.get({ description: ErrorCases.name.NameRequired.ErrorMessage }),
@@ -120,8 +118,7 @@ export const SubmitValidatesAllFieldsAndJumpsToFirstError: Story = {
     ).toBeTruthy();
 
     //check that the first error message is focused
-    await expect(form.name.get()).toHaveFocus();
-    */
+    await waitFor(() => expect(form.name.get({})).toHaveFocus());
   },
 };
 
