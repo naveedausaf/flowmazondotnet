@@ -9,7 +9,7 @@
 /* eslint-disable storybook/use-storybook-expect */
 
 import AddProductPage from '@/pages/add-product';
-import { ErrorCase, ErrorCases } from './testdata';
+import { ErrorCase, ErrorCases, ValidInputs } from './testdata';
 import { allModes } from '../../../.storybook/modes.js';
 
 import { within, userEvent, expect, waitFor } from '@storybook/test';
@@ -19,6 +19,9 @@ import createAddProductPagePOM, {
   TextboxQueries,
   accessibleNames,
 } from './PageObjectModel';
+
+import { http, HttpResponse } from 'msw';
+import { config } from '@/utils/config';
 
 const meta: Meta<typeof AddProductPage> = {
   component: AddProductPage,
@@ -55,11 +58,55 @@ export const Primary: Story = {};
 
 export const InputModes: Story = {};
 export const Autocomplete: Story = {};
-export const SubmitSuccessfully: Story = {};
-export const ServerErrorOnSubmit: Story = {};
 export const LoadingStateOnSubmit: Story = {};
 
-//error stories
+export const SubmitSuccessfully: Story = {
+  parameters: {
+    msw: {
+      handlers: [
+        http.post(config.serviceUrls.product, async ({ request }) => {
+          const newProduct = await request.json();
+          await expect(newProduct).toEqual({
+            name: ValidInputs.name,
+            description: ValidInputs.description,
+            imageUrl: ValidInputs.imageUrl,
+            price: ValidInputs.price,
+          });
+          console.log(
+            `submitted REST request was correct: ${JSON.stringify(newProduct)}`,
+          );
+
+          return HttpResponse.text(undefined, {
+            headers: {
+              Location: '/product/1',
+              'Content-Length': '0',
+              Date: new Date().toUTCString(),
+            },
+            status: 201,
+          });
+        }),
+      ],
+    },
+  },
+  play: async ({ canvasElement }) => {
+    //initialise
+    const form = createAddProductPagePOM(canvasElement).getAddProductForm();
+
+    //fill in the form
+    await userEvent.type(form.name.get(), ValidInputs.name);
+    await userEvent.type(form.description.get(), ValidInputs.description);
+    await userEvent.type(form.imageUrl.get(), ValidInputs.imageUrl);
+    await userEvent.type(form.price.get(), ValidInputs.price);
+
+    //submit the form
+    await userEvent.click(form.getSubmitButton());
+
+    //check that the success message is displayed
+    //await expect(form.successMessage.get()).toBeTruthy();
+  },
+};
+
+export const ServerErrorOnSubmit: Story = {};
 
 //Not writing the following as checking for name without asterisk
 //is part of most other tests because names without asterisks
@@ -88,7 +135,7 @@ export const FormNameIsCorrect: Story = {
 };
 
 export const SubmitValidatesAllFieldsAndJumpsToFirstError: Story = {
-  name: 'Validate - All fields on Submit and  jump to first error',
+  name: 'Validate - Validate all fields on Submit and  jump to first error',
   play: async ({ canvasElement }) => {
     //initialise
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -122,7 +169,71 @@ export const SubmitValidatesAllFieldsAndJumpsToFirstError: Story = {
   },
 };
 
-export const SubmitWhenThereAreAlreadyErrorsJumpsToFirstError: Story = {};
+export const SubmitWhenThereAreAlreadyErrorsJumpsToFirstError: Story = {
+  name: 'Validate - Submit when there are already errors jumps to first error',
+  play: async ({ canvasElement }) => {
+    //initialise
+    const form = createAddProductPagePOM(canvasElement).getAddProductForm();
+
+    await userEvent.type(form.name.get(), 'John Doe');
+    const errorAssertsForLater = [
+      //create an error in every field
+
+      await typeErroneousInputAndTabOffAndAssertError(
+        form.description,
+        ErrorCases.description.DescriptionMaxLength,
+      ),
+      await typeErroneousInputAndTabOffAndAssertError(
+        form.imageUrl,
+        ErrorCases.imageUrl.ImageUrlIsValidUrl,
+      ),
+      await typeErroneousInputAndTabOffAndAssertError(
+        form.price,
+        ErrorCases.price.PriceNotNumeric,
+      ),
+    ];
+
+    //submit the form
+    await userEvent.click(form.getSubmitButton());
+
+    //check that first field with error has focus
+    await waitFor(() => expect(form.description.get({})).toHaveFocus());
+    //check that the error messages are displayed
+    errorAssertsForLater.forEach((assertError) => {
+      // eslint-disable-next-line @typescript-eslint/no-floating-promises
+      assertError();
+    });
+  },
+};
+
+async function typeErroneousInputAndTabOffAndAssertError<TInput>(
+  textboxQueries: TextboxQueries,
+  errorCase: ErrorCase<TInput>,
+) {
+  const input = String(errorCase.InvalidValue);
+  const textbox = textboxQueries.get();
+  textbox.focus();
+  //we type all but one char of the input by just
+  //pasting it in order to increase performance
+  await userEvent.paste(input.substring(0, input.length - 2));
+
+  //now type the last character to ensure the invalid
+  //input is complete but validation doesn't take place
+  await userEvent.keyboard(input.substring(input.length - 2));
+
+  //now go away from the control
+  await userEvent.tab();
+
+  //now check the input we tabbed away from has error
+  const assertError = async () => {
+    await expect(
+      textboxQueries.get({ description: errorCase.ErrorMessage }),
+    ).toBeTruthy();
+    await expect(textbox.ariaInvalid).toBeTruthy();
+  };
+  await assertError();
+  return assertError;
+}
 
 export const ValidateOnTypeButAfterFirstTabOff: Story = {
   name: 'Validate - On Type but after first Tab Off',

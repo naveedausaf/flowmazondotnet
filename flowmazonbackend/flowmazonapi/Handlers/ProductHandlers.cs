@@ -7,6 +7,7 @@ using flowmazonapi.BusinessLogic.ProductService;
 using Microsoft.AspNetCore.Http.HttpResults;
 using System.Diagnostics;
 using Microsoft.OpenApi.Models;
+using System.Runtime.CompilerServices;
 
 namespace flowmazonapi.Handlers;
 
@@ -93,7 +94,9 @@ public class ProductHandlers
             var result = await productService.CreateProduct(p);
 
 
-            return TypedResults.Created(linkGen.GetPathByName(HandlerNames.GetProduct, new { id = result }));
+            var res = TypedResults.Created(linkGen.GetPathByName(HandlerNames.GetProduct, new { id = result }));
+
+            return res;
 
 
         }

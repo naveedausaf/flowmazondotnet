@@ -240,3 +240,10 @@ const createErrorCases = () => {
 };
 
 export const ErrorCases = createErrorCases();
+
+export const ValidInputs = {
+  name: 'John Doe',
+  description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.',
+  imageUrl: 'http://www.example.com/image123',
+  price: '123.45',
+};
