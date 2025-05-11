@@ -84,7 +84,7 @@ export const FormNameIsCorrect: Story = {
 
 export const InputModes: Story = {
   play: async ({ canvasElement }) => {
-    //as I cannot verify that the correct virtual keyboard pops up
+    //TODO: as I cannot verify that the correct virtual keyboard pops up
     //without rendering the form on a mobile device (or an emulator?),
     //this tests would be simplistic (and possibly quite brittle, though
     //we could mitigate this problem by making inputmode, and while
@@ -106,6 +106,10 @@ export const InputModes: Story = {
 
 export const Autocomplete: Story = {
   play: async ({ canvasElement }) => {
+    //TODO: This test is simialrly brittle to the inputmode test
+    //put this info in schema and test the rendered coponent based
+    //on the schema just as I have suggested for the inputmode test above
+
     //initialise
     const form = createAddProductPagePOM(canvasElement).getAddProductForm();
 
