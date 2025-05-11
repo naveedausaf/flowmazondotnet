@@ -56,11 +56,77 @@ type Story = StoryObj<typeof AddProductPage>;
 
 export const Primary: Story = {};
 
-export const InputModes: Story = {};
-export const Autocomplete: Story = {};
+//Not writing the following as checking for name without asterisk
+//is part of most other tests because names without asterisks
+//are exported as consts from the page object model.
+//
+//export const AsterisksOnRequiredFieldsNotPartOfAccessibleName: Story = {};
+
+export const RequiredFieldsIdentifiedAsSuch: Story = {
+  play: async ({ canvasElement }) => {
+    const form = createAddProductPagePOM(canvasElement).getAddProductForm();
+    //check that the required fields are identified as such
+    await expect(form.name.get().ariaRequired).toBeTruthy();
+    await expect(form.description.get().ariaRequired).toBeTruthy();
+    await expect(form.imageUrl.get().ariaRequired).toBeTruthy();
+    await expect(form.price.get()).toBeTruthy();
+  },
+};
+
+export const FormNameIsCorrect: Story = {
+  play: async ({ canvasElement }) => {
+    const formElement = within(canvasElement).getByRole('form', {
+      name: accessibleNames.FormName,
+    });
+    await expect(formElement).toBeTruthy();
+  },
+};
+
+export const InputModes: Story = {
+  play: async ({ canvasElement }) => {
+    //as I cannot verify that the correct virtual keyboard pops up
+    //without rendering the form on a mobile device (or an emulator?),
+    //this tests would be simplistic (and possibly quite brittle, though
+    //we could mitigate this problem by making inputmode, and while
+    //we're at it, automcomplete, bejhaviour part of the schema that
+    //generally drives this test suite)
+
+    //initialise
+    const form = createAddProductPagePOM(canvasElement).getAddProductForm();
+
+    //check that the inputmode is set correctly
+    await expect(form.name.get().getAttribute('inputmode')).toEqual('text');
+    await expect(form.description.get().getAttribute('inputmode')).toEqual(
+      'text',
+    );
+    await expect(form.imageUrl.get().getAttribute('inputmode')).toEqual('url');
+    await expect(form.price.get().getAttribute('inputmode')).toEqual('decimal');
+  },
+};
+
+export const Autocomplete: Story = {
+  play: async ({ canvasElement }) => {
+    //initialise
+    const form = createAddProductPagePOM(canvasElement).getAddProductForm();
+
+    //We want to set every field carefully to an
+    //autocomplete value other than 'on' as it doubles up as a sufficient technique
+    //for passing WCAG SC 1.3.5 (Identify Input Purpose).
+    //check that the inputmode is set correctly
+    await expect(form.name.get().getAttribute('autocomplete')).toEqual('name');
+    await expect(form.description.get().getAttribute('autocomplete')).toEqual(
+      'off',
+    );
+    await expect(form.imageUrl.get().getAttribute('autocomplete')).toEqual(
+      'url',
+    );
+    await expect(form.price.get().getAttribute('autocomplete')).toEqual('off');
+  },
+};
 export const LoadingStateOnSubmit: Story = {};
 
 export const SubmitSuccessfully: Story = {
+  name: 'Submit - Submit successfully',
   parameters: {
     msw: {
       handlers: [
@@ -100,38 +166,11 @@ export const SubmitSuccessfully: Story = {
 
     //submit the form
     await userEvent.click(form.getSubmitButton());
-
-    //check that the success message is displayed
-    //await expect(form.successMessage.get()).toBeTruthy();
   },
 };
 
-export const ServerErrorOnSubmit: Story = {};
-
-//Not writing the following as checking for name without asterisk
-//is part of most other tests because names without asterisks
-//are exported as consts from the page object model.
-//
-//export const AsterisksOnRequiredFieldsNotPartOfAccessibleName: Story = {};
-
-export const RequiredFieldsIdentifiedAsSuch: Story = {
-  play: async ({ canvasElement }) => {
-    const form = createAddProductPagePOM(canvasElement).getAddProductForm();
-    //check that the required fields are identified as such
-    await expect(form.name.get().ariaRequired).toBeTruthy();
-    await expect(form.description.get().ariaRequired).toBeTruthy();
-    await expect(form.imageUrl.get().ariaRequired).toBeTruthy();
-    await expect(form.price.get()).toBeTruthy();
-  },
-};
-
-export const FormNameIsCorrect: Story = {
-  play: async ({ canvasElement }) => {
-    const formElement = within(canvasElement).getByRole('form', {
-      name: accessibleNames.FormName,
-    });
-    await expect(formElement).toBeTruthy();
-  },
+export const ServerErrorOnSubmit: Story = {
+  name: 'Submit - Server Error on Submit',
 };
 
 export const SubmitValidatesAllFieldsAndJumpsToFirstError: Story = {

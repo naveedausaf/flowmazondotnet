@@ -79,6 +79,7 @@ export default function AddProductScreen({
               id={ids.name}
               value={values.name}
               inputMode='text'
+              autoComplete='name'
               aria-required={required.name}
               onChange={onChange}
               onBlur={onBlur}
@@ -104,6 +105,7 @@ export default function AddProductScreen({
               )}
               value={values.description}
               inputMode='text'
+              autoComplete='off'
               aria-required={required.description}
               onChange={onChange}
               onBlur={onBlur}
@@ -129,6 +131,7 @@ export default function AddProductScreen({
               id={ids.imageUrl}
               value={values.imageUrl}
               inputMode='url'
+              autoComplete='url'
               aria-required={required.imageUrl}
               onChange={onChange}
               onBlur={onBlur}
@@ -154,6 +157,7 @@ export default function AddProductScreen({
               id={ids.price}
               value={values.price}
               inputMode='decimal'
+              autoComplete='off'
               aria-required={required.price}
               onChange={onChange}
               onBlur={onBlur}
