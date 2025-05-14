@@ -5,8 +5,6 @@ import { fn } from '@storybook/test';
 import { allModes } from '../../../.storybook/modes.js';
 
 import { ErrorCase, ErrorCases } from '@/pageStories/add-product/testdata';
-import { isDeepStrictEqual } from 'node:util';
-//import { action } from '@storybook/addon-actions';
 
 const meta: Meta<typeof AddProductScreen> = {
   component: AddProductScreen,

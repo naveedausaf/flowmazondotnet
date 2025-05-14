@@ -26,33 +26,42 @@ export type AddProductPagePOM = {
 
 const createAddProductPagePOM = (canvasElement: HTMLElement) => {
   const canvas = within(canvasElement);
-  const formElement = canvas.getByRole('form', {
-    name: accessibleNames.FormName,
-  });
-
-  const tlFormContainer = within(formElement);
-  const createTextboxQueries = (
-    accessibleName: string,
-  ): {
-    get: TextboxGet;
-    query: TextboxQuery;
-  } => ({
-    get: (options?: Omit<ByRoleOptions, 'name'>) => {
-      return tlFormContainer.getByRole('textbox', {
-        name: new RegExp(`^${accessibleName}`),
-        ...options,
-      });
-    },
-    query: (options?: Omit<ByRoleOptions, 'name'>) => {
-      return tlFormContainer.queryByRole('textbox', {
-        name: new RegExp(`^${accessibleName}`),
-        ...options,
-      });
-    },
-  });
 
   return {
+    getErrorDialog: () => {
+      return canvas.getByRole('alertdialog', {
+        name: 'Error',
+      });
+    },
+    queryAddProductForm: () =>
+      canvas.queryByRole('form', {
+        name: accessibleNames.FormName,
+      }),
     getAddProductForm: () => {
+      const formElement = canvas.getByRole('form', {
+        name: accessibleNames.FormName,
+      });
+
+      const tlFormContainer = within(formElement);
+      const createTextboxQueries = (
+        accessibleName: string,
+      ): {
+        get: TextboxGet;
+        query: TextboxQuery;
+      } => ({
+        get: (options?: Omit<ByRoleOptions, 'name'>) => {
+          return tlFormContainer.getByRole('textbox', {
+            name: new RegExp(`^${accessibleName}`),
+            ...options,
+          });
+        },
+        query: (options?: Omit<ByRoleOptions, 'name'>) => {
+          return tlFormContainer.queryByRole('textbox', {
+            name: new RegExp(`^${accessibleName}`),
+            ...options,
+          });
+        },
+      });
       return {
         tlFormContainer,
         formElement,

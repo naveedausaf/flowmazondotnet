@@ -175,6 +175,32 @@ export const SubmitSuccessfully: Story = {
 
 export const ServerErrorOnSubmit: Story = {
   name: 'Submit - Server Error on Submit',
+  parameters: {
+    msw: {
+      handlers: [
+        http.post(config.serviceUrls.product, () => HttpResponse.error()),
+      ],
+    },
+  },
+  play: async ({ canvasElement }) => {
+    //initialise
+    const form = createAddProductPagePOM(canvasElement).getAddProductForm();
+
+    //fill in the form
+    await userEvent.type(form.name.get(), ValidInputs.name);
+    await userEvent.type(form.description.get(), ValidInputs.description);
+    await userEvent.type(form.imageUrl.get(), ValidInputs.imageUrl);
+    await userEvent.type(form.price.get(), ValidInputs.price);
+
+    //submit the form
+    await userEvent.click(form.getSubmitButton());
+
+    //check that error ui is displayed
+
+    await expect(
+      form.name.get({ description: ErrorCases.name.NameRequired.ErrorMessage }),
+    ).toBeTruthy();
+  },
 };
 
 export const SubmitValidatesAllFieldsAndJumpsToFirstError: Story = {

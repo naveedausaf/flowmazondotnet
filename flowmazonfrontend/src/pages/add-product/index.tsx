@@ -49,7 +49,6 @@ export const validationSchema = Yup.object({
 //TODO: Factor out repeated blocks of label, control, error message
 //into components
 export default function AddProductPage() {
-  console.log('executing RENDER function...');
   const form = useForm({
     initialValues: {
       name: '',
@@ -68,8 +67,7 @@ export default function AddProductPage() {
       });
     },
   });
-  console.log('just called useForm');
-  console.log(`logging form.hasErrors: ${JSON.stringify(form.hasError)}`);
+
   return (
     <AddProductScreen
       hasError={form.hasError}
