@@ -1,30 +1,97 @@
-import { useId } from 'react';
+import { ReactEventHandler, useEffect, useId } from 'react';
 
 export default function AlertDialog({
-  resetErrorBoundary,
   title,
   description,
+  open,
+  elementIdToFocusAfterDialogClosed,
+  onClose,
 }: {
-  resetErrorBoundary?: () => void;
   title: string;
   description: string;
+  /**
+   * This is a boolean that indicates whether the alert dialog is open or closed.
+   */
+  open: boolean;
+  /**
+   * This is an optional string that represents the ID
+   * of the element that should receive focus after
+   * the dialog is closed.
+   *
+   * If MUST be provided, and should be the id of a
+   * control in the document, when 'open' is true.
+   *
+   * It ensures compliance with accessibility
+   * requriement of dialog role.
+   *
+   * It should ideally be the control that as focused
+   * a the time the alert opened (e.g. when the
+   * form was submitted but there was a server error
+   * that resultd in the AlertDialog being opened). If not,
+   * it should be the first element on the page.
+   */
+  elementIdToFocusAfterDialogClosed?: string;
+  onClose?: ReactEventHandler<HTMLDialogElement>;
 }) {
   const headingId = useId();
   const descriptionId = useId();
+  const buttonId = useId();
+  const dialogId = useId();
+
+  useEffect(() => {
+    //set focus to the button
+    //tried autoFocus={true} on the button before
+    //but that stopped working when I stopped putting
+    //this dialog inside a React ErrorBoundary and started
+    //placing it next to the form element and remove the
+    //React ErrorBoundary.
+    const dialogElement = document.getElementById(dialogId);
+    const closeButton = document.getElementById(buttonId);
+    if (dialogElement && closeButton) {
+      if ((dialogElement as HTMLDialogElement).open) {
+        closeButton.focus({ preventScroll: true });
+        console.log('focused to close button');
+      }
+    } else {
+      //log error as taking this branch should be IMPOSSIBLE
+    }
+  });
+
   return (
     <dialog
       role='alertdialog'
       aria-labelledby={headingId}
       aria-describedby={descriptionId}
       aria-modal='true'
-      id='my_modal_1'
+      id={dialogId}
       className='modal'
-      onClose={() => {
-        if (resetErrorBoundary) {
-          resetErrorBoundary();
+      onClose={(e) => {
+        if (elementIdToFocusAfterDialogClosed) {
+          const elementToFocus = document.getElementById(
+            elementIdToFocusAfterDialogClosed,
+          );
+          if (elementToFocus) {
+            console.log(
+              `found element to focus:             ${elementIdToFocusAfterDialogClosed}`,
+            );
+            elementToFocus.focus({
+              //since this is a modal dialog, we don't want to
+              //scroll the form underneath whan it closes,
+              //let it be as it was
+              preventScroll: true,
+            });
+            console.log('finished focusing on it');
+          } else {
+            throw new Error(
+              `Element with id '${elementIdToFocusAfterDialogClosed}' provided by elementIdToFocusAfterDialogClosed prop was not found at time of dialog close`,
+            );
+          }
+        }
+        if (onClose) {
+          onClose(e);
         }
       }}
-      open={true}
+      open={open}
     >
       <div className='modal-box'>
         <h3 id={headingId} className='text-lg font-bold'>
@@ -37,20 +104,9 @@ export default function AlertDialog({
           <form method='dialog'>
             {/* if there is a button in form, it will close the modal */}
 
-            {
-              //we are disabling the eslint rule
-              //that autofocus should not be used because
-              //in case of a modal dialog, which is what this is
-              //setting this atribute is what MDN documentation
-              //advises. It allows us to fulfill the requirement
-              //of alertdialog role (we have assgined it to the
-              //dialog above) to have focus set to a focusable
-              //within the dialog.
-            }
             <button
               className='btn'
-              // eslint-disable-next-line jsx-a11y/no-autofocus
-              autoFocus={true}
+              id={buttonId}
               onKeyDown={(e) => {
                 //also works for Shift+Tab as
                 //tests in storybook also show
