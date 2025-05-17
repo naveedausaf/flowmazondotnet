@@ -247,23 +247,115 @@ export const AlertDialogIsAccessible: Story = {
   },
 };
 
+const nonExistentElementId = 'non-existent-element-id';
+export const ElementIdToFocusAfterDialogClosed_NotValid: Story = {
+  args: {
+    ...TestCase,
+  },
+  render: (args) => {
+    // Provide a non-existent elementIdToFocusAfterDialogClosed
+    const [open, setOpen] = useState<boolean>(false);
+    return (
+      <>
+        <AlertDialog
+          {...args}
+          open={open}
+          elementIdToFocusAfterDialogClosed={nonExistentElementId}
+          onClose={() => {
+            setOpen(false);
+          }}
+        />
+        <button
+          onClick={() => {
+            setOpen(true);
+          }}
+        >
+          Open Dialog
+        </button>
+      </>
+    );
+  },
+  parameters: {
+    // Disable the default actions for the error event
+    test: {
+      //ensures that the error doesn't blow up the test
+      //e.stopPropagation and e.stopImmediatePropagation
+      //do not work. Setting the parameter below
+      //is what needs to be done
+      dangerouslyIgnoreUnhandledErrors: true,
+    },
+  },
+  play: async ({ canvasElement }) => {
+    let errorCaught: ErrorEvent | undefined = undefined;
+
+    window.addEventListener('error', (e) => {
+      //Check the error
+      if (e.message && e.message.includes(nonExistentElementId)) {
+        //we have caught the error we were looking for
+        errorCaught = e;
+
+        //stop the error from being reported in console
+        //as uncaught error
+        e.preventDefault();
+      }
+    });
+    const canvas = within(canvasElement);
+
+    // Open the dialog
+    await userEvent.click(canvas.getByRole('button', { name: 'Open Dialog' }));
+
+    // Wait for the dialog to appear
+    const dialog = await canvas.findByRole('alertdialog', {
+      name: TestCase.title,
+      description: TestCase.description,
+    });
+
+    // Try to close the dialog and expect an error to be thrown
+
+    await userEvent.click(
+      within(dialog).getByRole('button', { name: 'Close' }),
+    );
+
+    //wait for dialog to have disappeared from accessibility tree
+    await waitFor(() => expect(canvas.queryByRole('alertdialog')).toBeFalsy());
+
+    //Wait for an error to appear on window.error event.
+    //It should have been throw on close
+    //and caught in the event handler above
+    await waitFor(() => expect(errorCaught).toBeTruthy());
+  },
+};
+
 export const AlertDialogCanBeClosedToGetBackToForm: Story = {
   args: {
     ...TestCase,
   },
   render: AlertDialogIsAccessible.render,
-  play: ({ canvasElement }) => {
+  play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
 
     //submit form to cause error during submission asynchronously
     //(afer a delay)
     canvas.getByRole('button', { name: 'Submit Form' }).click();
 
-    // wait for alertdialog role with exepcted accessible name
-    // and accessible description to be shown
-    /* const dialog = await canvas.findByRole('alertdialog', {
+    // wait for alertdialog role with exepcted accessibility attributes to come up
+    const dialog = await canvas.findByRole('alertdialog', {
       name: TestCase.title,
       description: TestCase.description,
-    }); */
+    });
+
+    // Ensure the dialog is open
+    await expect(dialog).toBeTruthy();
+
+    // Press the Close button
+    await userEvent.click(
+      within(dialog).getByRole('button', { name: 'Close' }),
+    );
+
+    // Ensure the dialog is no longer open
+    await waitFor(() => expect(canvas.queryByRole('alertdialog')).toBeFalsy());
+
+    //but the form is still visible
+    await expect(canvas.getByRole('form')).toBeTruthy();
   },
 };
