@@ -1,5 +1,7 @@
+import createAlertDialogPOM from '@/components/errors/AlertDialog.pom';
 import { within } from '@storybook/test';
 import { ByRoleOptions } from '@testing-library/dom';
+import { serverErrorTitle, serverErrorMessage } from '@/pages/add-product';
 
 export type TextboxGet = (options?: Omit<ByRoleOptions, 'name'>) => HTMLElement;
 
@@ -28,11 +30,11 @@ const createAddProductPagePOM = (canvasElement: HTMLElement) => {
   const canvas = within(canvasElement);
 
   return {
-    getErrorDialog: () => {
-      return canvas.getByRole('alertdialog', {
-        name: 'Error',
-      });
-    },
+    serverErrorDialog: createAlertDialogPOM(
+      canvas,
+      serverErrorTitle,
+      serverErrorMessage,
+    ),
     queryAddProductForm: () =>
       canvas.queryByRole('form', {
         name: accessibleNames.FormName,
@@ -62,6 +64,7 @@ const createAddProductPagePOM = (canvasElement: HTMLElement) => {
           });
         },
       });
+
       return {
         tlFormContainer,
         formElement,

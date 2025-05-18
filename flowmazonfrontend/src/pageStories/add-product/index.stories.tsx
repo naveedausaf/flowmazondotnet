@@ -127,6 +127,7 @@ export const Autocomplete: Story = {
     await expect(form.price.get().getAttribute('autocomplete')).toEqual('off');
   },
 };
+
 export const LoadingStateOnSubmit: Story = {};
 
 export const SubmitSuccessfully: Story = {
@@ -184,7 +185,8 @@ export const ServerErrorOnSubmit: Story = {
   },
   play: async ({ canvasElement }) => {
     //initialise
-    const form = createAddProductPagePOM(canvasElement).getAddProductForm();
+    const pom = createAddProductPagePOM(canvasElement);
+    const form = pom.getAddProductForm();
 
     //fill in the form
     await userEvent.type(form.name.get(), ValidInputs.name);
@@ -196,10 +198,17 @@ export const ServerErrorOnSubmit: Story = {
     await userEvent.click(form.getSubmitButton());
 
     //check that error ui is displayed
+    const errorDialogPOM = pom.serverErrorDialog;
+    await errorDialogPOM.assert.alertDialogShown();
 
-    await expect(
-      form.name.get({ description: ErrorCases.name.NameRequired.ErrorMessage }),
-    ).toBeTruthy();
+    //dismiss the error dialog
+    await errorDialogPOM.act.dismissAlertDialog();
+
+    //check that the error dialog is gone
+    await errorDialogPOM.assert.alertDialogNotShown();
+
+    //now make sure that the form is still there
+    await expect(pom.queryAddProductForm()).toBeTruthy();
   },
 };
 
@@ -313,6 +322,7 @@ export const ValidateOnTypeButAfterFirstTabOff: Story = {
       form.name,
       ErrorCases.name.NameMaxLength,
     );
+
     await validateTextboxOnTypeButAfterFirstTabOff(
       form.description,
       ErrorCases.description.DescriptionMaxLength,

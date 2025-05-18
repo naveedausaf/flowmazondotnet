@@ -1,5 +1,11 @@
 import { ReactEventHandler, useEffect, useId } from 'react';
 
+/**
+ * AlertDialog is a component that displays an modal dialog with
+ * an accessible name and accessible description and a single
+ * Close button to dismiss the dialog.
+ * @returns
+ */
 export default function AlertDialog({
   title,
   description,
@@ -7,7 +13,14 @@ export default function AlertDialog({
   elementIdToFocusAfterDialogClosed,
   onClose,
 }: {
+  /**
+   * Title of the alert dialog. This will be the dialog's accessible name
+   */
   title: string;
+
+  /**
+   *Description shown on the alert dialog. This will be the dialog's accessible description.
+   */
   description: string;
   /**
    * This is a boolean that indicates whether the alert dialog is open or closed.

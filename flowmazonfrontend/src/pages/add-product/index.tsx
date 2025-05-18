@@ -6,6 +6,12 @@ import clsx from 'clsx';
 import useForm from '@/utils/useForm';
 import { config } from '@/utils/config';
 import AddProductScreen from '@/screens/add-product/AddProductScreen';
+import AlertDialog from '@/components/errors/AlertDialog';
+import { useState } from 'react';
+
+export const serverErrorTitle = 'Server Error';
+export const serverErrorMessage =
+  'An error occurred while processing your request. Please try again.';
 
 export const validationSchema = Yup.object({
   name: Yup.string()
@@ -49,6 +55,7 @@ export const validationSchema = Yup.object({
 //TODO: Factor out repeated blocks of label, control, error message
 //into components
 export default function AddProductPage() {
+  const [serverErrorOccurred, setServerErrorOccurred] = useState(false);
   const form = useForm({
     initialValues: {
       name: '',
@@ -58,27 +65,45 @@ export default function AddProductPage() {
     },
     validationSchema: validationSchema,
     onSubmit: async (values) => {
-      const response = await fetch(config.serviceUrls.product, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(values),
-      });
+      try {
+        const response = await fetch(config.serviceUrls.product, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(values),
+        });
+      } catch (error) {
+        //TODO: log the error
+        //TODO: make sure the page doesn't
+        //navigate to the next page despite form
+        //submission error
+        setServerErrorOccurred(true);
+      }
     },
   });
 
   return (
-    <AddProductScreen
-      hasError={form.hasError}
-      required={form.required}
-      ids={form.id}
-      errors={form.errors}
-      values={form.values}
-      onBlur={form.handleBlur}
-      onChange={form.handleChange}
-      onSubmit={form.handleSubmit}
-    />
+    <>
+      <AlertDialog
+        title={serverErrorTitle}
+        description={serverErrorMessage}
+        open={serverErrorOccurred}
+        onClose={() => {
+          setServerErrorOccurred(false);
+        }}
+      />
+      <AddProductScreen
+        hasError={form.hasError}
+        required={form.required}
+        ids={form.id}
+        errors={form.errors}
+        values={form.values}
+        onBlur={form.handleBlur}
+        onChange={form.handleChange}
+        onSubmit={form.handleSubmit}
+      />
+    </>
     /* <>
       <Head>
         <title>Add Product - Flowmazon</title>
