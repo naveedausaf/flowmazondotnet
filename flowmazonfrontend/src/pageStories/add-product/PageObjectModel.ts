@@ -83,6 +83,7 @@ const createAddProductPagePOM = (canvasElement: HTMLElement) => {
 };
 export default createAddProductPagePOM;
 
+//TODO: Move these to the AddProductPage screen component
 export const accessibleNames = Object.freeze({
   FormName: 'add product form',
   Name: 'Name',

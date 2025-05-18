@@ -128,7 +128,47 @@ export const Autocomplete: Story = {
   },
 };
 
-export const LoadingStateOnSubmit: Story = {};
+export const LoadingStateOnSubmit: Story = {
+  name: 'Submit - Loading state on Submit',
+  parameters: {
+    msw: {
+      handlers: [
+        http.post(config.serviceUrls.product, async () => {
+          //wait for 2 seconds to simulate a long running request
+          await new Promise((resolve) => setTimeout(resolve, 2000));
+          return HttpResponse.text(undefined, {
+            headers: {
+              Location: '/product/1',
+              'Content-Length': '0',
+              Date: new Date().toUTCString(),
+            },
+            status: 201,
+          });
+        }),
+      ],
+    },
+  },
+  play: async ({ canvasElement }) => {
+    //initialise
+    const form = createAddProductPagePOM(canvasElement).getAddProductForm();
+
+    //fill in the form
+    await userEvent.type(form.name.get(), ValidInputs.name);
+    await userEvent.type(form.description.get(), ValidInputs.description);
+    await userEvent.type(form.imageUrl.get(), ValidInputs.imageUrl);
+    await userEvent.type(form.price.get(), ValidInputs.price);
+
+    //submit the form
+    await userEvent.click(form.getSubmitButton());
+
+    //check that the loading state is shown
+    await expect(form.getLoadingState()).toBeTruthy();
+    //TODO: check that the button is disabled
+
+    //TODO: Now wait for loading sate to disappear and
+    //for button to return to normal state
+  },
+};
 
 export const SubmitSuccessfully: Story = {
   name: 'Submit - Submit successfully',
