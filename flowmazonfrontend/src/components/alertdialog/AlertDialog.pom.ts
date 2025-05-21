@@ -1,8 +1,8 @@
-import withinHTMLElement from '@/utils/withinHTMLElement';
+import { WithinHTMLElement } from '@/utils/types';
 import { expect, userEvent, waitFor } from '@storybook/test';
 
 export default function createAlertDialogPOM(
-  tlCanvas: ReturnType<typeof withinHTMLElement>,
+  tlCanvas: WithinHTMLElement,
   accessibleName: string,
   accessibleDescription?: string,
 ) {

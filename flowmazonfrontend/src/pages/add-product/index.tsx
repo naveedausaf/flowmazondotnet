@@ -6,7 +6,7 @@ import clsx from 'clsx';
 import useForm from '@/utils/useForm';
 import { config } from '@/utils/config';
 import AddProductScreen from '@/screens/add-product/AddProductScreen';
-import AlertDialog from '@/components/errors/AlertDialog';
+import AlertDialog from '@/components/alertdialog/AlertDialog';
 import { useState } from 'react';
 
 export const serverErrorTitle = 'Server Error';

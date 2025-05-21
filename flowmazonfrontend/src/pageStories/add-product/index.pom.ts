@@ -1,12 +1,13 @@
-import createAlertDialogPOM from '@/components/errors/AlertDialog.pom';
+import createAlertDialogPOM from '@/components/alertdialog/AlertDialog.pom';
 import { within } from '@storybook/test';
-import { ByRoleOptions } from '@testing-library/dom';
-import { serverErrorTitle, serverErrorMessage } from '@/pages/add-product';
 
-export type TextboxGet = (options?: Omit<ByRoleOptions, 'name'>) => HTMLElement;
+import { serverErrorTitle, serverErrorMessage } from '@/pages/add-product';
+import { ByRoleOptionsForPOM } from '@/utils/types';
+
+export type TextboxGet = (options?: ByRoleOptionsForPOM) => HTMLElement;
 
 export type TextboxQuery = (
-  options?: Omit<ByRoleOptions, 'name'>,
+  options?: ByRoleOptionsForPOM,
 ) => HTMLElement | null;
 
 export type TextboxQueries = {
@@ -51,13 +52,13 @@ const createAddProductPagePOM = (canvasElement: HTMLElement) => {
         get: TextboxGet;
         query: TextboxQuery;
       } => ({
-        get: (options?: Omit<ByRoleOptions, 'name'>) => {
+        get: (options?: ByRoleOptionsForPOM) => {
           return tlFormContainer.getByRole('textbox', {
             name: new RegExp(`^${accessibleName}`),
             ...options,
           });
         },
-        query: (options?: Omit<ByRoleOptions, 'name'>) => {
+        query: (options?: ByRoleOptionsForPOM) => {
           return tlFormContainer.queryByRole('textbox', {
             name: new RegExp(`^${accessibleName}`),
             ...options,
