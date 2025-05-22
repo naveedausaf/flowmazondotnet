@@ -1,7 +1,7 @@
 import { Meta, StoryObj } from '@storybook/react';
 import SubmitButton from './SubmitButton';
 import createSubmitButtonPOM from './SubmitButton.pom';
-import { within, userEvent, expect } from '@storybook/test';
+import { within, userEvent, expect, waitFor } from '@storybook/test';
 
 import { createFlipFlop } from '@/utils/flipflop';
 
@@ -38,20 +38,20 @@ function actualRender(test1Args: SubmitButtonPropsAndCustomArgs) {
       <form
         action={async () => {
           test1Args.submitHandlerEnteredCount++;
-          console.log(
-            `Starting wait on signal. current value of args.submitHandlerEnteredCount is ${String(test1Args.submitHandlerEnteredCount)}`,
-          );
-          await test1Args.flipFlop.waitForFlip();
-          console.log(
-            'submit handler resuing after waiting for the signal. about to indicate to the signal object that it has resumed',
-          );
-          test1Args.flipFlop.resumeAfterFlip();
-          console.log(
-            'submit handler completed after wait on signal ended. now exiting submit handler',
-          );
+          await new Promise((resolve) => {
+            console.log(
+              `In submit handler. submitHandlerEnteredCount is ${String(
+                test1Args.submitHandlerEnteredCount,
+              )}`,
+            );
+            setTimeout(() => {
+              console.log('in submit handler, flipping the flipFlop');
+              test1Args.flipFlop.flip();
+              resolve(true);
+            }, 1000);
+          });
         }}
       >
-        <FlopInEffectIfFormStatusNoLongerPending test1Args={test1Args} />
         <SubmitButton label={test1Args.label} />
       </form>
     </>
@@ -140,21 +140,22 @@ export const LoadingStateShownOnSubmit: Story = {
     test1Args.flipFlop.flip();
 
     //now wait for the submit handler to complete
-    await test1Args.flipFlop.waitForFlop();
+    //await test1Args.flipFlop.waitForFlop();
 
     console.log(
       'In play function, completed wait for submit handler and subsequent re-render to complete',
     );
+
+    //Now wait for loading state to be disappear
+    //disappear and for button to return to normal state
+
+    await waitFor(() => submitButtonPOM.assert.normalStateShown());
+
     //now make sure the submit handler has completed
     //and only once
     //had the submit handler been called twice, then
     //after the signal was set, this would be 2
     await expect(test1Args.submitHandlerEnteredCount).toBe(1);
-
-    //Now wait for loading state to be disappear
-    //disappear and for button to return to normal state
-
-    await submitButtonPOM.assert.normalStateShown();
 
     //TODO: check for the alert to say submission is complete.
 
@@ -175,9 +176,18 @@ export const LoadingState: Story = {
   // },
   //args: LoadingStateShownOnSubmit.args,
   render: () => {
-    test2Args.submitHandlerEnteredCount = 0;
-    test2Args.flipFlop = createFlipFlop();
-    return actualRender(test2Args);
+    return (
+      <>
+        <form
+          action={async () => {
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            await new Promise((resolve) => {});
+          }}
+        >
+          <SubmitButton label={test1Args.label} />
+        </form>
+      </>
+    );
   },
   play: async ({ canvasElement }) => {
     const submitButtonPOM = createSubmitButtonPOM(
