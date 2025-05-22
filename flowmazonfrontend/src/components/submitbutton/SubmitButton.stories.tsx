@@ -2,18 +2,16 @@ import { Meta, StoryObj } from '@storybook/react';
 import SubmitButton from './SubmitButton';
 import createSubmitButtonPOM from './SubmitButton.pom';
 import { within, userEvent, expect, waitFor } from '@storybook/test';
-import createSameAgentSignal, {
-  SignallerInterface,
-  SignalWatcherInterface,
-} from '@/utils/intertaskSignal';
-//import { useEffect } from 'react';
+
+import { createFlipFlop, FlipFlop } from '@/utils/flipflop';
+import { useEffect } from 'react';
+import { useFormStatus } from 'react-dom';
 
 type SubmitButtonPropsAndCustomArgs = React.ComponentProps<
   typeof SubmitButton
 > & {
   submitHandlerEnteredCount: number;
-  signaller: SignallerInterface;
-  signalWatcher: SignalWatcherInterface;
+  flipFlop: FlipFlop;
 };
 
 const meta: Meta<SubmitButtonPropsAndCustomArgs> = {
@@ -44,19 +42,26 @@ export const LoadingStateShownOnSubmit: Story = {
     //when the story is re-rendered and play function
     //re-run which is annoying during development
     args.submitHandlerEnteredCount = 0;
-    const { signaller, signalWatcher } = createSameAgentSignal();
-    args.signalWatcher = signalWatcher;
-    args.signaller = signaller;
+    args.flipFlop = createFlipFlop();
 
     console.log(
       `In render function. submitHandlerEnteredCount is ${String(args.submitHandlerEnteredCount)}..also created a new signal`,
     );
-    // useEffect(() => {
-    //   if (signalWatcher.didResumeAfterWaitingForSignal()) {
-    //     signalWatcher.completed();
-    //   }
-    // });
-    //now start rendering the component
+
+    const FlopInEffectIfFormStatusNoLongerPending = () => {
+      const { pending } = useFormStatus();
+      useEffect(() => {
+        console.log(
+          `in effect...flipFlop.didResumeAfterFlip(): ${String(args.flipFlop.didResumeAfterFlip())}  pending: ${String(pending)}`,
+        );
+
+        if (args.flipFlop.didResumeAfterFlip() && !pending) {
+          console.log('in effect, flopping the flipFlop');
+          args.flipFlop.flop();
+        }
+      }, [pending]);
+      return <> </>;
+    };
 
     return (
       <>
@@ -66,16 +71,17 @@ export const LoadingStateShownOnSubmit: Story = {
             console.log(
               `Starting wait on signal. current value of args.submitHandlerEnteredCount is ${String(args.submitHandlerEnteredCount)}`,
             );
-            await args.signalWatcher.waitForSignal();
+            await args.flipFlop.waitForFlip();
             console.log(
               'submit handler resuing after waiting for the signal. about to indicate to the signal object that it has resumed',
             );
-            args.signalWatcher.resumeAfterWaitingForSignal();
+            args.flipFlop.resumeAfterFlip();
             console.log(
               'submit handler completed after wait on signal ended. now exiting submit handler',
             );
           }}
         >
+          <FlopInEffectIfFormStatusNoLongerPending />
           <SubmitButton label={args.label} />
         </form>
       </>
@@ -127,10 +133,10 @@ export const LoadingStateShownOnSubmit: Story = {
     //TODO: Check for alert for screen reader
 
     //allow the submit handler to complete
-    args.signaller.set();
+    args.flipFlop.flip();
 
     //now wait for the submit handler to complete
-    await args.signaller.waitForSignalledCodeToHaveResumed();
+    await args.flipFlop.waitForFlop();
 
     console.log(
       'In play function, completed wait for submit handler and subsequent re-render to complete',
@@ -143,9 +149,8 @@ export const LoadingStateShownOnSubmit: Story = {
 
     //Now wait for loading state to be disappear
     //disappear and for button to return to normal state
-    await waitFor(() =>
-      expect(submitButtonPOM.assert.normalStateShown()).not.toThrow(),
-    );
+
+    await submitButtonPOM.assert.normalStateShown();
 
     //TODO: check for the alert to say submission is complete.
 
