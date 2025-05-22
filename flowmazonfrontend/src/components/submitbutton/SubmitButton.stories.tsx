@@ -3,24 +3,60 @@ import SubmitButton from './SubmitButton';
 import createSubmitButtonPOM from './SubmitButton.pom';
 import { within, userEvent, expect } from '@storybook/test';
 
-import { createFlipFlop, FlipFlop } from '@/utils/flipflop';
-import { useEffect } from 'react';
-import { useFormStatus } from 'react-dom';
+import { createFlipFlop } from '@/utils/flipflop';
 
-type SubmitButtonPropsAndCustomArgs = React.ComponentProps<
-  typeof SubmitButton
-> & {
-  submitHandlerEnteredCount: number;
-  flipFlop: FlipFlop;
-};
+import FlopInEffectIfFormStatusNoLongerPending, {
+  SubmitButtonPropsAndCustomArgs,
+} from './FlopInEffectIfFormStatusNoLongerPending';
 
-const meta: Meta<SubmitButtonPropsAndCustomArgs> = {
+const meta: Meta<typeof SubmitButton> = {
   component: SubmitButton,
 };
 export default meta;
 
-type Story = StoryObj<SubmitButtonPropsAndCustomArgs>;
+type Story = StoryObj<typeof SubmitButton>;
 
+const test1Args: SubmitButtonPropsAndCustomArgs = {
+  label: 'Submit',
+  submitHandlerEnteredCount: 0,
+  flipFlop: createFlipFlop(),
+};
+
+const test2Args: SubmitButtonPropsAndCustomArgs = {
+  label: 'Submit',
+  submitHandlerEnteredCount: 0,
+  flipFlop: createFlipFlop(),
+};
+
+function actualRender(test1Args: SubmitButtonPropsAndCustomArgs) {
+  console.log(
+    `In render function. submitHandlerEnteredCount is ${String(test1Args.submitHandlerEnteredCount)}..also created a new signal`,
+  );
+
+  return (
+    <>
+      <form
+        action={async () => {
+          test1Args.submitHandlerEnteredCount++;
+          console.log(
+            `Starting wait on signal. current value of args.submitHandlerEnteredCount is ${String(test1Args.submitHandlerEnteredCount)}`,
+          );
+          await test1Args.flipFlop.waitForFlip();
+          console.log(
+            'submit handler resuing after waiting for the signal. about to indicate to the signal object that it has resumed',
+          );
+          test1Args.flipFlop.resumeAfterFlip();
+          console.log(
+            'submit handler completed after wait on signal ended. now exiting submit handler',
+          );
+        }}
+      >
+        <FlopInEffectIfFormStatusNoLongerPending test1Args={test1Args} />
+        <SubmitButton label={test1Args.label} />
+      </form>
+    </>
+  );
+}
 /**
  * There are lots of [problems with disabled buttons in general](https://axesslab.com/disabled-buttons-suck/) but even when we disable a button for a short period of time while the form is being submitted, I would avoid using `disabled="true"` because it makes the Tab NOT stop on the button so it doesn't get focused while navigating form field with Tab key (which is a very common operation for screen reader users).
  *
@@ -33,75 +69,43 @@ type Story = StoryObj<SubmitButtonPropsAndCustomArgs>;
  * Addtionally, I would like to set `aria-live` appropriately to announce its status changes but need to also b mindful of a piece of advice in [ARIA alert pattern](https://www.w3.org/WAI/ARIA/apg/patterns/alert/): that "An alert that disappears too quickly can lead to failure to meet WCAG 2.0 success criterion 2.2.3"
  */
 export const LoadingStateShownOnSubmit: Story = {
-  args: {
-    label: 'Submit',
+  // parameters: {
+  //   docs: {
+  //     source: {
+  //       excludeDecorators: false,
+  //     },
+  //   },
+  // },
+
+  // loaders: [
+  //   () => ({
+  //     label: 'Submit',
+  //     submitHandlerEnteredCount: 0,
+  //     flipFlop: createFlipFlop(),
+  //   }),
+  // ],
+  render: () => {
+    test1Args.submitHandlerEnteredCount = 0;
+    test1Args.flipFlop = createFlipFlop();
+
+    return actualRender(test1Args);
   },
 
-  render: (args) => {
-    //reset args as they will not be reset
-    //when the story is re-rendered and play function
-    //re-run which is annoying during development
-    args.submitHandlerEnteredCount = 0;
-    args.flipFlop = createFlipFlop();
-
+  play: async ({ canvasElement }) => {
+    console.log(`In play function. test1Args is ${JSON.stringify(test1Args)}`);
     console.log(
-      `In render function. submitHandlerEnteredCount is ${String(args.submitHandlerEnteredCount)}..also created a new signal`,
-    );
-
-    const FlopInEffectIfFormStatusNoLongerPending = () => {
-      const { pending } = useFormStatus();
-      useEffect(() => {
-        console.log(
-          `in effect...flipFlop.didResumeAfterFlip(): ${String(args.flipFlop.didResumeAfterFlip())}  pending: ${String(pending)}`,
-        );
-
-        if (args.flipFlop.didResumeAfterFlip() && !pending) {
-          console.log('in effect, flopping the flipFlop');
-          args.flipFlop.flop();
-        }
-      }, [pending]);
-      return <> </>;
-    };
-
-    return (
-      <>
-        <form
-          action={async () => {
-            args.submitHandlerEnteredCount++;
-            console.log(
-              `Starting wait on signal. current value of args.submitHandlerEnteredCount is ${String(args.submitHandlerEnteredCount)}`,
-            );
-            await args.flipFlop.waitForFlip();
-            console.log(
-              'submit handler resuing after waiting for the signal. about to indicate to the signal object that it has resumed',
-            );
-            args.flipFlop.resumeAfterFlip();
-            console.log(
-              'submit handler completed after wait on signal ended. now exiting submit handler',
-            );
-          }}
-        >
-          <FlopInEffectIfFormStatusNoLongerPending />
-          <SubmitButton label={args.label} />
-        </form>
-      </>
-    );
-  },
-
-  play: async ({ canvasElement, args }) => {
-    console.log(
-      `In play function. SubmitHandlerEnteredCount is ${String(args.submitHandlerEnteredCount)}`,
+      `In play function. SubmitHandlerEnteredCount is ${String(test1Args.submitHandlerEnteredCount)}`,
     );
     //initialise
     const submitButtonPOM = createSubmitButtonPOM(
       within(canvasElement),
-      args.label,
+      test1Args.label,
     );
 
     const button = submitButtonPOM.query.getButtonByAccessibleName();
 
     //preflight checks
-    await expect(args.submitHandlerEnteredCount).toBe(0);
+    await expect(test1Args.submitHandlerEnteredCount).toBe(0);
     await submitButtonPOM.assert.normalStateShown();
 
     //cick the button to submit the form
@@ -111,7 +115,7 @@ export const LoadingStateShownOnSubmit: Story = {
     //(i.e. effectively it is disabled, except that it
     //may not have have been disabled by setting
     //disabled="true" for accessibility reasons)
-    await expect(args.submitHandlerEnteredCount).toBe(1);
+    await expect(test1Args.submitHandlerEnteredCount).toBe(1);
 
     //check for loading state being shown
     await submitButtonPOM.assert.loadingStateShown();
@@ -133,10 +137,10 @@ export const LoadingStateShownOnSubmit: Story = {
     //TODO: Check for alert for screen reader
 
     //allow the submit handler to complete
-    args.flipFlop.flip();
+    test1Args.flipFlop.flip();
 
     //now wait for the submit handler to complete
-    await args.flipFlop.waitForFlop();
+    await test1Args.flipFlop.waitForFlop();
 
     console.log(
       'In play function, completed wait for submit handler and subsequent re-render to complete',
@@ -145,7 +149,7 @@ export const LoadingStateShownOnSubmit: Story = {
     //and only once
     //had the submit handler been called twice, then
     //after the signal was set, this would be 2
-    await expect(args.submitHandlerEnteredCount).toBe(1);
+    await expect(test1Args.submitHandlerEnteredCount).toBe(1);
 
     //Now wait for loading state to be disappear
     //disappear and for button to return to normal state
@@ -162,17 +166,25 @@ export const LoadingStateShownOnSubmit: Story = {
  * Just the visual state, isolated as a visual test
  */
 export const LoadingState: Story = {
-  args: LoadingStateShownOnSubmit.args,
-  render: LoadingStateShownOnSubmit.render,
-  play: async ({ canvasElement, args }) => {
+  // parameters: {
+  //   docs: {
+  //     source: {
+  //       excludeDecorators: false,
+  //     },
+  //   },
+  // },
+  //args: LoadingStateShownOnSubmit.args,
+  render: () => {
+    test2Args.submitHandlerEnteredCount = 0;
+    test2Args.flipFlop = createFlipFlop();
+    return actualRender(test2Args);
+  },
+  play: async ({ canvasElement }) => {
     const submitButtonPOM = createSubmitButtonPOM(
       within(canvasElement),
-      args.label,
+      test2Args.label,
     );
     const button = submitButtonPOM.query.getButtonByAccessibleName();
     await userEvent.click(button);
   },
 };
-
-export const CannotSubmitFormByPressingEnterKeyOnTextFieldInLoadingState: Story =
-  {};

@@ -4,7 +4,9 @@ import { useFormStatus } from 'react-dom';
 export default function SubmitButton({ label }: { label: string }) {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { pending } = useFormStatus();
-  console.log(`aria-disabled  is: ${String(pending)}`);
+  console.log(
+    `In SubmitButton component function: aria-disabled  is: ${String(pending)}`,
+  );
   return (
     <button
       type='submit'
