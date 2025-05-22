@@ -1,8 +1,29 @@
-export type Signal = {
+/**
+ * Interface to be used by signaller code which sets and, if needed, resets the signal, and can optionally wait until after the signalled has resumed.
+ *
+ * It is one of two parts of an IntertaskSignal object.
+ */
+export type SignallerInterface = {
   set: () => void;
+  reset: () => void;
+  waitForSignalledCodeToHaveResumed: () => Promise<void>;
+};
+
+/**
+ * Interface to be used by the signalled code (the _signallee_) that waits to be signalled and then, once it resumes after signal has been set, indicates that it has resumed.
+ *
+ * It is one of two parts of an IntertaskSignal object.
+ */
+export type SignalWatcherInterface = {
+  completed(): unknown;
+  didResumeAfterWaitingForSignal(): unknown;
   waitForSignal: () => Promise<void>;
   resumeAfterWaitingForSignal: () => void;
-  waitThatSignalledCodeHasResumed: () => Promise<void>;
+};
+
+export type IntertaskSignal = {
+  signaller: SignallerInterface;
+  signalWatcher: SignalWatcherInterface;
 };
 
 /**
@@ -21,34 +42,57 @@ export type Signal = {
  * @returns Creates a signal that can be used to synchronise
  * execution of a signaller with signalled code when both pieces of code are running on the same thread (more accurately, on the same [_agent_](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Execution_model#agent_execution_model) in JavaScript).
  */
-export default function createSameAgentSignal(): Signal {
+export default function createSameAgentSignal(): IntertaskSignal {
   console.log('In createSignal...creating a new signal');
   let signalPromiseResolver: () => void;
   let signalledCodeResumedPromiseResolver: () => void;
-  const signalPromise = new Promise<void>((resolve) => {
-    signalPromiseResolver = resolve;
-  });
-  let signalledCodeResumedPromise = new Promise<void>((resolve) => {
-    signalledCodeResumedPromiseResolver = resolve;
-  });
+  let resumedAfterWaitingForSignal = false;
+  let signalPromise: Promise<void>;
+  let signalledCodeResumedPromise: Promise<void>;
+  const reset = () => {
+    signalPromise = new Promise<void>((resolve) => {
+      signalPromiseResolver = resolve;
+    });
+    signalledCodeResumedPromise = new Promise<void>((resolve) => {
+      signalledCodeResumedPromiseResolver = resolve;
+    });
+  };
+  //set signal object's constituent parts to initial position
+  //for the very first time
+  reset();
 
+  //now return the signal object
   return {
-    //do not want to return the `promise` directly,
-    //superstition on my part
-    waitForSignal: async () => await signalPromise,
-    resumeAfterWaitingForSignal: () => {
-      console.log(
-        'Code that was waiting for signal has resumed after the signal was set',
-      );
-      signalledCodeResumedPromiseResolver();
+    signaller: {
+      set: () => {
+        signalPromiseResolver();
+        console.log('Signal set');
+      },
+      reset,
+      waitForSignalledCodeToHaveResumed: async () => {
+        await signalledCodeResumedPromise;
+        console.log('signalled code has completed...');
+      },
     },
-    set: () => {
-      signalPromiseResolver();
-      console.log('Signal set');
-    },
-    waitThatSignalledCodeHasResumed: async () => {
-      await signalledCodeResumedPromise;
-      console.log('signalled code has completed...');
+    signalWatcher: {
+      //do not want to return the `promise` directly,
+      //superstition on my part
+      waitForSignal: async () => {
+        await signalPromise;
+      },
+      resumeAfterWaitingForSignal: () => {
+        console.log(
+          'Code that was waiting for signal has resumed after the signal was set',
+        );
+        signalledCodeResumedPromiseResolver();
+        resumedAfterWaitingForSignal = true;
+      },
+      completed: function (): unknown {
+        throw new Error('Function not implemented.');
+      },
+      didResumeAfterWaitingForSignal: function (): boolean {
+        return resumedAfterWaitingForSignal;
+      },
     },
   };
 }
