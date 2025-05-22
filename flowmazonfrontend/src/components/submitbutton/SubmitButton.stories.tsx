@@ -1,7 +1,7 @@
 import { Meta, StoryObj } from '@storybook/react';
 import SubmitButton from './SubmitButton';
 import createSubmitButtonPOM from './SubmitButton.pom';
-import { within, userEvent, expect, waitFor } from '@storybook/test';
+import { within, userEvent, expect } from '@storybook/test';
 
 import { createFlipFlop, FlipFlop } from '@/utils/flipflop';
 import { useEffect } from 'react';

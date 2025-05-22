@@ -49,7 +49,7 @@ export const createFlipFlop = (): FlipFlop => {
     },
     didResumeAfterFlip: () => {
       console.log(
-        `returning didResumeAfterFlip ${didResumeAfterFlip} from flipFlop ${id}`,
+        `returning didResumeAfterFlip ${String(didResumeAfterFlip)} from flipFlop ${id}`,
       );
       return didResumeAfterFlip;
     },
