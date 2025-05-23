@@ -53,7 +53,7 @@ type Story = StoryObj<typeof AddProductPage>;
 //TODO: Replace fgetch API with reliable method with retry
 //This is the next task in my GitHub project after crearing
 //Storybook for the Add Product form.
-
+//TODO: Create a utility function "fat"
 export const Primary: Story = {};
 
 //Not writing the following as checking for name without asterisk
@@ -135,7 +135,7 @@ export const LoadingStateOnSubmit: Story = {
       handlers: [
         http.post(config.serviceUrls.product, async () => {
           //wait for 2 seconds to simulate a long running request
-          await new Promise((resolve) => setTimeout(resolve, 200));
+          await new Promise((resolve) => setTimeout(resolve, 100));
           return HttpResponse.text(undefined, {
             headers: {
               Location: '/product/1',

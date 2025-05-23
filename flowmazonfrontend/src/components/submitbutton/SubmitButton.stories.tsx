@@ -3,7 +3,7 @@ import SubmitButton from './SubmitButton';
 import createSubmitButtonPOM from './SubmitButton.pom';
 import { within, userEvent, expect } from '@storybook/test';
 
-import { createFlipFlop } from '@/utils/flipflop';
+import { createSameAgentFlipFlop } from '@/utils/flipflop';
 
 import FlopInEffectIfFormStatusNoLongerPending, {
   SubmitButtonPropsAndCustomArgs,
@@ -19,7 +19,7 @@ type Story = StoryObj<typeof SubmitButton>;
 const test1Args: SubmitButtonPropsAndCustomArgs = {
   label: 'Submit',
   submitHandlerEnteredCount: 0,
-  flipFlop: createFlipFlop(),
+  flipFlop: createSameAgentFlipFlop(),
 };
 
 function actualRender(test1Args: SubmitButtonPropsAndCustomArgs) {
@@ -80,7 +80,7 @@ export const LoadingStateShownOnSubmit: Story = {
   // ],
   render: () => {
     test1Args.submitHandlerEnteredCount = 0;
-    test1Args.flipFlop = createFlipFlop();
+    test1Args.flipFlop = createSameAgentFlipFlop();
 
     return actualRender(test1Args);
   },
