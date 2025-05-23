@@ -166,7 +166,12 @@ export const LoadingStateShownOnSubmit: Story = {
   },
 };
 
-//TODO: Write this story
+//TODO: Write this story. Not having not only means
+//that we cannot see the loading state in isolation
+//(it appears and disappears too quickly in all the
+//tests involving it, including the main interaction
+//test above) but also that we have not tested the
+//accessibility of the loading state.
 /**
  * Just the visual state, isolated as a visual test
  */

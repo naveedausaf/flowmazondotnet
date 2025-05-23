@@ -6,7 +6,7 @@ import { StrictMode } from 'react';
 /**
  * UNCOMMENT THE STORIES IN THIS FILE TO SEE THE BEHAVIOUR TESTED FOR!
  *
- * I had to comment them out so they do not get tested by axe-storybook a11y tester. I could not exclude them because I am having to run the tester against storybook served by storybook dev server rather than directly again (the pacakge of) the app as that was causing compile issues/race conditions with the continuous storybook testing I have runnin in a separate terminal window.
+ * I had to comment them out so they do not get tested by test-storybook taht I have configured to also accessibility-test the render (including visual state of the story after play function has run). However, it may be possible to override postVisit hook just in this file or in the two stories here to NOT run axe-playwright.
  *
  * The two stories show that in storybook, components under test are NOT rendered under StrictMode.
  *
