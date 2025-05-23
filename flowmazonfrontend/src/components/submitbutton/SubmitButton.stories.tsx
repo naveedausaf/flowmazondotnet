@@ -166,10 +166,11 @@ export const LoadingStateShownOnSubmit: Story = {
   },
 };
 
+//TODO: Write this story
 /**
  * Just the visual state, isolated as a visual test
  */
-export const LoadingState: Story = {
+/*export const LoadingState: Story = {
   //leaving it in a disabled state does
   //by making mock submit handler wait on a Promise
   //that is never resolved (a "floating" or "dangling" promise)
@@ -184,4 +185,4 @@ export const LoadingState: Story = {
   //out a pure visual component from submit button and
   //setting it in disabled state, WITHOUT using a play
   //function.
-};
+};*/

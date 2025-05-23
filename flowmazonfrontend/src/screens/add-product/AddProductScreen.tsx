@@ -63,7 +63,7 @@ export default function AddProductScreen({
       <Head>
         <title>Add Product - Flowmazon</title>
       </Head>
-      <div className='bg-base-300 sm:px-1 sm:py-5 md:px-3 md:py-4 lg:px-3 lg:py-4'>
+      <div className='bg-base-100 sm:px-1 sm:py-5 md:px-3 md:py-4 lg:px-3 lg:py-4'>
         <div className='mx-auto max-w-5xl px-0'>
           <h1 className='mb-4 text-lg font-bold'>Add Product</h1>
           <form action={onSubmit} aria-label='add product form'>
@@ -89,7 +89,7 @@ export default function AddProductScreen({
               aria-live='assertive'
             />
             <div className='mt-0 mb-2'>
-              <span id={nameErrorId} className='0 text-sm text-red-500'>
+              <span id={nameErrorId} className='0 text-error text-sm'>
                 {hasError.name && errors.name}
               </span>
               &nbsp;
@@ -114,7 +114,7 @@ export default function AddProductScreen({
               aria-describedby={descErrorId}
             />
             <div className='mt-0 mb-2'>
-              <span id={descErrorId} className='text-sm text-red-500'>
+              <span id={descErrorId} className='text-error text-sm'>
                 {hasError.description && errors.description}
               </span>
               &nbsp;
@@ -140,7 +140,7 @@ export default function AddProductScreen({
               aria-describedby={imageUrlErrorId}
             />
             <div className='mt-0 mb-2'>
-              <span id={imageUrlErrorId} className='text-sm text-red-500'>
+              <span id={imageUrlErrorId} className='text-error text-sm'>
                 {hasError.imageUrl && errors.imageUrl}
               </span>
               &nbsp;
@@ -166,7 +166,7 @@ export default function AddProductScreen({
               aria-describedby={priceErrorId}
             />
             <div className='mt-0 mb-2'>
-              <span id={priceErrorId} className='text-sm text-red-500'>
+              <span id={priceErrorId} className='text-error text-sm'>
                 {hasError.price && errors.price}
               </span>
               &nbsp;

@@ -1,8 +1,8 @@
 @import 'tailwindcss';
-@plugin "daisyui" {
-  themes:
-    garden --default,
-    abyss --prefersdark,
-    retro,
-    dracula;
+@plugin "daisyui";
+@plugin "daisyui/theme" {
+  name: 'lemonade';
+  default: true;
+  /*otherwise the error color is inaccessible:*/
+  --color-error: hsl(6.58deg 82.52% 45.6%);
 }

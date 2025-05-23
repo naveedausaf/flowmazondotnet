@@ -11,7 +11,6 @@ export default function SubmitButton({ label }: { label: string }) {
     <button
       type='submit'
       onClick={(e) => {
-        console.log('Submit button clicked. Handler YET to be called');
         if (pending) {
           e.preventDefault();
         }

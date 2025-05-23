@@ -29,5 +29,5 @@ export default function FlopInEffectIfFormStatusNoLongerPending({
       test1Args.flipFlop.flop();
     }
   });
-  return <span> h</span>;
+  return <></>;
 }
