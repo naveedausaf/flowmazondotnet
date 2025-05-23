@@ -3,6 +3,7 @@
 @plugin "daisyui/theme" {
   name: 'lemonade';
   default: true;
-  /*otherwise the error color is inaccessible:*/
+  /*otherwise the error color is inaccessible (not 
+  enough contrast):*/
   --color-error: hsl(6.58deg 82.52% 45.6%);
 }
