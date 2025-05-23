@@ -27,6 +27,10 @@ export type AddProductPagePOM = {
   };
 };
 
+//TODO: like my other POMs, change this so it
+//takes in a testing library adapter obtained by
+// //calling `within`, rather than the raw canvasElement
+//supplied by storybook to a play function
 const createAddProductPagePOM = (canvasElement: HTMLElement) => {
   const canvas = within(canvasElement);
 

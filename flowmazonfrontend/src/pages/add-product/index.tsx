@@ -101,7 +101,7 @@ export default function AddProductPage() {
         values={form.values}
         onBlur={form.handleBlur}
         onChange={form.handleChange}
-        onSubmit={form.handleSubmit}
+        onSubmit={form.submitForm}
       />
     </>
     /* <>

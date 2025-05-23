@@ -1,6 +1,7 @@
 import Head from 'next/head';
 import clsx from 'clsx';
 import { FormEvent, useId } from 'react';
+import SubmitButton from '@/components/submitbutton/SubmitButton';
 
 export type AddProductPageScreenProps = {
   hasError: {
@@ -35,7 +36,7 @@ export type AddProductPageScreenProps = {
     price: string;
   };
 
-  onSubmit: (e?: FormEvent<HTMLFormElement>) => void;
+  onSubmit: (formData: FormData) => Promise<void>;
 
   onBlur: (e: FormEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
 
@@ -65,7 +66,7 @@ export default function AddProductScreen({
       <div className='bg-base-300 sm:px-1 sm:py-5 md:px-3 md:py-4 lg:px-3 lg:py-4'>
         <div className='mx-auto max-w-5xl px-0'>
           <h1 className='mb-4 text-lg font-bold'>Add Product</h1>
-          <form action='' onSubmit={onSubmit} aria-label='add product form'>
+          <form action={onSubmit} aria-label='add product form'>
             <label htmlFor={ids.name}>Name</label>
             <input
               type='text'
@@ -170,9 +171,7 @@ export default function AddProductScreen({
               </span>
               &nbsp;
             </div>
-            <button type='submit' className='btn btn-primary btn-block mt-4'>
-              Add Product
-            </button>
+            <SubmitButton label='Add Product' />
           </form>
         </div>
       </div>

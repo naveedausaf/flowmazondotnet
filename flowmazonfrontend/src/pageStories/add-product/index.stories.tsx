@@ -22,6 +22,7 @@ import createAddProductPagePOM, {
 
 import { http, HttpResponse } from 'msw';
 import { config } from '@/utils/config';
+import createSubmitButtonPOM from '@/components/submitbutton/SubmitButton.pom';
 
 const meta: Meta<typeof AddProductPage> = {
   component: AddProductPage,
@@ -134,7 +135,7 @@ export const LoadingStateOnSubmit: Story = {
       handlers: [
         http.post(config.serviceUrls.product, async () => {
           //wait for 2 seconds to simulate a long running request
-          await new Promise((resolve) => setTimeout(resolve, 2000));
+          await new Promise((resolve) => setTimeout(resolve, 200));
           return HttpResponse.text(undefined, {
             headers: {
               Location: '/product/1',
@@ -161,20 +162,12 @@ export const LoadingStateOnSubmit: Story = {
     await userEvent.click(form.getSubmitButton());
 
     //check that the loading state is shown
-
-    //TODO: check that the button is disabled
-
-    //TODO: Check for alert for screen reader
-
-    //NOTE: I am not going to check for visual
-    //loading state indicator over and above what checked
-    //for above as it can't be done with Chromatic
-    //snapshot and checking for Tailwind/DaisyUI classes
-    //on the button in loading state would make the test
-    //too brittle.
-
-    //TODO: Now wait for loading sate and alert to
-    //disappear and for button to return to normal state
+    const submitButtonPOM = createSubmitButtonPOM(
+      within(canvasElement),
+      'Add Product',
+    );
+    await waitFor(() => submitButtonPOM.assert.loadingStateShown());
+    await waitFor(() => submitButtonPOM.assert.normalStateShown());
   },
 };
 

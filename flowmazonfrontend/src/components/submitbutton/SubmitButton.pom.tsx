@@ -1,6 +1,6 @@
 import { ByRoleOptionsForPOM, WithinHTMLElement } from '@/utils/types';
 
-import { expect } from '@storybook/test';
+import { expect, screen } from '@storybook/test';
 //import exp from 'constants';
 
 export default function createSubmitButtonPOM(
@@ -37,6 +37,7 @@ export default function createSubmitButtonPOM(
     loadingStateShown: async () => {
       const button = query.getButtonByAccessibleName();
 
+      screen.debug(button);
       await expect(button).toHaveAttribute('aria-disabled', 'true');
 
       //BRITTLE, TIED TO DAISYUI!!!

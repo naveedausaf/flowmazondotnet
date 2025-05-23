@@ -22,12 +22,6 @@ const test1Args: SubmitButtonPropsAndCustomArgs = {
   flipFlop: createFlipFlop(),
 };
 
-const test2Args: SubmitButtonPropsAndCustomArgs = {
-  label: 'Submit',
-  submitHandlerEnteredCount: 0,
-  flipFlop: createFlipFlop(),
-};
-
 function actualRender(test1Args: SubmitButtonPropsAndCustomArgs) {
   console.log(
     `In render function. submitHandlerEnteredCount is ${String(test1Args.submitHandlerEnteredCount)}..also created a new signal`,
@@ -124,11 +118,21 @@ export const LoadingStateShownOnSubmit: Story = {
     //tab to the button and press Enter repeatedly
     //to click it (for setting disabled="true" would be
     //terrible for accessibility)
-    //TODO: click the button three times by tabbing to
-    // //it and pressing Enter
-    //
-    // TODO: Check that the button did get clicked
-    //three times.
+    await userEvent.tab({ shift: true });
+
+    await expect(
+      submitButtonPOM.query.getButtonByAccessibleName(),
+    ).not.toHaveFocus();
+
+    await userEvent.tab();
+    //check button still has focus
+    await expect(
+      submitButtonPOM.query.getButtonByAccessibleName(),
+    ).toHaveFocus();
+
+    await userEvent.keyboard('{Enter}');
+    await userEvent.keyboard('{Enter}');
+    await userEvent.keyboard('{Enter}');
 
     //but these clicks should not do anything:
     //we will soon check that the submit handler
@@ -166,25 +170,18 @@ export const LoadingStateShownOnSubmit: Story = {
  * Just the visual state, isolated as a visual test
  */
 export const LoadingState: Story = {
-  // parameters: {
-  //   docs: {
-  //     source: {
-  //       excludeDecorators: false,
-  //     },
-  //   },
-  // },
-  //args: LoadingStateShownOnSubmit.args,
-  render: () => {
-    test2Args.submitHandlerEnteredCount = 0;
-    test2Args.flipFlop = createFlipFlop();
-    return actualRender(test2Args);
-  },
-  play: async ({ canvasElement }) => {
-    const submitButtonPOM = createSubmitButtonPOM(
-      within(canvasElement),
-      test2Args.label,
-    );
-    const button = submitButtonPOM.query.getButtonByAccessibleName();
-    await userEvent.click(button);
-  },
+  //leaving it in a disabled state does
+  //by making mock submit handler wait on a Promise
+  //that is never resolved (a "floating" or "dangling" promise)
+  //leads to problems with the other test above.
+  //
+  //this has nothing to do with use of flip flop
+  //and would even happen if I used simple timer
+  //to wait in the above test and not use my flipflip
+  //class at all.
+  //
+  //TODO: Hence re-implement this test by extracing
+  //out a pure visual component from submit button and
+  //setting it in disabled state, WITHOUT using a play
+  //function.
 };

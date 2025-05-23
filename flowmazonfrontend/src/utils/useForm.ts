@@ -296,8 +296,8 @@ export default function useForm<Values extends FormikValues>(
     });
   };
 
-  const handleSubmit = (e?: FormEvent<HTMLFormElement>) => {
-    formik.handleSubmit(e);
+  const submitForm = async () => {
+    await formik.submitForm();
 
     //if we are here, there have been errors
 
@@ -320,7 +320,7 @@ export default function useForm<Values extends FormikValues>(
 
   return {
     ...formik,
-    handleSubmit,
+    submitForm,
     handleChange,
     handleBlur,
     hasError,
