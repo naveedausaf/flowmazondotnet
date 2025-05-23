@@ -1,5 +1,6 @@
 import { Meta, StoryObj } from '@storybook/react';
 import TestStrictModeInStorybook from './TestStrictModeInStorybook';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { StrictMode } from 'react';
 
 /**
