@@ -8,6 +8,24 @@ import { useEffect, useId, useState } from 'react';
 import { resolve } from 'node:path';
 import { error } from 'node:console';
 
+//TODO: put this/link this in my wiki
+/**
+ * `AlertDialog` is accessible and following sources were used in its tests and implementation to ensure that that `AlertDialog` is acceessible (these also contributed to usability):
+ *
+ * 1. [ARIA alertdialog role](https://developer.mozilla.org/en-US/docs/Web/Accessibility/ARIA/Reference/Roles/alertdialog_role)
+ *
+ * 2. [ARIA alert role](https://developer.mozilla.org/en-US/docs/Web/Accessibility/ARIA/Reference/Roles/alert_role)
+ *
+ * 3. [ARIA dialog role](https://developer.mozilla.org/en-US/docs/Web/Accessibility/ARIA/Reference/Roles/dialog_role)
+ *
+ * 4. [`<dialog>` element](https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/dialog)
+ *
+ * 5. [ARIA APG Alert pattern](https://www.w3.org/WAI/ARIA/apg/patterns/alert/)
+ *
+ * 6. [ARIA APG Alert and Message Dialogs Pattern](https://www.w3.org/WAI/ARIA/apg/patterns/alertdialog/)
+ *
+ * 7. [ARIA APG Dialog (Modal) Pattern](https://www.w3.org/WAI/ARIA/apg/patterns/dialog-modal/)
+ * */
 const meta: Meta<typeof AlertDialog> = {
   component: AlertDialog,
 };
@@ -357,5 +375,30 @@ export const AlertDialogCanBeClosedToGetBackToForm: Story = {
 
     //but the form is still visible
     await expect(canvas.getByRole('form')).toBeTruthy();
+  },
+};
+
+export const EscapeClosesAlertDialog: Story = {
+  args: {
+    ...TestCase,
+  },
+  render: AlertDialogIsAccessible.render,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+
+    // Open the dialog
+    await userEvent.click(canvas.getByRole('button', { name: 'Submit Form' }));
+
+    // Wait for the dialog to appear
+    const dialog = await canvas.findByRole('alertdialog', {
+      name: TestCase.title,
+      description: TestCase.description,
+    });
+
+    // Press the Escape key to close the dialog
+    await userEvent.keyboard('{Escape}');
+
+    // Wait for the dialog to disappear
+    await waitFor(() => expect(canvas.queryByRole('alertdialog')).toBeFalsy());
   },
 };

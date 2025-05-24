@@ -105,6 +105,15 @@ export default function AlertDialog({
         }
       }}
       open={open}
+      onKeyDown={(e) => {
+        //if the user presses Escape, close the dialog
+        if (e.key === 'Escape') {
+          const dialogElement = document.getElementById(dialogId);
+          if (dialogElement) {
+            (dialogElement as HTMLDialogElement).close();
+          }
+        }
+      }}
     >
       <div className='modal-box'>
         <h3 id={headingId} className='text-lg font-bold'>
