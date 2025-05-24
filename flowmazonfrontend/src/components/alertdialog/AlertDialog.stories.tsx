@@ -8,7 +8,6 @@ import { useEffect, useId, useState } from 'react';
 import { resolve } from 'node:path';
 import { error } from 'node:console';
 
-//TODO: put this/link this in my wiki
 /**
  * `AlertDialog` is accessible and following sources were used in its tests and implementation to ensure that that `AlertDialog` is acceessible (these also contributed to usability):
  *
