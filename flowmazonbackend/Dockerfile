@@ -21,4 +21,4 @@ RUN dotnet publish "flowmazonapi.csproj" -c $configuration -o /app/publish /p:Us
 FROM base AS final
 WORKDIR /app
 COPY --chown=app:app --from=publish /app/publish .
-ENTRYPOINT ["dotnet", "flowmazonapi.dll"]
+ENTRYPOINT ["dotnet", "flowmazonapi.dll"]   
