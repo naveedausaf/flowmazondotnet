@@ -1,0 +1,53 @@
+services:
+  flowmazonfrontend:
+    container_name: flowmazonfrontend
+    build:
+      context: ./flowmazonfrontend
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_BACKEND_URL: ${NEXT_PUBLIC_BACKEND_URL}
+    restart: always
+    ports:
+      - 4000:3000
+    networks:
+      - flowmazon_network
+
+  # Add more containers below (nginx, postgres, etc.)
+  flowmazonbackend:
+    container_name: flowmazonbackend
+    build:
+      context: ./flowmazonbackend
+      dockerfile: Dockerfile
+    environment:
+      ConnectionStrings__FlowmazonDB: ${ConnectionStrings__FlowmazonDB}
+      ALLOWED_CORS_ORIGINS: ${ALLOWED_CORS_ORIGINS}
+
+    restart: always
+    ports:
+      - 5000:8080
+    networks:
+      - flowmazon_network
+
+  flowmazondb:
+    container_name: flowmazondb
+    build:
+      context: ./flowmazonbackend
+      dockerfile: Dockerfile.testdb
+      args:
+        MIGRATIONS_PATH: ${MIGRATIONS_PATH}
+        POSTGRES_USER: ${POSTGRES_USER}
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    ports:
+      - 6000:5432
+    networks:
+      - flowmazon_network
+
+# Define a network, which allows containers to communicate
+# with each other, by using their container name as a hostname
+networks:
+  flowmazon_network:
+    driver: bridge

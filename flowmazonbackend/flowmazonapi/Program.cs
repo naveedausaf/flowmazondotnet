@@ -17,7 +17,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using FluentValidation;
 
-const string CorsPolicy_AllowFlowmazonWeb = "AllowFlowmazonWeb";
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -70,13 +70,58 @@ builder.Services.AddSwaggerGen(
     }
 );
 
+const string DevCORSPolicyName = "DevCORSPolicy";
+const string ProductionCORSPolicyName = "ProductionCORSPolicy";
+
+//value for this key should be a semicoolon (;) separated list of allowed origins. EAch should NOT end in a forward slash (/).
+const string CORSConfigKey = "ALLOWED_CORS_ORIGINS";
 if (builder.Environment.IsDevelopment())
 {
+
     builder.Services.AddCors(options =>
     {
-        options.AddPolicy(CorsPolicy_AllowFlowmazonWeb, policy => policy.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod());
+        options.AddPolicy(DevCORSPolicyName, policy => policy.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod());
     });
 
+}
+else
+{
+
+    var corsOrigins = builder.Configuration.GetValue<string>(CORSConfigKey);
+
+    if (string.IsNullOrWhiteSpace(corsOrigins))
+    {
+        //TODO: add test for this
+        //TODO: log this as Otel log
+        throw new InvalidOperationException("AllowedCORSOrigins configuration value is not set.");
+    }
+
+    var origins = corsOrigins.Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+    if (origins.Length == 0)
+    {
+        //TODO: add test for this
+        //TODO: log this as Otel log
+        throw new InvalidOperationException("AllowedCORSOrigins configuration value is empty.");
+    }
+    //TODO: OTel Log the origins
+
+
+    builder.Services.AddCors(options =>
+    {
+        options.AddPolicy(name: ProductionCORSPolicyName,
+            policy =>
+            {
+
+
+
+                //TODO: add test for this
+                //TODO: log this as Otel log
+
+                policy.WithOrigins(origins).AllowAnyHeader().AllowAnyMethod();
+
+
+            });
+    });
 }
 
 var app = builder.Build();
@@ -90,7 +135,11 @@ app.UseRouting();
 
 if (app.Environment.IsDevelopment())
 {
-    app.UseCors(CorsPolicy_AllowFlowmazonWeb);
+    app.UseCors(DevCORSPolicyName);
+}
+else
+{
+    app.UseCors(ProductionCORSPolicyName);
 }
 
 app.UseSwagger();
