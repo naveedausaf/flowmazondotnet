@@ -18,7 +18,7 @@
       }
     },
     {
-      "name": ".NET Core Launch ( web)",
+      "name": ".NET Core Launch (web)",
       "type": "coreclr",
       "request": "launch",
       "preLaunchTask": "build-backend",

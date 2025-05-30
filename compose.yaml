@@ -12,6 +12,21 @@ services:
     networks:
       - flowmazon_network
 
+    develop:
+      watch:
+        - action: rebuild
+          path: ./flowmazonfrontend/src
+
+    #
+    # Commented out the following
+    # dependency as the healthcheck in
+    # flowmazonbackend does not work
+    # (see comments there)
+    #
+    # depends_on:
+    #   flowmazonbackend:
+    #     condition: service_healthy
+
   # Add more containers below (nginx, postgres, etc.)
   flowmazonbackend:
     container_name: flowmazonbackend
@@ -27,9 +42,30 @@ services:
       - 5000:8080
     networks:
       - flowmazon_network
+    develop:
+      watch:
+        - action: rebuild
+          path: ./flowmazonbackend/flowmazonapi
     depends_on:
       flowmazondb:
         condition: service_healthy
+    #
+    # This healthcheck doesn't work
+    # most probably because the image does
+    # not have wget. It also doesnt't seem to
+    # habe curl.
+    # TO reinstante the check, create a separate
+    # Alpine linux container which can probe
+    # the ready endpoint on this container as
+    # its own healthcheck, then wait on that
+    # container for its healthcheck in
+    # flowmazonfrontend service
+    #
+    # healthcheck:
+    #   test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://flowmazonbackend:8080/health/ready"]
+    #   interval: 10s
+    #   timeout: 5s
+    #   retries: 5
   flowmazondb:
     container_name: flowmazondb
     build:

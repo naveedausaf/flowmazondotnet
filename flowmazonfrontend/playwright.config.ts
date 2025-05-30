@@ -78,10 +78,41 @@ export default defineConfig({
     // },
   ],
 
-  /* Run your local dev server before starting the tests */
+  
+  //`docker compose up --watch`
+  //would rebuild a restart a single container whose
+  //watched source directory has changed, and not the
+  //containers that depend on it.
+  //
+  //Therefore, when restarting a test run because source
+  //files changed, I need to wait for both the frontend's
+  //and the backend's URLs to be available because either 
+  //of those could be being rebuilt in parallel by 
+  //docker compose up --watch 
+  //
+  //Therefore I cannot use `url` option in `webServer`
+  //as it cannot be given an array of url's to wait for
+  //and will need to use wait-on NPM package in a 
+  //script ni pacakge.json. This means I will also 
+  //need to monitor the files myself using 
+  //onchange which is just as well because I cannot
+  //use Playwright's watch mode as it only watches
+  //for changes to test file and not other (source) files
+  //in the app folder.
+  //
+  //If I am going to do onchange and wait-on myself
+  //then I need to launch `docker compose up --watch`
+  //concurrently self also so I the URL's I would wait on
+  //would become available so I can move on to relanuch
+  //the Playwright test suite. 
+  //
+  //THEREFORE, webServer has no use for me for local 
+  //continuous testing. Hence I also see not use 
+  //for it for other purposes (e.g. in CI pipeline runs)
+  //
   // webServer: {
-  //   command: 'npm run start',
-  //   url: process.env.LCT ? 'http://127.0.0.1:4000' : 'http://127.0.0.1:3000',
+  //   command: 'docker compose down --rmi all && docker compose up' + (process.env.CI?'': ' --watch'),
+  //   url: process.env.LCT? 'http://127.0.0.1:4000' : 'http://127.0.0.1:3000',
   //   reuseExistingServer: !process.env.CI,
   // },
 });

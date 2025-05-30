@@ -60,7 +60,7 @@ builder.Services.AddSwaggerGen(
         options.SwaggerDoc("v1", new OpenApiInfo()
         {
             Title = "Flowmazon API",
-            Description = "API for Flowmazon, the next online shopping destination",
+            Description = "API for Flowmazon, the next greatest online shopping destination",
             Version = "v1"
         });
 

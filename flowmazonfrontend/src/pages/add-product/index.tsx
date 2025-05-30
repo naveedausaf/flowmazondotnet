@@ -28,7 +28,7 @@ export const validationSchema = Yup.object({
     //even though we have a custom test for money below
     //whose pattern would fail for any non numeric input,
     //if the the input is not a number, then .number() constaint
-    // will fail first and the default eror message will be shown:
+    // will fail first and the default error message will be shown:
     //
     //"price must be a `number` type, but the final value was: `NaN`"
     //
@@ -43,8 +43,8 @@ export const validationSchema = Yup.object({
     //TODO: Note: other than than the two instances of
     //of difficulty in reflecting on the schema pointed out in
     //the stories file, this is another reason why I would
-    //switch away fro Yup: no build in constraint for
-    //money!!!
+    //switch away fro Yup: no built-in constraint for
+    //money!
     .test(
       'currency',
       'Price must have two or fewer digits after the decimal point',
@@ -52,8 +52,8 @@ export const validationSchema = Yup.object({
     ),
 });
 
-//TODO: Factor out repeated blocks of label, control, error message
-//into components
+//TODO: Factor out repeated blocks of label, control, error
+//message into components
 export default function AddProductPage() {
   const [serverErrorOccurred, setServerErrorOccurred] = useState(false);
   const form = useForm({
