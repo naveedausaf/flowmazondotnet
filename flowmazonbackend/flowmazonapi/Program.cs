@@ -16,6 +16,7 @@ using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using FluentValidation;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 
 
 
@@ -31,7 +32,8 @@ if (builder.Environment.IsDevelopment())
 builder.Services.AddProblemDetails();
 
 
-var connString = builder.Configuration.GetConnectionString("FlowmazonDB");
+string connString = builder.Configuration.GetConnectionString("FlowmazonDB") ?? throw new InvalidOperationException("Connection string 'FlowmazonDB' is not configured.");
+
 builder.Services.AddDbContext<FlowmazonDbContext>(
     options =>
     {
@@ -124,6 +126,17 @@ else
     });
 }
 
+const string DatabaseHealthCheckName = "DatabaseHealthCheck";
+const string ApplicationLifecycleHealthCheckName = "ApplicationLifecycleHealthCheck";
+
+builder.Services.AddHealthChecks()
+    .AddNpgSql(connString, tags: [DatabaseHealthCheckName])
+
+    // From the documentation (https://learn.microsoft.com/en-us/dotnet/api/microsoft.extensions.dependencyinjection.commonhealthchecksextensions.addapplicationlifecyclehealthcheck?view=net-9.0-pp), it is worth adding even if there are not IHostedService or IHostedLifecycleService (that exposes CheckHealthAsync method) registered wth build.Services.
+    // This will ensure that the health check endpoint is healthy as long as the application is running, Unhealthy if it is shutting down (And probably also when it is still starting up)
+    .AddApplicationLifecycleHealthCheck([ApplicationLifecycleHealthCheckName]);
+
+
 var app = builder.Build();
 
 if (!app.Environment.IsDevelopment())
@@ -148,6 +161,23 @@ app.UseSwaggerUI();
 app.UseStatusCodePages();
 
 ProductHandlers.MapRoutes(app.MapGroup("/product")).WithTags("product Operations");
+
+/*
+Map readiness check endpoint.
+
+Could be to make sure service is available to handle requests, e.g. when using `wait-on` NPM package or in Docker Compose service dependencies
+*/
+app.MapHealthChecks("/health/ready");
+
+/*
+Map LIVENESS check endpoint
+
+Could be used by an orchestrator to restart an instance/container
+*/
+app.MapHealthChecks("/health/live", new HealthCheckOptions()
+{
+    Predicate = healthCheck => healthCheck.Tags.Contains(ApplicationLifecycleHealthCheckName),
+});
 
 app.Run();
 
