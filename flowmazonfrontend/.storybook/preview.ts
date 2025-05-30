@@ -8,12 +8,7 @@ import { initialize, mswLoader } from 'msw-storybook-addon';
  * See https://github.com/mswjs/msw-storybook-addon#configuring-msw
  * to learn how to customize it
  */
-initialize(
-
-
-
-  
-);
+initialize();
 
 const preview: Preview = {
   parameters: {
