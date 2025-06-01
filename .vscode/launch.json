@@ -3,22 +3,16 @@
   "compounds": [
     {
       "name": "Frontend/Backend",
-      "configurations": ["Next.js: debug full stack", ".NET Core Launch (web)"],
+      "configurations": [
+        "Next.js: debug in full stack",
+        ".NET Core: debug in full stack"
+      ],
       "stopAll": true
     }
   ],
   "configurations": [
     {
-      "name": "Docker .NET Attach",
-      "type": "docker",
-      "request": "attach",
-      "platform": "netCore",
-      "sourceFileMap": {
-        "/source": "${workspaceFolder}/flowmazonbackend/flowmazonapi"
-      }
-    },
-    {
-      "name": ".NET Core Launch (web)",
+      "name": ".NET Core: debug in full stack",
       "type": "coreclr",
       "request": "launch",
       "preLaunchTask": "build-backend",
@@ -27,8 +21,8 @@
       "cwd": "${workspaceFolder}/flowmazonbackend/flowmazonapi",
       "stopAtEntry": false,
       "env": {
-        "ASPNETCORE_ENVIRONMENT": "Development",
-        "ASPNETCORE_URLS": "http://localhost:5003"
+        "ASPNETCORE_ENVIRONMENT": "Development"
+        //"ASPNETCORE_URLS": "http://localhost:5023"
       },
       "sourceFileMap": {
         "/Views": "${workspaceFolder}/Views"
@@ -36,27 +30,25 @@
       "requireExactSource": false
     },
     {
-      "name": ".NET Core Attach",
-      "type": "coreclr",
-      "request": "attach"
-    },
-    {
-      "name": "Docker .NET Launch",
-      "type": "docker",
-      "request": "launch",
-      "preLaunchTask": "docker-run-backend: debug",
-      "netCore": {
-        "appProject": "${workspaceFolder}/flowmazonbackend/flowmazonapi/flowmazonapi.csproj"
-      }
-    },
-    {
-      "name": "Next.js: debug full stack",
-      "type": "node-terminal",
+      "name": "Next.js: debug in full stack",
+      //the value previously was "node-terminal" which
+      //didn;t allow all configs to stop when the compound
+      //config was stopped
+      "type": "node",
       "request": "launch",
       "cwd": "${workspaceFolder}/flowmazonfrontend",
-      "command": "npm run dev",
+      //
+      //previously we had the following line instead of
+      //"program" and "args" fields but this requried the use
+      //of `"type": "node-terminal" which didn't allow
+      //all configs to stop when the compound config was stopped
+      //
+      //"command": "npm run dev",
+      //
+      "program": "${workspaceFolder}/flowmazonfrontend/node_modules/next/dist/bin/next",
+      "args": ["dev"],
       "env": {
-        "NEXT_PUBLIC_BACKEND_URL": "http://localhost:5003"
+        "NEXT_PUBLIC_BACKEND_URL": "http://localhost:5023"
       },
       "serverReadyAction": {
         "pattern": "- Local:.+(https?://.+)",
@@ -65,6 +57,9 @@
         "webRoot": "${workspaceFolder}/flowmazonfrontend"
       }
     },
+
+    //This is th config for launching storybook dev
+    //server in debug mode so breakpoints get hit
     {
       "type": "firefox",
       "request": "launch",
