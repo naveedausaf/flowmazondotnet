@@ -15,21 +15,51 @@
       "presentation": {
         "panel": "dedicated"
       },
-      "problemMatcher": {
-        "fileLocation": ["relative", "${workspaceFolder}"],
-        "severity": "error",
-        "pattern": {
-          // Matches a typical .NET test failure output line
-          "regexp": "^(.*)\\(\\d*\\):\\s(error TESTERROR):.*$",
-          "file": 1,
-          "message": 2
+      "problemMatcher": [
+        {
+          "fileLocation": ["relative", "${workspaceFolder}"],
+          "severity": "error",
+          "pattern": {
+            //This pattern catches error reported when tests didn't run
+            //e.g. there was a build error. Catches a line like this:
+            //
+            //flowmazonapi.UnitTests failed with 1 error(s) and 1 warning(s) (0.6s)
+            "regexp": "^(.*)\\s(failed with \\d* error\\(s\\) and \\d* warning\\(s\\).*)$",
+            "file": 1,
+            "message": 2
+          },
+          "background": {
+            "activeOnStart": false,
+            "beginsPattern": "^Restore complete \\(.*\\).*$",
+            //If build failed (i.e. tests didn't run) then this pattern
+            //matches the end of output which looks like this:
+            //
+            //Build failed with 1 error(s) and 1 warning(s) in 2.6s
+            "endsPattern": "^(\\s*)(Build failed with \\d* error\\(s\\) and \\d* warning\\(s\\).*)$"
+          }
         },
-        "background": {
-          "activeOnStart": false,
-          "beginsPattern": "^Restore complete \\(.*\\).*$",
-          "endsPattern": "^Test summary: total:.*$"
+        {
+          "fileLocation": ["relative", "${workspaceFolder}"],
+          "severity": "error",
+          "pattern": {
+            //This pattern works to catch an error in dotnet tests
+            //output whether it is because of an assert  failure in the test
+            //or an exception throw in code-under-test.
+            "regexp": "^(.*)\\(\\d*\\):\\s(error TESTERROR):.*$",
+            "file": 1,
+            "message": 2
+          },
+          "background": {
+            "activeOnStart": false,
+            "beginsPattern": "^Restore complete \\(.*\\).*$",
+            //IF the tests ran, with or without error but every
+            //got built successfully then the pattern will match
+            //test run summary that looks like this:
+            //Test summary: total: 21, failed: 0, succeeded: 21, skipped: 0, duration: 2.2s
+            "endsPattern": "^Test summary: total:.*$"
+          }
         }
-      }
+      ]
     },
     {
       "label": "Dotnet Integration Test Watch",
