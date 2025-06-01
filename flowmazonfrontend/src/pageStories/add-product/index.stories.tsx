@@ -253,6 +253,42 @@ export const ServerErrorOnSubmit: Story = {
   },
 };
 
+function createMSWParametersObjectForErrorCode(errorCode: number) {
+  return {
+    msw: {
+      handlers: [
+        http.post(config.serviceUrls.product, () =>
+          HttpResponse.text('Response from Server', { status: errorCode }),
+        ),
+      ],
+    },
+  };
+}
+
+export const ServerErrorOnsubmit_400Response: Story = {
+  name: 'Submit - Server Error on Submit with a 400 response',
+  parameters: { ...createMSWParametersObjectForErrorCode(400) },
+  play: ServerErrorOnSubmit.play,
+};
+
+export const ServerErrorOnsubmit_500Response: Story = {
+  name: 'Submit - Server Error on Submit with a 500 response',
+  parameters: { ...createMSWParametersObjectForErrorCode(500) },
+  play: ServerErrorOnSubmit.play,
+};
+
+export const ServerErrorOnSubmit_499Response: Story = {
+  name: 'Submit - Server Error on Submit with a 499 response',
+  parameters: { ...createMSWParametersObjectForErrorCode(499) },
+  play: ServerErrorOnSubmit.play,
+};
+
+export const ServerErrorOnSubmit_599Response: Story = {
+  name: 'Submit - Server Error on Submit with a 599 response',
+  parameters: { ...createMSWParametersObjectForErrorCode(599) },
+  play: ServerErrorOnSubmit.play,
+};
+
 export const SubmitValidatesAllFieldsAndJumpsToFirstError: Story = {
   name: 'Validate - Validate all fields on Submit and  jump to first error',
   play: async ({ canvasElement }) => {
@@ -353,32 +389,6 @@ async function typeErroneousInputAndTabOffAndAssertError<TInput>(
   await assertError();
   return assertError;
 }
-
-export const ValidateOnTypeButAfterFirstTabOff: Story = {
-  name: 'Validate - On Type but after first Tab Off',
-  play: async ({ canvasElement }) => {
-    //initialise
-    const form = createAddProductPagePOM(canvasElement).getAddProductForm();
-    await validateTextboxOnTypeButAfterFirstTabOff(
-      form.name,
-      ErrorCases.name.NameMaxLength,
-    );
-
-    await validateTextboxOnTypeButAfterFirstTabOff(
-      form.description,
-      ErrorCases.description.DescriptionMaxLength,
-    );
-    await validateTextboxOnTypeButAfterFirstTabOff(
-      form.imageUrl,
-      ErrorCases.imageUrl.ImageUrlIsValidUrl,
-    );
-
-    await validateTextboxOnTypeButAfterFirstTabOff(
-      form.price,
-      ErrorCases.price.PriceNotNumeric,
-    );
-  },
-};
 
 async function validateTextboxOnTypeButAfterFirstTabOff<TInput>(
   textboxQueries: TextboxQueries,

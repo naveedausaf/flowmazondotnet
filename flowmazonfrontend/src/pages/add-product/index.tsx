@@ -73,6 +73,10 @@ export default function AddProductPage() {
           },
           body: JSON.stringify(values),
         });
+        if (response.status >= 400) {
+          //we got an error code back
+          setServerErrorOccurred(true);
+        }
       } catch (error) {
         //TODO: log the error
         //TODO: make sure the page doesn't
