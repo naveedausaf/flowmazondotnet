@@ -7,7 +7,7 @@
         "Next.js: debug in full stack",
         ".NET Core: debug in full stack"
       ],
-      //despitge the rejigging (see comments below)
+      //despite the rejigging (see comments below)
       //this doesn't always work
       "stopAll": true
     }
