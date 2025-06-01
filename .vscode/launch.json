@@ -8,7 +8,7 @@
         ".NET Core: debug in full stack"
       ],
       //despite the rejigging (see comments below)
-      //this doesn't always work
+      //this options doesn't always work
       "stopAll": true
     }
   ],
