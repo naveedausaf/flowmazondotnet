@@ -7,6 +7,8 @@
         "Next.js: debug in full stack",
         ".NET Core: debug in full stack"
       ],
+      //despitge the rejigging (see comments below)
+      //this doesn't always work
       "stopAll": true
     }
   ],
@@ -17,12 +19,15 @@
       "request": "launch",
       "preLaunchTask": "build-backend",
       "program": "${workspaceFolder}/flowmazonbackend/flowmazonapi/bin/Debug/net8.0/flowmazonapi.dll",
-      "args": [],
       "cwd": "${workspaceFolder}/flowmazonbackend/flowmazonapi",
       "stopAtEntry": false,
       "env": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
-        //"ASPNETCORE_URLS": "http://localhost:5023"
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        //setting this to the same value as the port used
+        //by the launch profiel from launchSettings.json in the
+        //.net core project that would be picked
+        //by default when theproject is launched using dotnet run
+        "ASPNETCORE_URLS": "http://localhost:5022"
       },
       "sourceFileMap": {
         "/Views": "${workspaceFolder}/Views"
@@ -47,8 +52,9 @@
       //
       "program": "${workspaceFolder}/flowmazonfrontend/node_modules/next/dist/bin/next",
       "args": ["dev"],
+      "console": "integratedTerminal",
       "env": {
-        "NEXT_PUBLIC_BACKEND_URL": "http://localhost:5023"
+        "NEXT_PUBLIC_BACKEND_URL": "http://localhost:5022"
       },
       "serverReadyAction": {
         "pattern": "- Local:.+(https?://.+)",
