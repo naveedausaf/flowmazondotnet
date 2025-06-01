@@ -25,6 +25,7 @@ public class ProductService : IProductService
 
     public async Task<int> CreateProduct(CreateProductArgs args)
     {
+
         var validationEx = (FluentValidation.Results.ValidationResult validationResult) => new ValidationException { ValidationResult = new FluentValidationValidationResult(validationResult) };
 
         var argsValidationResult = _createProductArgsValidator.Validate(args);

@@ -120,7 +120,6 @@ public class ProductServiceTests : IAsyncLifetime
         using var verify = new DbVerify(TestContextOptions);
         await verify.ProductInDatabase(idOfNewProduct, testCase.NewProduct);
 
-
     }
 
 

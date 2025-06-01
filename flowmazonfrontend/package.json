@@ -15,7 +15,7 @@
     "test-storybook": "test-storybook",
     "test-storybook:test": "wait 3000 && echo Starting Storybook tests... && (test-storybook --coverage || true) && echo Completed Storybook tests...",
     "test-storybook:watch": "concurrently --names \"STORYBOOK,TEST\" --hide HTTP --prefix-colors \"blue,magenta\" \"storybook dev -p 6006\" \"wait-on http://127.0.0.1:6006 && wait 10000 && onchange -i -k src/**/* -- npm run test-storybook:test\"",
-    "test-playwright:test": "LCT=1 && wait-on -d 4000 http-get://localhost:4000/add-product http-get://localhost:5000/health/ready && (playwright test || true) && echo Test run report available at http://localhost:6007",
+    "test-playwright:test": "cross-env LCT=1 && wait-on -d 4000 http-get://localhost:4000/add-product http-get://localhost:5000/health/ready && (playwright test || true) && echo Test run report available at http://localhost:6007",
     "test-playwright:watch": "concurrently --names \"REPORT,COMPOSE,TEST\" --prefix-colors \"blue,green,magenta\" \"http-server playwright-report -s --port 6007\" \"docker compose -f ../compose.yaml up --watch\" \"onchange -i -k  src/**/* e2etests/**/* -- npm run test-playwright:test\""
   },
   "dependencies": {
@@ -66,6 +66,7 @@
     "chai": "^5.2.0",
     "chromatic": "^11.28.0",
     "concurrently": "^9.1.2",
+    "cross-env": "^7.0.3",
     "daisyui": "^5.0.22",
     "dotenv": "^16.5.0",
     "eslint": "^9.24.0",

@@ -2,92 +2,76 @@
   "version": "2.0.0",
   "tasks": [
     {
-      "label": "build-backend",
-      "command": "dotnet",
-      "type": "process",
-      "args": [
-        "build",
-        "${workspaceFolder}/flowmazonbackend/flowmazonbackend.sln",
-        "/property:GenerateFullPaths=true",
-        "/consoleloggerparameters:NoSummary;ForceNoAlign"
-      ],
-      "problemMatcher": "$msCompile"
+      "label": "API Unit Tests",
+      "type": "shell",
+      "command": "dotnet watch test",
+      "options": {
+        "cwd": "${workspaceFolder}/flowmazonbackend/flowmazonapi.UnitTests"
+      },
+      "isBackground": true,
+      "runOptions": {
+        "runOn": "folderOpen"
+      },
+      "presentation": {
+        "panel": "dedicated"
+      },
+      "problemMatcher": {
+        "fileLocation": ["relative", "${workspaceFolder}"],
+        "severity": "error",
+        "pattern": {
+          // Matches a typical .NET test failure output line
+          "regexp": "^(.*)\\(\\d*\\):\\s(error TESTERROR):.*$",
+          "file": 1,
+          "message": 2
+        },
+        "background": {
+          "activeOnStart": false,
+          "beginsPattern": "^Restore complete \\(.*\\).*$",
+          "endsPattern": "^Test summary: total:.*$"
+        }
+      }
     },
     {
-      "label": "publish-backend",
+      "label": "Dotnet Integration Test Watch",
+      "type": "shell",
+      // "args": [
+      //   "-c",
+      //   "echo ${workspaceFolder}\\flowmazonbackend\\flowmazonapi.IntegrationTests\\flowmazonapi.IntegrationTests.csproj"
+      // ],
+      // "command": "cmd",
       "command": "dotnet",
-      "type": "process",
-      "args": [
-        "publish",
-        "${workspaceFolder}/flowmazonbackend/flowmazonbackend.sln",
-        "/property:GenerateFullPaths=true",
-        "/consoleloggerparameters:NoSummary;ForceNoAlign"
-      ],
-      "problemMatcher": "$msCompile"
-    },
-    {
-      "label": "watch-backend",
-      "command": "dotnet",
-      "type": "process",
       "args": [
         "watch",
-        "run",
         "--project",
-        "${workspaceFolder}/flowmazonbackend/flowmazonbackend.sln"
+        "${workspaceFolder}\\flowmazonbackend\\flowmazonapi.IntegrationTests\\flowmazonapi.IntegrationTests.csproj",
+        "test"
       ],
-      "problemMatcher": "$msCompile"
-    },
-    {
-      "type": "docker-build",
-      "label": "docker-build-backend: debug",
-      "dependsOn": ["build"],
-      "dockerBuild": {
-        "tag": "flowmazonbackend:dev",
-        "target": "base",
-        "dockerfile": "${workspaceFolder}/flowmazonbackend/Dockerfile",
-        "context": "${workspaceFolder}",
-        "pull": true
+      "isBackground": true,
+      "runOptions": {
+        "runOn": "folderOpen"
       },
-      "netCore": {
-        "appProject": "${workspaceFolder}/flowmazonbackend/flowmazonapi/flowmazonapi.csproj"
+      "presentation": {
+        "panel": "dedicated"
       }
-    },
-    {
-      "type": "docker-build",
-      "label": "docker-build-backend: release",
-      "dependsOn": ["build"],
-      "dockerBuild": {
-        "tag": "flowmazonbackend:latest",
-        "dockerfile": "${workspaceFolder}/flowmazonbackend/Dockerfile",
-        "context": "${workspaceFolder}",
-        "platform": {
-          "os": "linux",
-          "architecture": "amd64"
-        },
-        "pull": true
-      },
-      "netCore": {
-        "appProject": "${workspaceFolder}/flowmazonbackend/flowmazonapi/flowmazonapi.csproj"
-      }
-    },
-    {
-      "type": "docker-run",
-      "label": "docker-run-backend: debug",
-      "dependsOn": ["docker-build-backend: debug"],
-      "dockerRun": {},
-      "netCore": {
-        "appProject": "${workspaceFolder}/flowmazonbackend/flowmazonapi/flowmazonapi.csproj",
-        "enableDebugging": true
-      }
-    },
-    {
-      "type": "docker-run",
-      "label": "docker-run-backend: release",
-      "dependsOn": ["docker-build-backend: release"],
-      "dockerRun": {},
-      "netCore": {
-        "appProject": "${workspaceFolder}/flowmazonbackend/flowmazonapi/flowmazonapi.csproj"
-      }
+      // "problemMatcher": {
+      //   "fileLocation": ["relative", "${workspaceFolder}"],
+      //   "severity": "error",
+      //   "pattern": {
+      //     // Matches a typical .NET test failure output line
+      //     "regexp": "^\\s*(.*\\.cs)\\((\\d+),(\\d+)\\):\\s*error\\s*(.*)$",
+      //     "file": 1,
+      //     "line": 2,
+      //     "column": 3,
+      //     "message": 4
+      //   },
+      //   "background": {
+      //     "activeOnStart": false,
+      //     // Begins when dotnet test/watch outputs "Starting test execution..."
+      //     "beginsPattern": "^Starting test execution.*",
+      //     // Ends when dotnet test/watch outputs "Test Run Successful." or "Test Run Failed."
+      //     "endsPattern": "^Test Run (Successful|Failed)\\."
+      //   }
+      // }
     },
     {
       "label": "Storybook watch",
@@ -150,6 +134,7 @@
           "line": 3,
           "column": 4,
           "message": 1
+          //"regexp": "^\\s*\\d*\\sfailed\\s*$"
         },
         "background": {
           "activeOnStart": false,
