@@ -119,7 +119,7 @@ public class ProductServiceTests : IAsyncLifetime
         idOfNewProduct.Should().BeGreaterThan(0);
         using var verify = new DbVerify(TestContextOptions);
         await verify.ProductInDatabase(idOfNewProduct, testCase.NewProduct);
-        Assert.Equal(1, 2);
+
 
     }
 
