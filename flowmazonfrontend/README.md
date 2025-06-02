@@ -1,5 +1,25 @@
 This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
 
+## Configuration
+
+Note:
+
+- Configuration settings (key value pairs) during local development is provided in `.env.local` in app folder. These are probably set automatically as environmetn variables during startup using `next dev`
+
+- Configuration in deployed settings (Vercel deployments eithout containers, Docker image deployments whether or not on Vercel) provide configuration settings as environment variables.
+
+- `NEXT_PUBLIC_` configuration settings must be available/set at build time as their values are emitted into the client-side bundle.
+  This is why I set `NEXT_PUBLIC_BACKEND_URL` (See below) using an `ENV` drective in the Dockerfile so that it is already set and available as an environment variable when the image is being built - and before the app starts to be built (using `next build`) - rather than provide it as an environment variable to a running container created from the app's Docker image.
+
+### Required Configuration
+
+1. `NEXT_PUBLIC_BACKEND_URL` is the URL of the backend API, without a slash (`/`) at the end.
+   Example: `http://localhost:5022`.
+
+### Optional Configuration
+
+None that I know of.
+
 ## Getting Started
 
 First, run the development server:
@@ -32,9 +52,3 @@ To learn more about Next.js, take a look at the following resources:
 - [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
 
 You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.

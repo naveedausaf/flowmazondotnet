@@ -109,11 +109,22 @@ public class APITestFixture : IAsyncLifetime
 
         SUTContainer = new ContainerBuilder().WithImage(futureImage)
         .WithEnvironment("ConnectionStrings__FlowmazonDB", networkConnectionString)
+        .WithEnvironment("ALLOWED_CORS_ORIGINS", "http://localhost")
         .WithPortBinding(SUTContainerExposedPort, true)
         .WithNetwork(_network)
         .Build();
 
-        await SUTContainer.StartAsync().ConfigureAwait(false);
+        try
+        {
+            await SUTContainer.StartAsync().ConfigureAwait(false);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Failed to start SUT container: {ex.Message}");
+            var t = await SUTContainer.GetLogsAsync();
+            throw;
+        }
+
         _apiPort = SUTContainer.GetMappedPublicPort(SUTContainerExposedPort);
 
 
