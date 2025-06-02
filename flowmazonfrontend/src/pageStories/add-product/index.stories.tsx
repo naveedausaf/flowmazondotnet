@@ -390,6 +390,32 @@ async function typeErroneousInputAndTabOffAndAssertError<TInput>(
   return assertError;
 }
 
+export const ValidateOnTypeButAfterFirstTabOff: Story = {
+  name: 'Validate - On Type but after first Tab Off',
+  play: async ({ canvasElement }) => {
+    //initialise
+    const form = createAddProductPagePOM(canvasElement).getAddProductForm();
+    await validateTextboxOnTypeButAfterFirstTabOff(
+      form.name,
+      ErrorCases.name.NameMaxLength,
+    );
+
+    await validateTextboxOnTypeButAfterFirstTabOff(
+      form.description,
+      ErrorCases.description.DescriptionMaxLength,
+    );
+    await validateTextboxOnTypeButAfterFirstTabOff(
+      form.imageUrl,
+      ErrorCases.imageUrl.ImageUrlIsValidUrl,
+    );
+
+    await validateTextboxOnTypeButAfterFirstTabOff(
+      form.price,
+      ErrorCases.price.PriceNotNumeric,
+    );
+  },
+};
+
 async function validateTextboxOnTypeButAfterFirstTabOff<TInput>(
   textboxQueries: TextboxQueries,
   errorCase: ErrorCase<TInput>,

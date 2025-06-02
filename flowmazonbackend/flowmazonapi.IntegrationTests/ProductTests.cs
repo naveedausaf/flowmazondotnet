@@ -114,16 +114,8 @@ public class APITestFixture : IAsyncLifetime
         .WithNetwork(_network)
         .Build();
 
-        try
-        {
-            await SUTContainer.StartAsync().ConfigureAwait(false);
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Failed to start SUT container: {ex.Message}");
-            var t = await SUTContainer.GetLogsAsync();
-            throw;
-        }
+        await SUTContainer.StartAsync().ConfigureAwait(false);
+
 
         _apiPort = SUTContainer.GetMappedPublicPort(SUTContainerExposedPort);
 

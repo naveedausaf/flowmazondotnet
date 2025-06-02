@@ -33,7 +33,7 @@
           "message": 2
         },
         "background": {
-          "activeOnStart": false,
+          "activeOnStart": true,
           "beginsPattern": "^Restore complete \\(.*\\).*$",
           //If build failed (i.e. tests didn't run) then this pattern
           //matches the end of output which looks like this:
@@ -86,7 +86,7 @@
           "message": 2
         },
         "background": {
-          "activeOnStart": false,
+          "activeOnStart": true,
           "beginsPattern": "^Restore complete \\(.*\\).*$",
           //If build failed (i.e. tests didn't run) then this pattern
           //matches the end of output which looks like this:
@@ -121,7 +121,7 @@
           "file": 2
         },
         "background": {
-          "activeOnStart": false,
+          "activeOnStart": true,
           //I have verified that if either of the following regexes is wrong,
           //you don't get the tick on the terminal to indicate once
           //a test run has completed (even though our watch task carries on running)
@@ -160,7 +160,7 @@
           //"regexp": "^\\s*\\d*\\sfailed\\s*$"
         },
         "background": {
-          "activeOnStart": false,
+          "activeOnStart": true,
           //I have verified that if either of the following regexes is wrong,
           //you don't get the tick on the terminal to indicate once
           //a test run has completed (even though our watch task carries on running)
