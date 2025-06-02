@@ -9,3 +9,12 @@ Bear in mind that to stop debugging with this compound configuration, yuo will n
 For details of configuration key/value pairs that need to be provided to each service, and how to provide these - e.g. using config files in local development but environment variables at build and/or run of deployment or containers - see the READMEs of respective services ([frontend app](./flowmazonfrontend/README.md) and [backend api](./flowmazonbackend/flowmazonapi/README.md)).
 
 You can also check out any Docker compose files (see [compose.yaml](./compose.yaml) for local continuous testing using Playwright tests) and TestContainers-based code (in [API Integration Tests](./flowmazonbackend/flowmazonapi.IntegrationTests/)) for some examples of how config values are provided to the services.
+
+## What I will do differently next time
+
+- Use [Bogus](https://github.com/bchavez/Bogus) instead of [AutoFixture](https://github.com/AutoFixture/AutoFixture).
+
+  - AutoFixture looks dated. Releases are infrequent (last one was 7 months before the date of this writing). [Documenation](https://github.com/AutoFixture/AutoFixture?tab=readme-ov-file#documentation) was updated in 2021 and many of the links mentioned in it contain very old posts.
+  - AutoFixture is too basic. I was quite surprised to discover that despite how long it's been around, there [seems to be no out of the box way](https://autofixture.github.io/docs/quick-start/) of generating a number in a specified range. This makes it particular difficult to use with `Price` for example which is bounded by zero below and would almost have an upper limit also.
+
+  Bogus not only doesn't have the problem above, it allows you to generate (semi-)meaningful test under within specified constraints really easy, and the code you write to do so would be really easy to read:
