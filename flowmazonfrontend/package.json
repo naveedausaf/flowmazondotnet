@@ -16,7 +16,7 @@
     "test-storybook:test": "wait 3000 && echo Starting Storybook tests... && (test-storybook --coverage || true) && echo Completed Storybook tests...",
     "test-storybook:watch": "concurrently --names \"STORYBOOK,TEST\" --hide HTTP --prefix-colors \"blue,magenta\" \"storybook dev -p 6006\" \"wait-on http://127.0.0.1:6006 && wait 10000 && onchange -i -k src/**/* -- npm run test-storybook:test\"",
     "test-playwright:test": "cross-env LCT=1 && wait-on -d 4000 http-get://localhost:4000/add-product http-get://localhost:5000/health/ready && (playwright test || true) && echo Test run report available at http://localhost:6007",
-    "test-playwright:watch": "concurrently --names \"REPORT,COMPOSE,TEST\" --prefix-colors \"blue,green,magenta\" \"http-server playwright-report -s --port 6007\" \"docker compose -f ../compose.yaml up --watch\" \"onchange -i -k  src/**/* e2etests/**/* -- npm run test-playwright:test\""
+    "test-playwright:watch": "concurrently --names \"REPORT,COMPOSE,TEST\" --prefix-colors \"blue,green,magenta\" \"http-server playwright-report -s --port 6007\" \"docker compose -f ../compose.yaml up --watch\" \"onchange -i -k  src/**/* e2etests/**/* ../flowmazonbackend/flowmazonapi/**/* -- npm run test-playwright:test\""
   },
   "dependencies": {
     "@auth/prisma-adapter": "^1.6.0",
