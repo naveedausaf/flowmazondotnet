@@ -46,6 +46,17 @@
     {
       "label": "API Integration Tests",
       "type": "shell",
+
+      //The great thing is that dotnet test watches automatically
+      //watches not just the project passed to it byt also any
+      //<ProjectRefernce> (i.e refernced project) in taht project.
+      //NOTE THOUGH that integration test project does not reference
+      //the API project as it launches it as a Docker container and
+      //does not - in fact SHOULD NOT - reference it directly.
+      //To get around that I hacve <Watch> item in the test project's
+      //csproj. This is a glob of files in API project.
+      //These will be watched by dotnet watch test on top of the project
+      //it watches by default.
       "command": "dotnet watch test",
       "options": {
         "cwd": "${workspaceFolder}/flowmazonbackend/flowmazonapi.IntegrationTests"
