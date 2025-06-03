@@ -16,4 +16,5 @@ public class ProductTestData
         using var sutContext = new FlowmazonDbContext(sutContextOptions);
         await sutContext.Database.MigrateAsync();
     }
+
 }
