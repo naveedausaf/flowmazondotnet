@@ -40,7 +40,7 @@ public class ValidProducts : TheoryData<ValidProduct>
     {
 
 
-        ValidProduct CreateTestProduct(string testCaseName, int? price = null)
+        ValidProduct CreateTestProduct(string testCaseName, decimal? price = null)
         {
             var result = new ValidProduct
             {
@@ -57,6 +57,9 @@ public class ValidProducts : TheoryData<ValidProduct>
 
         Add(CreateTestProduct("Price 0", 0));
         Add(CreateTestProduct("Price is maximum possible", 50000));
+        Add(CreateTestProduct("Price two decimal digits", 29.99m));
+        Add(CreateTestProduct("Price one decimal digits", 29.9m));
+        Add(CreateTestProduct("Price zero decimal digits", 29m));
 
         TypicalValidProduct = CreateTestProduct("Valid product");
         Add(TypicalValidProduct);

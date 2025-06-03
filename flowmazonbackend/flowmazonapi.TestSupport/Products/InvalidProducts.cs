@@ -88,6 +88,21 @@ public class InvalidProducts : TheoryData<InvalidProduct>
             }
             });
 
+        Add(
+            new InvalidProduct
+            {
+
+                TestCaseName = "Price more than two decimal places",
+                NewProduct = ProductArgsFaker.Generate() with
+                {
+                    Price = 123.456m
+                },
+                ExpectedErrors = new Dictionary<string, string[]> { {
+                "Price", new[] { "'Price' can only have up to 2 decimal places." }
+                }
+            }
+            });
+
         Add(new InvalidProduct
         {
             TestCaseName = "Name is null",
@@ -135,7 +150,7 @@ public class InvalidProducts : TheoryData<InvalidProduct>
                 Description = ""
             },
             ExpectedErrors =
-new Dictionary<string, string[]> {
+        new Dictionary<string, string[]> {
                 {"Description", new []{"'Description' must not be empty."}
                 }
             }
