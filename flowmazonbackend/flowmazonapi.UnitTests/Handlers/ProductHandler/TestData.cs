@@ -1,5 +1,4 @@
 
-using AutoFixture;
 using flowmazonapi.BusinessLogic.ProductService;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;

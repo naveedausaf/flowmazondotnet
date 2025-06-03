@@ -1,15 +1,11 @@
 using System.Reflection;
-using AutoFixture;
 using flowmazonapi.BusinessLogic;
 
 namespace flowmazonapi.TestSupport;
 
 public static class TestHelper
 {
-    public static string CreateURL(Fixture fixture)
-    {
-        return $"http://www.{fixture.Create<string>()}.com";
-    }
+
 
     public static IList<ValidationFailure> DictionaryToSortedListOFValidationFailures(Dictionary<string, string[]> errorDictionary)
     {

@@ -1,5 +1,7 @@
-using AutoFixture;
+using System.ComponentModel.DataAnnotations.Schema;
+using Bogus;
 using flowmazonapi.BusinessLogic.ProductService;
+using flowmazonapi.Domain;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -26,24 +28,27 @@ public class InvalidProduct : IXunitSerializable
 
 public class InvalidProducts : TheoryData<InvalidProduct>
 {
+    FakerOfCreateProductArgs ProductArgsFaker = new FakerOfCreateProductArgs();
+    Faker DataGenerator = new()
+    {
+        Random = new Randomizer(1) // Use a fixed seed for determinism
+    };
+
+
     public InvalidProduct ProductWithMultipleErrors1 { get; }
     public InvalidProduct ProductWithMultipleErrors2 { get; }
 
     public InvalidProducts()
     {
 
-        var fixture = new Fixture();
+
 
         Add(
            new InvalidProduct
            {
                TestCaseName = "Price is negative",
-               NewProduct = new CreateProductArgs
+               NewProduct = ProductArgsFaker.Generate() with
                {
-
-                   Name = fixture.Create<string>(),
-                   Description = fixture.Create<string>(),
-                   ImageUrl = TestHelper.CreateURL(fixture),
                    Price = -1
                },
 
@@ -58,11 +63,8 @@ public class InvalidProducts : TheoryData<InvalidProduct>
             {
 
                 TestCaseName = "Price is null",
-                NewProduct = new CreateProductArgs
+                NewProduct = ProductArgsFaker.Generate() with
                 {
-                    Name = fixture.Create<string>(),
-                    Description = fixture.Create<string>(),
-                    ImageUrl = TestHelper.CreateURL(fixture),
                     Price = null
                 },
                 ExpectedErrors = new Dictionary<string, string[]> { {
@@ -74,12 +76,9 @@ public class InvalidProducts : TheoryData<InvalidProduct>
         Add(new InvalidProduct
         {
             TestCaseName = "Name is null",
-            NewProduct = new CreateProductArgs
+            NewProduct = ProductArgsFaker.Generate() with
             {
-                Name = null,
-                Description = fixture.Create<string>(),
-                ImageUrl = TestHelper.CreateURL(fixture),
-                Price = fixture.Create<int>()
+                Name = null
             },
             ExpectedErrors = new Dictionary<string, string[]> {
                 {"Name", new []{"'Name' must not be empty."}
@@ -90,12 +89,9 @@ public class InvalidProducts : TheoryData<InvalidProduct>
         Add(new InvalidProduct
         {
             TestCaseName = "Name is empty",
-            NewProduct = new CreateProductArgs
+            NewProduct = ProductArgsFaker.Generate() with
             {
-                Name = "",
-                Description = fixture.Create<string>(),
-                ImageUrl = TestHelper.CreateURL(fixture),
-                Price = fixture.Create<int>()
+                Name = ""
             },
             ExpectedErrors = new Dictionary<string, string[]> {
                 {"Name", new []{"'Name' must not be empty."}
@@ -106,12 +102,9 @@ public class InvalidProducts : TheoryData<InvalidProduct>
         Add(new InvalidProduct
         {
             TestCaseName = "Description is null",
-            NewProduct = new CreateProductArgs
+            NewProduct = ProductArgsFaker.Generate() with
             {
-                Name = fixture.Create<string>(),
-                Description = null,
-                ImageUrl = TestHelper.CreateURL(fixture),
-                Price = fixture.Create<int>()
+                Description = null
             },
             ExpectedErrors = new Dictionary<string, string[]> {
                 {"Description", new []{"'Description' must not be empty."}
@@ -122,12 +115,9 @@ public class InvalidProducts : TheoryData<InvalidProduct>
         Add(new InvalidProduct
         {
             TestCaseName = "Description is empty",
-            NewProduct = new CreateProductArgs
+            NewProduct = ProductArgsFaker.Generate() with
             {
-                Name = fixture.Create<string>(),
-                Description = "",
-                ImageUrl = TestHelper.CreateURL(fixture),
-                Price = fixture.Create<int>()
+                Description = ""
             },
             ExpectedErrors =
 new Dictionary<string, string[]> {
@@ -139,12 +129,9 @@ new Dictionary<string, string[]> {
         Add(new InvalidProduct
         {
             TestCaseName = "ImageUrl is null",
-            NewProduct = new CreateProductArgs
+            NewProduct = ProductArgsFaker.Generate() with
             {
-                Name = fixture.Create<string>(),
-                Description = fixture.Create<string>(),
-                ImageUrl = null,
-                Price = fixture.Create<int>()
+                ImageUrl = null
             },
             ExpectedErrors =
             new Dictionary<string, string[]> {
@@ -156,12 +143,9 @@ new Dictionary<string, string[]> {
         Add(new InvalidProduct
         {
             TestCaseName = "ImageUrl is empty",
-            NewProduct = new CreateProductArgs
+            NewProduct = ProductArgsFaker.Generate() with
             {
-                Name = fixture.Create<string>(),
-                Description = fixture.Create<string>(),
-                ImageUrl = "",
-                Price = fixture.Create<int>()
+                ImageUrl = ""
             },
             ExpectedErrors = new Dictionary<string, string[]> {
                 {"ImageUrl", new []{"'Image Url' must not be empty."}
@@ -172,13 +156,9 @@ new Dictionary<string, string[]> {
         Add(new InvalidProduct
         {
             TestCaseName = "ImageUrl not valid URL",
-            NewProduct = new CreateProductArgs
+            NewProduct = ProductArgsFaker.Generate() with
             {
-                Name = fixture.Create<string>(),
-                Description = fixture.Create<string>(),
-                ImageUrl = fixture.Create<string>()/*this is just a 
-            string, not a valid URL*/,
-                Price = fixture.Create<int>(),
+                ImageUrl = "not-a-url" + DataGenerator.Random.Int(1, 1000).ToString()
             },
             ExpectedErrors = new Dictionary<string, string[]> {
                 {"ImageUrl", new []{"'Image Url' must be a well-formed URL."}
@@ -189,13 +169,10 @@ new Dictionary<string, string[]> {
         ProductWithMultipleErrors1 = new InvalidProduct
         {
             TestCaseName = "Multiple errors - ImageURL not well formed and Name missing - but only one caught when validating CreateProductArgs",
-            NewProduct = new CreateProductArgs
+            NewProduct = ProductArgsFaker.Generate() with
             {
                 Name = null,
-                Description = fixture.Create<string>(),
-                ImageUrl = fixture.Create<string>()/*this is just a 
-            string, not a valid URL*/,
-                Price = fixture.Create<int>()
+                ImageUrl = "not-a-url" + DataGenerator.Random.Int(1, 1000).ToString()
             },
             ExpectedErrors = new Dictionary<string, string[]> {
             {
@@ -209,11 +186,9 @@ new Dictionary<string, string[]> {
         ProductWithMultipleErrors2 = new InvalidProduct
         {
             TestCaseName = "Multiple errors - Name and Price both missing - all caught when validating CreateProductArgs",
-            NewProduct = new CreateProductArgs
+            NewProduct = ProductArgsFaker.Generate() with
             {
                 Name = null,
-                Description = fixture.Create<string>(),
-                ImageUrl = TestHelper.CreateURL(fixture),
                 Price = null
             },
             ExpectedErrors = new Dictionary<string, string[]> {

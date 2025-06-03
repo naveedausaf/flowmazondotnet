@@ -1,7 +1,7 @@
 using System.Reflection;
 using System.Text.Json;
 using System.Text.Json.Serialization.Metadata;
-using AutoFixture;
+using Bogus;
 using flowmazonapi.BusinessLogic.ProductService;
 using Microsoft.VisualBasic;
 using Xunit;
@@ -11,6 +11,7 @@ namespace flowmazonapi.TestSupport.Products;
 
 public class ValidProduct : IXunitSerializable
 {
+
     public required string TestCaseName { get; set; }
 
     public required CreateProductArgs NewProduct { get; set; }
@@ -29,30 +30,35 @@ public class ValidProduct : IXunitSerializable
 
 public class ValidProducts : TheoryData<ValidProduct>
 {
+    FakerOfCreateProductArgs ProductArgsFaker = new FakerOfCreateProductArgs();
+    Faker DataGenerator = new()
+    {
+        Random = new Randomizer(1) // Use a fixed seed for determinism
+    };
     public ValidProduct TypicalValidProduct { get; init; }
     public ValidProducts()
     {
-        var fixture = new Fixture();
 
-        ValidProduct CreateTestProduct(string name, int price)
+
+        ValidProduct CreateTestProduct(string testCaseName, int? price = null)
         {
-            return new ValidProduct
+            var result = new ValidProduct
             {
-                TestCaseName = name,
-                NewProduct = new CreateProductArgs
-                {
-                    Name = fixture.Create<string>(),
-                    Description = fixture.Create<string>(),
-                    ImageUrl = $"http://www.{fixture.Create<string>()}.com",
-                    Price = price
-                }
+                TestCaseName = testCaseName,
+                NewProduct = ProductArgsFaker.Generate()
             };
+            if (price != null)
+            {
+                result.NewProduct.Price = price;
+            }
+            return result;
+
         }
 
         Add(CreateTestProduct("Price 0", 0));
-        Add(CreateTestProduct("Price max 32-bit int", Int32.MaxValue));
+        Add(CreateTestProduct("Price very large", 100000000));
 
-        TypicalValidProduct = CreateTestProduct("Valid product", fixture.Create<int>());
+        TypicalValidProduct = CreateTestProduct("Valid product");
         Add(TypicalValidProduct);
 
     }

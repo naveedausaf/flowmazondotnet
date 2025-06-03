@@ -8,7 +8,6 @@ using FluentAssertions;
 using System.Data.Common;
 using flowmazonapi.BusinessLogic;
 using System.Collections.Generic;
-using AutoFixture;
 using flowmazonapi.TestSupport.Products;
 
 namespace flowmazonapi.UnitTests.BusinessLogic;

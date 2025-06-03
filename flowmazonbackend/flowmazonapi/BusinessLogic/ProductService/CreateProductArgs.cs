@@ -5,9 +5,9 @@ using FluentValidation;
 namespace flowmazonapi.BusinessLogic.ProductService;
 
 /// <summary>
-/// Details of the product to be accreted
+/// Details of the product to be created
 /// </summary>
-public class CreateProductArgs
+public record CreateProductArgs
 {
 
     /// <summary>

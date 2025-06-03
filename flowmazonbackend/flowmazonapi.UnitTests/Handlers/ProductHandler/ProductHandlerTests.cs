@@ -6,7 +6,6 @@ using System.Net;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text.Json.Serialization;
-using AutoFixture;
 using flowmazonapi.Domain;
 using flowmazonapi.BusinessLogic;
 using flowmazonapi.BusinessLogic.ProductService;
@@ -31,6 +30,7 @@ namespace flowmazonapi.UnitTests.Handlers.ProductHandler;
 
 public class ProductHandlerTests(WebApplicationFactory<Program> appFactory) : IClassFixture<WebApplicationFactory<Program>>
 {
+    private FakerOfCreateProductArgs ProductArgsFaker { get; } = new FakerOfCreateProductArgs();
 
     //This is the Problem Details response
     //from CreateProduct in case of validation
@@ -82,14 +82,7 @@ public class ProductHandlerTests(WebApplicationFactory<Program> appFactory) : IC
     public async Task CreateProduct_InvalidProduct_OneValidationError(string testName, Dictionary<string, string[]> expectedErrors)
     {
         //ARRANGE
-        var fixture = new Fixture();
-        var createProductArgs = new
-        {
-            Name = fixture.Create<string>(),
-            Description = fixture.Create<string>(),
-            Price = fixture.Create<int>(),
-            ImageUrl = TestHelper.CreateURL(fixture)
-        };
+        var createProductArgs = ProductArgsFaker.Generate();
 
         var errorList =
             TestHelper.DictionaryToSortedListOFValidationFailures(expectedErrors);
