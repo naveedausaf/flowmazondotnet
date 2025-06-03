@@ -27,16 +27,5 @@
 
   <ItemGroup>
     <ProjectReference Include="..\flowmazonapi.TestSupport\flowmazonapi.TestSupport.csproj" />
-  </ItemGroup>
-  <!--This being an integration test project, we test "from outside the process" and
-  so don't want to reference the API project. But we still want to re-run this test project
-  if the API project chanses (in addition to any code in this test project or the referenced
-  flowmazonapi.TestSupport project changing; referenced project changes would autoamtically trgger
-  a rerun of the test project, this is how "dotnet watch test" luckily works).
-  Therefore we do not include the API project as a ProejctReference but 
-  reference its code fiels as a Watch glob below-->
-  <ItemGroup>
-    <Watch Include="..\flowmazonapi\**\*.cs" Exclude="..\flowmazonapi\bin\**\*;..\flowmazonapi\obj\**\*" />
-  </ItemGroup>
-  
+  </ItemGroup>  
 </Project>

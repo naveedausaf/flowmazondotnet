@@ -1,20 +1,84 @@
 {
   "version": "2.0.0",
   "tasks": [
+    //
+    //IF YOU HAVE JUST ONE dotnet test PROJECT TO WATCH,
+    //THEN the following would be enough. If not, use the
+    //task currently in operation whic huses npm script
+    //to watch for changes, then rebuild in succession
+    //so as to avoid to parallel builds involving the
+    //same package references from stepping on each other's
+    //toes (one build locking files out that need to be
+    // written by the other parallel build is essentially
+    // what goes wrong).
+    //
+    //If watching integration tests that do not reference
+    //the proejct under test directly (e.g. API tests
+    // or selenium webdriver tests of an ASP.NET Core MVC
+    // app), then you would still like tests to be retriggered
+    // when the project under test changes. While dotnet watch
+    //automatically watches any referenced projects for changes,
+    //here you are not referenceing the project under test.
+    //In order to watch this project, add a `<Watch>` element
+    //in test project's csproj. dotnet watch would additionally
+    //watch the specified files also.
+    //
+    //For example, for the Integration Tests task shown below,
+    //I would add the following to `IntegrationTests.csproj`
+    // (you can add it at the end, just before the closing
+    // </Project> tag):
+    //
+    // <ItemGroup>
+    //   <Watch Include="..\flowmazonapi\**\*.cs"
+    // Exclude="..\flowmazonapi\bin\**\*;..flowmazonapi\obj\**\*" />
+    // </ItemGroup>
+    //
+    //
+    // {
+    //   "label": "API Integration Tests",
+    //   "type": "shell",
+    //   "command": "dotnet watch test",
+    //   "options": {
+    //     "cwd": "${workspaceFolder}/flowmazonbackend/flowmazonapi.IntegrationTests"
+    //   },
+    //   "isBackground": true,
+    //   "runOptions": {
+    //     "runOn": "folderOpen"
+    //   },
+    //   "presentation": {
+    //     "panel": "dedicated"
+    //   },
+    //   "problemMatcher": {
+    //     "fileLocation": ["relative", "${workspaceFolder}"],
+    //     "severity": "error",
+    //     "pattern": {
+    //       // Catches an assertion failure in a test or an exception
+    //       //throw from code-under-test, in both of which cases a like
+    //       //like the following is printed:
+    //       //
+    //       //flowmazonapi.UnitTests failed with 1 error(s) and 1 warning(s) (0.6s)
+    //       //
+    //       //or the following that is printed if a project failed to build:
+    //       //
+    //       //Build failed with 3 error(s) in 6.8s
+    //       "regexp": "^(.*)(failed) (with \\d* error\\(s\\).*)$",
+    //       "file": 1,
+    //       "message": 2
+    //     },
+    //     "background": {
+    //       "activeOnStart": true,
+    //       "beginsPattern": "^Restore complete \\(.*\\).*$",
+    //       //If build failed (i.e. tests didn't run) then this pattern
+    //       //matches the end of output which looks like this:
+    //       //
+    //       //Build failed with 1 error(s) and 1 warning(s) in 2.6s
+    //       "endsPattern": "^.*Waiting for a file to change before restarting dotnet.*$"
+    //     }
+    //   }
+    // },
     {
       "label": ".NET tests watch",
       "type": "shell",
-
-      //The great thing is that dotnet test watches automatically
-      //watches not just the project passed to it byt also any
-      //<ProjectRefernce> (i.e refernced project) in taht project.
-      //NOTE THOUGH that integration test project does not reference
-      //the API project as it launches it as a Docker container and
-      //does not - in fact SHOULD NOT - reference it directly.
-      //To get around that I hacve <Watch> item in the test project's
-      //csproj. This is a glob of files in API project.
-      //These will be watched by dotnet watch test on top of the project
-      //it watches by default.
       "command": "npm run test-dotnet:watch",
       "options": {
         "cwd": "${workspaceFolder}"
@@ -31,8 +95,8 @@
         "severity": "error",
         "pattern": {
           // Catches an assertion failure in a test or an exception
-          //throw from code-under-test, in both of which cases a like
-          //like the following is printed:
+          //throw from code-under-test, in both of which cases,
+          //something like the following is printed:
           //
           //Failed!  - Failed:     3, Passed:     0, Skipped:     0, Total:     3, Duration: 396 ms - flowmazonapi.IntegrationTests.dll (net8.0)
           //
@@ -45,11 +109,11 @@
         },
         "background": {
           "activeOnStart": true,
+          // I print this with an echo when a test run starts
+          // after a change has been detected in the
+          // watched files
           "beginsPattern": "^DOTNET tests watch - starting test run\\s*$",
-          //If build failed (i.e. tests didn't run) then this pattern
-          //matches the end of output which looks like this:
-          //
-          //Build failed with 1 error(s) and 1 warning(s) in 2.6s
+          // I print this with echo once test run has finished
           "endsPattern": "^DOTNET tests watch - test run finished\\s*$"
         }
       }

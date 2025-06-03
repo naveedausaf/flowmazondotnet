@@ -8,7 +8,7 @@
     "release": "semantic-release",
     "test-storybook": "test-storybook",
     "test-dotnet:watch": "onchange -i -k  ./flowmazonbackend/**/*.cs -- npm run test-dotnet:test",
-    "test-dotnet:test": "wait 30000 && echo DOTNET tests watch - starting test run && dotnet build ./flowmazonbackend/flowmazonapi.UnitTests/flowmazonapi.UnitTests.csproj && dotnet build ./flowmazonbackend/flowmazonapi.IntegrationTests/flowmazonapi.IntegrationTests.csproj && (concurrently --names \"UNIT,INTEGRATION\" --prefix-colors \"blue,green\" \"dotnet test ./flowmazonbackend/flowmazonapi.UnitTests/flowmazonapi.UnitTests.csproj --no-build --maxcpucount=1\" \"dotnet test ./flowmazonbackend/flowmazonapi.IntegrationTests/flowmazonapi.IntegrationTests.csproj --no-build --maxcpucount=1\") && echo DOTNET tests watch - test run finished || echo DOTNET tests watch - test run finished"
+    "test-dotnet:test": "wait 30000 && echo DOTNET tests watch - starting test run && dotnet build ./flowmazonbackend/flowmazonapi.UnitTests/flowmazonapi.UnitTests.csproj && dotnet build ./flowmazonbackend/flowmazonapi.IntegrationTests/flowmazonapi.IntegrationTests.csproj && (concurrently --names \"UNIT,INTEGRATION\" --prefix-colors \"blue,green\" \"dotnet test ./flowmazonbackend/flowmazonapi.UnitTests/flowmazonapi.UnitTests.csproj --no-build\" \"dotnet test ./flowmazonbackend/flowmazonapi.IntegrationTests/flowmazonapi.IntegrationTests.csproj --no-build\") && echo DOTNET tests watch - test run finished || echo DOTNET tests watch - test run finished"
 
   },
   "author": "",
