@@ -1,6 +1,19 @@
 {
   "version": "2.0.0",
   "tasks": [
+    //needed by the compound FRONTEND/BACKEND VS Code launch config
+    {
+      "label": "build-backend",
+      "command": "dotnet",
+      "type": "process",
+      "args": [
+        "build",
+        "${workspaceFolder}/flowmazonbackend/flowmazonbackend.sln",
+        "/property:GenerateFullPaths=true",
+        "/consoleloggerparameters:NoSummary;ForceNoAlign"
+      ],
+      "problemMatcher": "$msCompile"
+    },
     //
     //IF YOU HAVE JUST ONE dotnet test PROJECT TO WATCH,
     //THEN the following would be enough. If not, use the
