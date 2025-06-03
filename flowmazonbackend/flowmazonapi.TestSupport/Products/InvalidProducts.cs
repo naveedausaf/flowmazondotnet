@@ -73,6 +73,21 @@ public class InvalidProducts : TheoryData<InvalidProduct>
             }
             });
 
+        Add(
+            new InvalidProduct
+            {
+
+                TestCaseName = "Price above max allowed",
+                NewProduct = ProductArgsFaker.Generate() with
+                {
+                    Price = 50001
+                },
+                ExpectedErrors = new Dictionary<string, string[]> { {
+                "Price", new[] { "'Price' must be less than or equal to '50000'." }
+                }
+            }
+            });
+
         Add(new InvalidProduct
         {
             TestCaseName = "Name is null",

@@ -56,7 +56,7 @@ public class ValidProducts : TheoryData<ValidProduct>
         }
 
         Add(CreateTestProduct("Price 0", 0));
-        Add(CreateTestProduct("Price very large", 100000000));
+        Add(CreateTestProduct("Price is maximum possible", 50000));
 
         TypicalValidProduct = CreateTestProduct("Valid product");
         Add(TypicalValidProduct);

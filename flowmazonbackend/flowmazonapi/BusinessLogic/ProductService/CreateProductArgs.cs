@@ -35,7 +35,7 @@ public record CreateProductArgs
     /// Price of the product. Must be greater than or equal to zero.
     /// </summary>
     //[Required]
-    public int? Price { get; set; }
+    public decimal? Price { get; set; }
 }
 
 public class CreateProductArgsValidator : AbstractValidator<CreateProductArgs>

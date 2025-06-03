@@ -45,15 +45,9 @@ public class FakerOfCreateProductArgs : Faker<CreateProductArgs>
         RuleFor(p => p.Name, f => f.Commerce.ProductName());
         RuleFor(p => p.Description, f => f.Lorem.Paragraph());
         RuleFor(p => p.ImageUrl, f => f.Image.PicsumUrl());
-        RuleFor(p => p.Price, f => f.Random.Int(0, 5000));//  .Finance.Amount(0, 5000));
+        RuleFor(p => p.Price, f => f.Finance.Amount(0, 5000));
 
     }
-
-
-
-
-
-
 
 
 }
