@@ -6,6 +6,7 @@ namespace flowmazonapi.BusinessLogic;
 public class FluentValidationValidationResult : IValidationResult
 {
     readonly FluentValidation.Results.ValidationResult _validationResult;
+
     public FluentValidationValidationResult(FluentValidation.Results.ValidationResult validationResult)
     {
         this._validationResult = validationResult;
