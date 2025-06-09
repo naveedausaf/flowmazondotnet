@@ -17,7 +17,6 @@ services:
         - action: rebuild
           path: ./flowmazonfrontend/src
 
-    #
     # Commented out the following
     # dependency as the healthcheck in
     # flowmazonbackend does not work
@@ -36,8 +35,19 @@ services:
     environment:
       ConnectionStrings__FlowmazonDB: ${ConnectionStrings__FlowmazonDB}
       ALLOWED_CORS_ORIGINS: ${ALLOWED_CORS_ORIGINS}
-
     restart: always
+    # Even though port 8080 on which Kestrel listens
+    # is `EXPOSE`d in the flowmazonapi's Dockerfile
+    # (this was part of the ASP.NET Core
+    # Dockerfile generaetd by VS Code, which I extended),
+    # The NExt.js app, once served by the Next.js app
+    # container (flowmazonfrontend sevice here) runs in
+    # a browser on the host machine and access this backend
+    # service from there.
+    # Hence we need to map port 8080 to a port on the
+    # host machine using `ports` key brlow.
+    # It also allows us to access it with Postman etc.
+    # during local dev testing.
     ports:
       - 5000:8080
     networks:

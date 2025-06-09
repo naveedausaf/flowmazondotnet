@@ -2,23 +2,32 @@ This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next
 
 ## Configuration
 
-Note:
+### Sources of Configuration Data
 
-- Configuration settings (key value pairs) during local development is provided in `.env.local` in app folder. These are probably set automatically as environmetn variables during startup using `next dev`
+**When you run the app locally using `npm run dev`,** configuration settings (key value pairs) during local development is provided in `.env.local` in app folder. These are probably automatically set as environment variables during startup when the app is started using `next dev` (which is what `npm run dev` is defined as).
 
-- Configuration in deployed settings (Vercel deployments eithout containers, Docker image deployments whether or not on Vercel) provide configuration settings as environment variables.
+**In all other settings, as far as I know,** configuartion key/value pairs should be set as environment variables even thoug hit is possible to provide them in an `.env` file.
 
-- `NEXT_PUBLIC_` configuration settings must be available/set at build time as their values are emitted into the client-side bundle.
-  This is why I set `NEXT_PUBLIC_BACKEND_URL` (See below) using an `ENV` drective in the Dockerfile so that it is already set and available as an environment variable when the image is being built - and before the app starts to be built (using `next build`) - rather than provide it as an environment variable to a running container created from the app's Docker image.
+For actual sources of configuration data in each environment of this app, see top-level README for the solution.
 
-### Required Configuration
+### Required Configuration Keys
 
 1. `NEXT_PUBLIC_BACKEND_URL` is the URL of the backend API, without a slash (`/`) at the end.
    Example: `http://localhost:5022`.
 
-### Optional Configuration
+### Optional Configuration Keys
 
-None that I know of.
+- No optional configuration keys are set.
+
+- In addition to configuartion keys, one bit of configuartion may be provided as a command line parameter to the next server: the parameter `-p` passed to `next dev` and `next run` that sets the port at which the next web server would listen. **Default for this is 3000**.
+
+### Note
+
+- `NEXT_PUBLIC_` configuration settings must be available/set at build time as their values are emitted into the client-side bundle and used by it when it runs in the browser.
+
+  This is why I set `NEXT_PUBLIC_BACKEND_URL` (See below) using an `ENV` drective in the Dockerfile so that it is already set and available as an environment variable when the image is being built - and before the app starts to be built (using `next build`) - rather than provide it as an environment variable to a running container created from the app's Docker image.
+
+  Since these values are accessed from the browser, if one of these is the url of an API, this API needs to be accessible from the browser. For local deployments the URL specified in `NEXT_PUBLIC_BACKEND_URL` needs to be accessible from the browser and not just internally in Docker Compose network. This is why I map port of the backend service in Docker Compose file to a port on host machine. For cloud deployment this means that the API whose URL is provided in `NEXT_PUBLIC_BACKEND_URL` is exposed to the internet (perhaps via an API Gateway such as Azure API Management).
 
 ## Getting Started
 
