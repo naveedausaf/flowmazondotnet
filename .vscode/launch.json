@@ -27,8 +27,8 @@
         //by the launch profiel from launchSettings.json in the
         //.net core project that would be picked
         //by default when theproject is launched using dotnet run
-        "ASPNETCORE_URLS": "http://localhost:3020",
-        "ALLOWED_CORS_ORIGINS": "http://localhost:3010"
+        "ASPNETCORE_URLS": "http://localhost:3022",
+        "ALLOWED_CORS_ORIGINS": "http://localhost:3020"
       },
       "sourceFileMap": {
         "/Views": "${workspaceFolder}/Views"
@@ -52,10 +52,10 @@
       //"command": "npm run dev",
       //
       "program": "${workspaceFolder}/flowmazonfrontend/node_modules/next/dist/bin/next",
-      "args": ["dev", "--port", "3010"],
+      "args": ["dev", "--port", "3020"],
       "console": "integratedTerminal",
       "env": {
-        "NEXT_PUBLIC_BACKEND_URL": "http://localhost:3020"
+        "NEXT_PUBLIC_BACKEND_URL": "http://localhost:3022"
       },
       "serverReadyAction": {
         "pattern": "- Local:.+(https?://.+)",
