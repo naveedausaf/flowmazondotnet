@@ -10,7 +10,9 @@ For environment-specific sources of configuration data, see [Environments](#envi
 
 ## Environments
 
-### Local Fullstack Debugging
+Following environments are set up to run app and/or tests.
+
+### Environment 1: Local Fullstack Debugging
 
 Use VS Code compund launch configuration **Frontend/Backend** to run in debug mode. Just select from launch configurations dropdown it in Debug sidebar window (Ctrl), then whenever you upress F5, the configuration will launch.
 
@@ -18,15 +20,39 @@ Bear in mind that to stop debugging with this compound configuration, you will n
 
 The compound launch configuration is defined in `compounds` key and the individual configurations it is composed of are defined in `configurations` key in `.vscode/launch.json`.
 
-The database this launch configuration (and quite possibly eevry VS Code launch configuartion) uses is `FlowmazonDB` running on a PostgreSQL database server running on the local machine.
+The database this launch configuration (and quite possibly every VS Code launch configuartion) uses is `FlowmazonDB` running on a PostgreSQL database server running on the local machine.
 
-**Configuration:** Values for required and some optional configuration keys that are provided, are given for each of the two apps in an `env` object in the respective launch configuration in `.vscode/launch.json`. **Note that `./flowmazonfrontend/.env.local` file**, in which configuration key/value pairs can be provided to the Next.js app for local runs, **is NOT used** when the app is run using this launch configuration.
+**Configuration:** Values for required and some optional configuration keys are specified as follows:
 
-### Running Next.js app on the terminal
+- In each of the two launch configurations - `.NET Core: debug in full stack` and `Next.js: debug in full stack` - that make up the compound launch configuration, there is an `env`object that provides values of some required and/or optional configuration keys for the corresponding app.
 
-You can run just the Next.js app on the terminal using `npm run dev`. For this to work though, the API app also needs to be running.
+- Value `ConnectionStrings__FlowmazonDB` key's value is taken from .NET User Secrets Manager which stores it in a file at path `%APPDATA%\Microsoft\UserSecrets\<user_secrets_id>\secrets.json` where `user_secrets_id` is given in property `<UserSecretsId>` in [flowmazonapi.csproj](./flowmazonbackend/flowmazonapi/flowmazonapi.csproj).
+  User Secrets Manager may also be used for storing other development time secrets in the future.
 
-**Configuration** key-value pairs for the Next.js app are taken from `./flowmazonfrontend/.env.local` file.
+- For ASP.NET Core app, some settings are being taken from `appSettings.json` and `appSettings.Development.json` (the latter applies, and overrides what is in `appSettings.json`, because the app is launched in `Development` environment by the launch configuration).
+  The settings configured in these config files are **currently all optional and not very important:** `AllowedHosts: "*"`- which means there is no host filtering at all, this is the default anyway - and Log Levels for some namespaces. **These were all part of scaffolded config files; I haven't changed these files at all**.
+
+### Environment 2: Manual Execution of a Playwright test
+
+You can run or debug one or more Playwright tests from Testing sidebar (where Playwright tests in the workspace are made available by the Playwright extension) or from UI Mode.
+
+**Configuration:** Both the tests and starting the app under test are fully configured in `flowmazonfrontend/playwright.config.ts`. Two bits are relevent:
+
+- `use.baseURL` sets the base URL for pages against which tests would be run (e.g. the baseURL in statement `await page.goto('/add-product');`).
+
+- Configuration of app-under-test, done via `webServer` element in the config file, is exactly the same as that for full-stack`Frontend/Backend` launch configuration above. In particular:
+
+  - The connection string is still taken from .NET User Secrets Manager.
+  - The same (unimportant in my view) settings for .NET Core API are in `appSettings.json` and `appSettings.Development.json`.
+  - All settings configured in the launch configurations that are part of `Frontend/Backend` compound configuration are also configured here, except that in order to set them as environment variables, I use `cross-env` NPM pacakge here but used `env` object in the launch configurations.
+
+  The reason is that `webServer` is set so that it starts the app (in non-debug mode) if not already running. So if it is already running - which it would be if you launched `Frontend/Backend` launch configuration above for full-stack debugging - then Playwright tests are run against the app under the same configuration as when Playwright has to start it itself. **See below for more details**.
+
+**Debugging app-under-test during test execution:** Debugging a test does NOT run the app under test in debug mode or attach to it, so any breakpoints in the app under test would NOT get hit. If you want to debug the app under test while running or debugging a test, the simplest solution that comes to mind would be to:
+
+1. Open up the workspace again in another instance of VS Code
+2. In this new instance of VS Code, launch the app using `Frontend/Backend` compound launch configuration described above
+3. Launch a test - run it or debug it - in the original instance of VS Code.
 
 ### Local Continuous Testing
 
@@ -44,25 +70,29 @@ Each such task in `tasks.json` also defines a `problemMatcher` which contains re
 
 Thus the tests suites quietly run in the background and something is brought to our attention only when there is an error (by the terminal header turning red). This is how a continuous testing mode should be.
 
-Continuous testing setup for each test suite is described in subsections below.
+Continuous testing environments - one for each test suite - are described in subsections below.
 
-#### Unit Tests: Storybook
+#### Environment 3: Unit Tests - Storybook
 
 - Task `Storybook watch` in `.vscode/tasks.json` runs on `folderOpen` and runs script `test-storybook:watch` in `flowmazonfrontend/package.json`. This is the watch script that runs forever and restarts a run of the Storybook tests suite whenever a change to code in Next.js app is detected.
 
 - Tests for component are located next to the component in a `.stories.tsx` file.
 
-#### Integration Tests 1 of 2: API tests of .NET Core minimal API
+- **Configuration:** Config values required by app-under-test (see [README for the Next.js app for its requried and optional config keys](./flowmazonfrontend/README.md)) are stored in `[`.env.development`](./flowmazonfrontend/.env.development) file in the Next.js app folder.
+The reason why I using a config file rather than provide config key-values as environment variables is because `NEXT*PUBLIC*`variables, that need to be available during Next.js app's build as they are emitted into the client-side browser bundle, wer not getting passed by`test-storybook`from environment variables to the NExt.js app build process (Storybook builds its own bundle for NExt.js and its build I aam quite sure is quite different from`next build`).
+
+#### Environment 4: Integration Tests 1 of 2 - API tests of .NET Core minimal API
 
 - Task `.NET tests watch` in `tasks.json` runs on `folderOpen` and runs script `test-dotnet:watch` in `package.json` in the root folder. This in turn continuously monitors the .NET projects in `flowmazonbackend` folder and, upon detecting a change, rebuild them, then launches unit test suite and integration tests suite in parallel.
   **TODO: Make test suite runs serially rather than in parallel**. I am getting nothing from parallel runs of unit and integration tests as either one of them saturate my available cores. Making the two test suites run serially would also eliminate this package.json script and everything can be done via `dotnet watch test`. Even though this can only watch a single project at a time, we can inlude files in other .NET projects in the `.csproj` of the project being watched using `<Watch>` elements.
 
-- The [integration test suite](./flowmazonbackend/flowmazonapi.IntegrationTests/) uses [TestContainers](https://testcontainers.com/guides/getting-started-with-testcontainers-for-dotnet/) to build a Docker container of the API app-under-test from its [Dockerfile](./flowmazonbackend/Dockerfile). This is run together with a new standard PostgreSQL container (provided by TestContainers) which in which the database is migrated just before the start of the test run.
+- The [integration test suite](./flowmazonbackend/flowmazonapi.IntegrationTests/) uses [TestContainers](https://testcontainers.com/guides/getting-started-with-testcontainers-for-dotnet/) to build a Docker container of the API app-under-test from its [Dockerfile](./flowmazonbackend/Dockerfile). This is run together with a new standard PostgreSQL container (provided by TestContainers) in which the database is migrated just before the start of the test run.
 
-- **Configuration:** Integration test suite configures the API app-under-test in TestContainers code.
-  See [flowmazonapi README](./flowmazonbackend//flowmazonapi/README.md) for a description of the API app's required and optional configuration keys.
+- **Configuration:** See [flowmazonapi README](./flowmazonbackend//flowmazonapi/README.md) for a description of the API app's required and optional configuration keys. Values for vairious keys (unless optional and default value is used) are sourced as follows:
+  - `ConnectionStrings__FlowmazonDB` is taken from .NET User Secrets Manager. See section [Environment 1: Local Fullstack Debugging](#environment-1) for details on this config source.
+  - `ALLOWED_CORS_ORIGINS` is set as an environment variable in the NPM script that is run by the task in `tasks.json` (to a dummy value, as it is a required key).
 
-#### Integration Tests 2 of 2: Playwright tests of Next.js app
+#### Environment 5: Integration Tests 2 of 2 - Playwright tests of Next.js app
 
 **This is the most complicated local environment**.
 
@@ -91,8 +121,6 @@ Continuous testing setup for each test suite is described in subsections below.
 - **Configuration for Playwright:** Playwright is run on the local machine, not inside a container. It is configured as follows:
   - Before Playwright is run, `LCT` environment variable is set to 1 by the bit of script (in [flowmazonfrontend/package.json](flowmazonfrontend/package.json)) that executes Playwright.
   - Playwright configuration is in [`flowmazonfrontend/playwright.config.ts`](flowmazonfrontend/playwright.config.ts). This takes `LCT` being set to `1` into account in setting things like the URL to test against.
-
-#### Manual Execution of a Playwright test
 
 ## Test data generation
 

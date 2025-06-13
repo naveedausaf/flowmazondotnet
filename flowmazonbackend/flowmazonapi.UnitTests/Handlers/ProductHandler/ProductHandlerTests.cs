@@ -28,7 +28,7 @@ using flowmazonapi.TestSupport.Products;
 namespace flowmazonapi.UnitTests.Handlers.ProductHandler;
 
 
-public class ProductHandlerTests(WebApplicationFactory<Program> appFactory) : IClassFixture<WebApplicationFactory<Program>>
+public class ProductHandlerTests(TestApplicationFactory appFactory) : IClassFixture<TestApplicationFactory>
 {
     private FakerOfCreateProductArgs ProductArgsFaker { get; } = new FakerOfCreateProductArgs();
 

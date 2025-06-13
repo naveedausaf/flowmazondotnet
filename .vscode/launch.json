@@ -27,7 +27,8 @@
         //by the launch profiel from launchSettings.json in the
         //.net core project that would be picked
         //by default when theproject is launched using dotnet run
-        "ASPNETCORE_URLS": "http://localhost:5022"
+        "ASPNETCORE_URLS": "http://localhost:3020",
+        "ALLOWED_CORS_ORIGINS": "http://localhost:3010"
       },
       "sourceFileMap": {
         "/Views": "${workspaceFolder}/Views"
@@ -43,7 +44,7 @@
       "request": "launch",
       "cwd": "${workspaceFolder}/flowmazonfrontend",
       //
-      //previously we had the following line instead of
+      //previously there was the following line instead of
       //"program" and "args" fields but this requried the use
       //of `"type": "node-terminal" which didn't allow
       //all configs to stop when the compound config was stopped
@@ -51,10 +52,10 @@
       //"command": "npm run dev",
       //
       "program": "${workspaceFolder}/flowmazonfrontend/node_modules/next/dist/bin/next",
-      "args": ["dev"],
+      "args": ["dev", "--port", "3010"],
       "console": "integratedTerminal",
       "env": {
-        "NEXT_PUBLIC_BACKEND_URL": "http://localhost:5022"
+        "NEXT_PUBLIC_BACKEND_URL": "http://localhost:3020"
       },
       "serverReadyAction": {
         "pattern": "- Local:.+(https?://.+)",

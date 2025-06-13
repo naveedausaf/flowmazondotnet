@@ -72,59 +72,45 @@ builder.Services.AddSwaggerGen(
     }
 );
 
-const string DevCORSPolicyName = "DevCORSPolicy";
-const string ProductionCORSPolicyName = "ProductionCORSPolicy";
 
-//value for this key should be a semicoolon (;) separated list of allowed origins. EAch should NOT end in a forward slash (/).
-const string CORSConfigKey = "ALLOWED_CORS_ORIGINS";
-if (builder.Environment.IsDevelopment())
+const string CORSPolicyName = "ProductionCORSPolicy";
+
+
+
+var corsOrigins = builder.Configuration.GetValue<string>(ConfigConsts.CORSConfigKey);
+
+if (string.IsNullOrWhiteSpace(corsOrigins))
 {
-
-    builder.Services.AddCors(options =>
-    {
-        options.AddPolicy(DevCORSPolicyName, policy => policy.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod());
-    });
-
+    //TODO: add test for this
+    //TODO: log this as Otel log
+    throw new InvalidOperationException($"{ConfigConsts.CORSConfigKey} configuration value is not set.");
 }
-else
+
+var origins = corsOrigins.Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+if (origins.Length == 0)
 {
-
-    var corsOrigins = builder.Configuration.GetValue<string>(CORSConfigKey);
-
-    if (string.IsNullOrWhiteSpace(corsOrigins))
-    {
-        //TODO: add test for this
-        //TODO: log this as Otel log
-        throw new InvalidOperationException("AllowedCORSOrigins configuration value is not set.");
-    }
-
-    var origins = corsOrigins.Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-    if (origins.Length == 0)
-    {
-        //TODO: add test for this
-        //TODO: log this as Otel log
-        throw new InvalidOperationException("AllowedCORSOrigins configuration value is empty.");
-    }
-    //TODO: OTel Log the origins
-
-
-    builder.Services.AddCors(options =>
-    {
-        options.AddPolicy(name: ProductionCORSPolicyName,
-            policy =>
-            {
-
-
-
-                //TODO: add test for this
-                //TODO: log this as Otel log
-
-                policy.WithOrigins(origins).AllowAnyHeader().AllowAnyMethod();
-
-
-            });
-    });
+    //TODO: add test for this
+    //TODO: log this as Otel log
+    throw new InvalidOperationException($"{ConfigConsts.CORSConfigKey} configuration value is empty.");
 }
+//TODO: OTel Log the origins
+
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy(name: CORSPolicyName,
+        policy =>
+        {
+
+            //TODO: add test for this
+            //TODO: log this as Otel log
+
+            policy.WithOrigins(origins).AllowAnyHeader().AllowAnyMethod();
+
+
+        });
+});
+
 
 const string DatabaseHealthCheckName = "DatabaseHealthCheck";
 const string ApplicationLifecycleHealthCheckName = "ApplicationLifecycleHealthCheck";
@@ -146,14 +132,7 @@ if (!app.Environment.IsDevelopment())
 
 app.UseRouting();
 
-if (app.Environment.IsDevelopment())
-{
-    app.UseCors(DevCORSPolicyName);
-}
-else
-{
-    app.UseCors(ProductionCORSPolicyName);
-}
+app.UseCors(CORSPolicyName);
 
 app.UseSwagger();
 app.UseSwaggerUI();
