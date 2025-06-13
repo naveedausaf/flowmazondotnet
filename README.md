@@ -71,6 +71,8 @@ You can run or debug one or more Playwright tests from Testing sidebar (where Pl
 
 **If you encounter a build issue when launching `Frontend/Backend` launch configuration,** it may be because the frontend and backend apps started by Playwright from `webServer.command` during a previous test run (without debugging code-under-test) is still running. To kill that process, **Reload Window** from Command Pallette.
 
+**NOTE:** I tried reating a separate config file as being able to select a different config file from Playwright panel in Testing sidebar would have been more ergonomic thatn deselecting projects and selecting the one to run tests against app running under `Frontend/Backend` launch configuration. However, Playwright still kept loading the original config file so I ditched the idea and created a project within the (sole) Playwright config file instead.
+
 ### Local Continuous Testing
 
 Each of the following test suites is run continuously in VS Code:
