@@ -36,23 +36,40 @@ The database this launch configuration (and quite possibly every VS Code launch 
 
 You can run or debug one or more Playwright tests from Testing sidebar (where Playwright tests in the workspace are made available by the Playwright extension) or from UI Mode.
 
-**Configuration:** Both the tests and starting the app under test are fully configured in `flowmazonfrontend/playwright.config.ts`. Two bits are relevent:
+**Configuration:** Both the tests and starting the app under test are fully configured in `flowmazonfrontend/playwright.config.ts`. **Three bits are relevent**:
 
 - `use.baseURL` sets the base URL for pages against which tests would be run (e.g. the baseURL in statement `await page.goto('/add-product');`).
 
-- Configuration of app-under-test, done via `webServer` element in the config file, is exactly the same as that for full-stack`Frontend/Backend` launch configuration above. In particular:
+- **To allow Playwright to start thetarting the app-under-test, NOT in debug mode (i.e. breakpoints would not be hit),** we set `webServer` element in the config file. Here, the apps (frontend and backend) that would start are configured as follows:
 
-  - The connection string is still taken from .NET User Secrets Manager.
-  - The same (unimportant in my view) settings for .NET Core API are in `appSettings.json` and `appSettings.Development.json`.
-  - All settings configured in the launch configurations that are part of `Frontend/Backend` compound configuration are also configured here, except that in order to set them as environment variables, I use `cross-env` NPM pacakge here but used `env` object in the launch configurations.
+  - The connection string is taken from .NET User Secrets Manager, as in the Local Fullstack Debuging environment above.
+  - `appSettings.json` and `appSettings.Development.json` are also used, as in the Local Fullstack Debuging environment above. These configuration settings are not very important at the moment.
+  - All settings configured in the launch configurations that are part of `Frontend/Backend` compound configuration are also configured for the `command` provided within `webServer` to start the Next.js app and the .NET Core API. However, unlike the `env` object used in launch configuration(s) `launch.json` to set the environment variables, I have had to use []`cross-env` NPM pacakge]() to set them in the `command`.
+  - All settings configured in the launch configurations that are part of `Frontend/Backend` compound configuration are also configured for the `command` provided within `webServer` to start the Next.js app and the .NET Core API. However, their values are different, essentially because the instances of frontend and backend apps are running at differnet ports compared to when they run under the `Frontend/Backend` launch configuration. Secondly, unlike the `env` object used in launch configuration(s) `launch.json` to set the environment variables, I have used [`cross-env` NPM pacakge](https://www.npmjs.com/package/cross-env) to set them in the `command`.
 
-  The reason is that `webServer` is set so that it starts the app (in non-debug mode) if not already running. So if it is already running - which it would be if you launched `Frontend/Backend` launch configuration above for full-stack debugging - then Playwright tests are run against the app under the same configuration as when Playwright has to start it itself. **See below for more details**.
+- There is a `project` named **test against Frontend/Backend launch config** that, as the name implies, runs Playwright tests against the full stack running in a separate instance of VS Code under `Frontend/Backend` launch configuration. All this project does is it specifies Chrome as the browser and sets `baseURL` to the URL (with correct port) of the Next.js app run under `Frontend/Backend` launch configuration (see that environment for details on how and where this URL is configured).
 
-**Debugging app-under-test during test execution:** Debugging a test does NOT run the app under test in debug mode or attach to it, so any breakpoints in the app under test would NOT get hit. If you want to debug the app under test while running or debugging a test, the simplest solution that comes to mind would be to:
+**Debugging code-under-test during test execution:** Debugging a test does NOT run the app under test in debug mode or attach to it, so any breakpoints in the app under test would NOT get hit. If you want to debug the code-under-test while running or debugging a test, you need to use the specially-defined `project` for this purpose (described under **Configuration** above). Proceed as follows:
 
-1. Open up the workspace again in another instance of VS Code
-2. In this new instance of VS Code, launch the app using `Frontend/Backend` compound launch configuration described above
-3. Launch a test - run it or debug it - in the original instance of VS Code.
+1. Open up the workspace again in another instance of VS Code by going to **File** menu then **Duplicate Workspace**:
+
+   ![alt text](image-3.png)
+
+2. In the other instance, go to **Debug sidebar** (Ctrl + D) then select `Frontend/Backend` launch configuration, then run it (F5) to launch the full stack (frontend and backend projects) in Debug mode:
+
+   ![alt text](image-2.png)
+
+   Set any breakpoints that you want to be hit.
+
+3. **Back in the original VS Code instance,** select project `test against Frontend/Backend launch config` in Playwright testing sidebar. Make sure to deselect any other projects:
+
+   ![alt text](image-1.png)
+
+4. Launch a test - run it or debug it - from the Testing sidebar. Any breakpoints would now be hit in the code-under-test in the other instance. Also, if you had launched the test in Debug mode, any breakpoints in the test code would also be hit in the original VS Code instance.
+
+   ![alt text](image-4.png)
+
+**If you encounter a build issue when launching `Frontend/Backend` launch configuration,** it may be because the frontend and backend apps started by Playwright from `webServer.command` during a previous test run (without debugging code-under-test) is still running. To kill that process, **Reload Window** from Command Pallette.
 
 ### Local Continuous Testing
 
@@ -60,7 +77,7 @@ Each of the following test suites is run continuously in VS Code:
 
 - Storybook unit tests for components in the Next.js app
 - Playwright integration tests (end-to-end tests) run against the Next.js app that is running toghether with the backend .NET Core API and a PostgreSQL test database
-- Intergation tests of the .NET Core API
+- Integration tests of the .NET Core API
 
 For each of these suites, a task in `tasks.json` starts on `folderOpen` which in turn runs a command - either an executable like `dotnet test` or a script defined in `package.json` that is run using `npm run <script name>` - in a separate terminal window that watches test and code-under-tests file and start the test suite execution whenever a change is detected.
 

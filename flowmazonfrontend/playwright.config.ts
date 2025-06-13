@@ -63,36 +63,8 @@ export default defineConfig({
       use: { ...devices['Desktop Safari'] },
     },
     {
-      //USE THIS PROJECT AS FOLLOWS:
-      //
-      //1. SELECT this project in Playwright section of
-      //Testing sidebar.
-      //Make sure other projects are deselcted.
-      //
-      //2. Launch this workspace in a separate instance of VS Code
-      //by going to "File" menu, then select "Duplicate Workspace".
-      //
-      //3. In the separate instance, got to "Run and Debug" sidebar,
-      // (Ctrl+D is the shortcut), then select a debug
-      //configuartion, e.g. the "Frontend/Backend" launch
-      //configuration for full-stack debugging, and press Run (F5).
-      //Set any breakpoints you want to be hit when Playwright tests
-      //are run.
-      //
-      //4. Now in the original instance of VS Code, Run or Debug
-      //a Playwright test from Testing sidebar. Your breakpoints
-      //in the app in the other instance of VS Code would be hit.
-      //
-      //IF YOU ENCOUNTER A BUILD ISSUE WHEN STARTING LAUNCH
-      //CONFIGURATION IN OTHER INSTANCE OF VS CODE,
-      //this could be because the webServer from
-      //Playwright configuration is hanging around in the original
-      // instance which locks .NET compile output.
-      //
-      //TO GET AROUND IT, CLOSE WEBSERVER BY RELOADING VS CODE,
-      //then restart the launch configuration in the second
-      //VS Code instance.
-      //
+      //USE THIS POJECT AS DESCRIBED IN README
+
       name: 'test against Frontend/Backend launch config',
       use: {
         baseURL: 'http://localhost:3020',
