@@ -65,12 +65,12 @@
       }
     },
 
-    //This is th config for launching storybook dev
-    //server in debug mode so breakpoints get hit
+    //This is the config for launching storybook
+    //in debug mode so breakpoints get hit
     {
+      "name": "Storybook Debug Firefox",
       "type": "firefox",
       "request": "launch",
-      "name": "Storybook Debug Firefox",
       "url": "http://localhost:6006",
       "webRoot": "${workspaceRoot}",
       "suggestPathMappingWizard": true,
