@@ -3,8 +3,6 @@
 FROM postgres:latest
 
 ARG MIGRATIONS_PATH
-ARG POSTGRES_USER
-
 
 # Copy migration scripts into the image
 COPY ${MIGRATIONS_PATH} /docker-entrypoint-initdb.d/migrations
