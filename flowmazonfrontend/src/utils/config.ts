@@ -7,6 +7,6 @@ if (!baseUrl) {
 export const config = {
   serviceUrls: {
     base: baseUrl,
-    product: `${baseUrl}/product`,
+    product: `${baseUrl ?? ''}/product`,
   },
 };
