@@ -20,8 +20,9 @@
 
 2.  **Create env file for Docker Compose:**
 
-    - Duplicate `dockercompose.env.template` as a file named `dockercompose.env` (in the same folder, i.e. in solution root).
-    - Pick a strong password and replace every occurrence of `<db password>` in the new file this password.
+    - Duplicate `compose.env.template` as a file named `compose.env` (in the same folder, i.e. in solution root).
+    - Pick a strong password and replace `<postgres user password>` in the new file with it.
+    - Pick a strong password and replace **every occurrence** of `<app user password>` in the new file with it.
 
 ## Architecture
 
@@ -128,7 +129,7 @@ Continuous testing environments - one for each test suite - are described in sub
 
   **Dockerfiles used to create images for the Next.js app and .NET Core API are exactly the same as would be used in Production: I do NOT customised images defined by these Dockerfiles in any way in local continuous testing**. Reasons for this are given here(???provide link to post).
 
-- **Configuration for services in Docker Compose file:** Configuration key/value pairs for both apps and for the database container are in [`dockercompose.env` file](./dockercompose.env) in the root. Key/Value pairs in it are loaded by Docker Compose when it runs `compose.yaml`. These are passed as environment variables to running containers using `environment` object in the service object defined in `compose.yaml` for each container. The file itself is specified as the env file to load by passing command line parameter value `--env-file dockercompose.env` to `docker compose up` in pacakge.json script that runs it. The file itself should have been created by the developer from the provided template when they cloned the repo, as described in [After Cloning the Repo](#after-cloning-the-repo) section above. and it is not stored in the repo.
+- **Configuration for services in Docker Compose file:** Configuration key/value pairs for both apps and for the database container are in `compose.env` file in the root. Key/Value pairs in it are loaded by Docker Compose when it runs `compose.yaml`. These are passed as environment variables to running containers using `environment` object in the service object defined in `compose.yaml` for each container. The file itself is specified as the env file to load by passing command line parameter value `--env-file compose.env` to `docker compose up` in package.json script that runs it. The file itself should have been created by the developer from the provided template when they cloned the repo, as described in [After Cloning the Repo](#after-cloning-the-repo) section above, and it is not stored in the repo.
 
   `NEXT_PUBLIC_BACKEND_URL` variable is loaded from the `.env` file by Docker Cmopose but provided slightly differently to the Next.js app's `service`: for [reasons described in API's README](./flowmazonbackend/flowmazonapi/README.md#Configuration), it is provided as a build `ARG` to .NET Core API app's Dockerfile instead of being as an environment variable to the running container. Also note that this is a URL that uses the API container's host-mapped port (mapped in Docker Compose) rather than the Kestrel's internal port that is accessible within the Docker network in which all the containers started by Docker compose run.
 
@@ -136,17 +137,19 @@ Continuous testing environments - one for each test suite - are described in sub
 
   - Playwright configuration is in [`flowmazonfrontend/playwright.config.ts`](flowmazonfrontend/playwright.config.ts). The only relevant bits of configuration are that `baseURL` is set to the Next.js app URL exposed by Docker Compose setup and, since the app could always be running when Playwright tests are launched, `webServer` is set to `undefined` (i.e. should not be started by Playwright before running tests).
 
-- **Notes about `dockercompose.env`:**
+- **Notes about `compose.env`:**
 
-  1. The default name for fiel that Docker Compose loads environment variables/config data from is `.env`. This is also the default name for config file used by many other tools including Next.js. To prevent accidental loading of this file by some other library or tool, I have named it `dockercompose.env` instead. In scripts in which `docker compose up` command is used, I specify this as the env file using parameter `--env-file dockercompose.env`.
+  1. The default name for file that Docker Compose loads environment variables/config data from is `.env`. This is also the default name for config file used by many other tools including Next.js. To prevent accidental loading of this file by some other library or tool, I have named it `compose.env` instead. In scripts in which `docker compose up` command is used, I specify this as the env file using parameter `--env-file compose.env`.
 
   2. There are [several ways](https://docs.docker.com/compose/how-tos/environment-variables/set-environment-variables/) to store/load configuration data when using Docker Compose. **In order to keep connection string to the database and other development-time secrets out of the repo,** I had several options, including using a main `.env` file and another, say `dockersecrets.env` file stored in the same folder where .NET User Secret Manager stores the user secrets file for flowmazonapi. The solution I have gone for seems to me to be the simplest:
 
-     - store secrets like connection string to the PGSQL container in the same `dockercompose.env` file in solution root in which non-secret config key/value pairs are stored.
+     - store secrets like connection string to the PGSQL container in the same `compose.env` file in solution root in which non-secret config key/value pairs are stored.
      - Keep this file, and any other `.env` files, out of the repo by adding `.env` to `.gitignore`
-     - Provide `dockercompose.env.template` with all non-secret values pre-filled and comments to indicate which secrets' value should be provided by the developer. Use of this file is also documented here in this README.
+     - Provide `compose.env.template` with all non-secret values pre-filled and comments to indicate which secrets' value should be provided by the developer. Use of this file is also documented here in this README.
 
   3. Docker Compose recommends that secrets be provided to contianers [in a specific way, using `secrets` section in Docker compose file](https://docs.docker.com/compose/how-tos/use-secrets/). However, I am only using Docker Compose locally and therefore have not done so.
+
+- **To connect to the database container** e.g. to troubleshoot a failed test, use username `postgres` and the password you set as value of `POSTGRES_DB` key in `compose.env`. Hostname would be `localhost:<mapped local port for flowmazondb service in compose.yaml>`.
 
 ### Environment 5: Manual Execution of a Playwright test
 
