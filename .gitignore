@@ -26,8 +26,12 @@ yarn-debug.log*
 yarn-error.log*
 
 # local env files to be ignored
+# First Next.js's local env file
 .env*.local
-
+# Then any other .env file
+# At the moment, this is to exclude
+# dockercompose.env from the repo
+*.env
 
 # vercel
 .vercel
