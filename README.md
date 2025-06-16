@@ -26,6 +26,8 @@
 
 ## Architecture
 
+UML Component diagram with description???
+
 ## Configuration
 
 For details of configuration key/value pairs that need to be provided to each service, and how these may be provided - e.g. using config files in local development but environment variables at build and/or run of deployment or containers - see the READMEs of respective services ([frontend app](./flowmazonfrontend/README.md) and [backend api](./flowmazonbackend/flowmazonapi/README.md)).
@@ -38,23 +40,27 @@ Following environments are set up to run app and/or tests.
 
 ### Environment 1: Local Fullstack Debugging
 
-Use VS Code compund launch configuration **Frontend/Backend** to run in debug mode. Just select from launch configurations dropdown it in Debug sidebar window (Ctrl), then whenever you upress F5, the configuration will launch.
+Use VS Code compound launch configuration **Frontend/Backend** to run the whole stack in debug mode. Just select from launch configurations dropdown it in Debug sidebar window (Ctrl + D), then whenever you upress F5, the configuration will launch.
 
 Bear in mind that to stop debugging with this compound configuration, you will need to press Shift+F5 twice and not once.
 
-The compound launch configuration is defined in `compounds` key and the individual configurations it is composed of are defined in `configurations` key in `.vscode/launch.json`.
+The compound launch configuration is defined in `compounds` key in `.vscode/launch.json` whereas the individual configurations that comprise it are defined in `configurations` key the same file.
 
-The database this launch configuration (and quite possibly every VS Code launch configuartion) uses is `FlowmazonDB` running on a PostgreSQL database server running on the local machine.
+The database this launch configuration uses is `FlowmazonDB` on a PostgreSQL database server running on the local machine.
 
 **Configuration:** Values for required and some optional configuration keys are specified as follows:
 
 - In each of the two launch configurations - `.NET Core: debug in full stack` and `Next.js: debug in full stack` - that make up the compound launch configuration, there is an `env`object that provides values of some required and/or optional configuration keys for the corresponding app.
 
-- Value `ConnectionStrings__FlowmazonDB` key's value is taken from .NET User Secrets Manager which stores it in a file at path `%APPDATA%\Microsoft\UserSecrets\<user_secrets_id>\secrets.json` where `user_secrets_id` is given in property `<UserSecretsId>` in [flowmazonapi.csproj](./flowmazonbackend/flowmazonapi/flowmazonapi.csproj).
+- Value `ConnectionStrings__FlowmazonDB` key's value is taken from .NET User Secrets Manager which stores it in a file at path `%APPDATA%\Microsoft\UserSecrets\<user_secrets_id>\secrets.json` where `user_secrets_id` is given in property `<UserSecretsId>` in [flowmazonapi.csproj](./flowmazonbackend/flowmazonapi/flowmazonapi.csproj) file.
+
   User Secrets Manager may also be used for storing other development time secrets in the future.
 
-- For ASP.NET Core app, some settings are being taken from `appSettings.json` and `appSettings.Development.json` (the latter applies, and overrides what is in `appSettings.json`, because the app is launched in `Development` environment by the launch configuration).
-  The settings configured in these config files are **currently all optional and not very important:** `AllowedHosts: "*"`- which means there is no host filtering at all, this is the default anyway - and Log Levels for some namespaces. **These were all part of scaffolded config files; I haven't changed these files at all**.
+- For ASP.NET Core app, some settings are being taken from `appSettings.json` and `appSettings.Development.json` (the latter applies, and overrides what is in `appSettings.json`, because the app is launched in `Development` environment by the launch configuration). All such settings **currently optional and not very important:** `AllowedHosts: "\*"`- which means there is no host filtering at all, this is the default anyway - and Log Levels for some namespaces. **These were all part of scaffolded config files; I haven't changed these files at all**.
+
+  `appSettings.Development.json` does declare a required config key for flowmazonapi: `ALLOWED_CORS_ORIGINS`. However, value for this is provided to flowmazonapi in this envrionment in the launch configuration's `env` block in `.vscode/lainch.json`. As that is a higher-priority config source (environment variable), it overrides the value for the key provided by the config file.
+
+  However, the config file decalres a dummy value for `ALLOWED_CORS_ORIGINS` so that if we were to launch the API project on its own - this happens implicitly when we run a `dotnet ef migrations` commands but may be done manually to test the API in Postman for example - then a value for this required key qould be available to the running project even though it wouldn't be used.
 
 ### Local Continuous Testing
 
