@@ -33,6 +33,14 @@ yarn-error.log*
 # dockercompose.env from the repo
 *.env
 
+# I don't want direnv's env variable
+# files to get checked in.
+# direenv and these fiels are just a 
+# convenience I use on my machine that 
+# makes it much easier to set environment 
+# variables when working on the command line.
+.envrc
+
 # vercel
 .vercel
 

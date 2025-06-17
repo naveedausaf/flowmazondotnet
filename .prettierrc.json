@@ -1,0 +1,4 @@
+{
+  "plugins": ["prettier-plugin-terraform-formatter"],
+  "terraformStrictError": false
+}
