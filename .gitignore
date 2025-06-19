@@ -41,6 +41,11 @@ yarn-error.log*
 # variables when working on the command line.
 .envrc
 
+# this is terraform's working folfer
+# and, similar to ndoe_modules, alsl contains
+# downloaded provider packages.
+.terraform
+
 # vercel
 .vercel
 

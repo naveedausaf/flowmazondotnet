@@ -1,6 +1,14 @@
 ## Overview
 
-## After Cloning the Repo
+## Architecture
+
+UML Component diagram with description???
+
+### API Gateway: CloudFlare API Shield
+
+See my [dev.to post]() for a justification as to why I use this and not Azure API Management or other Azure products.
+
+## Setup (fter Cloning the Repo)
 
 1.  **Set up local PostgreSQL database:** This is used for local development and debugging whereas local continuous testing setup which uses Docker Compose creates its own, new database container separate from this every time `docker compose up` is run. Ensure that the local database is set up as follows:
 
@@ -23,10 +31,6 @@
     - Duplicate `compose.env.template` as a file named `compose.env` (in the same folder, i.e. in solution root).
     - Pick a strong password and replace `<postgres user password>` in the new file with it.
     - Pick a strong password and replace **every occurrence** of `<app user password>` in the new file with it.
-
-## Architecture
-
-UML Component diagram with description???
 
 ## Configuration
 
