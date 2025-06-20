@@ -9,7 +9,7 @@ terraform {
 
     neon = {
       source  = "kislerdm/neon"
-      version = "0.6.1" # Pinned for repeatability
+      version = "0.9.0" # Pinned for repeatability
     }
     # adding this provider as neon provider
     # only provisions a user in neon_superuser
