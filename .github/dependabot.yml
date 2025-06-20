@@ -48,7 +48,7 @@ updates:
   - package-ecosystem: "nuget"
     # Look for a `Dockerfile` in the `root` directory
     directories: 
-      - "/flowmazonbackend/*"
+      - "/flowmazonbackend"
     # Check for updates once a week
     schedule:
       interval: "weekly"
