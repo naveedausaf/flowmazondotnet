@@ -38,14 +38,14 @@ updates:
     schedule:
       interval: "weekly"
 
-   - package-ecosystem: "docker-compose"
+  - package-ecosystem: "docker-compose"
     # Look for a `Dockerfile` in the `root` directory
     directory: "/"
     # Check for updates once a week
     schedule:
       interval: "weekly"
 
-   - package-ecosystem: "dotnet=sdk"
+  - package-ecosystem: "dotnet-sdk"
     # Look for a `Dockerfile` in the `root` directory
     directories: 
       - "/flowmazonbackend/*"
