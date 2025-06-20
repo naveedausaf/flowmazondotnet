@@ -45,7 +45,7 @@ updates:
     schedule:
       interval: "weekly"
 
-  - package-ecosystem: "dotnet-sdk"
+  - package-ecosystem: "nuget"
     # Look for a `Dockerfile` in the `root` directory
     directories: 
       - "/flowmazonbackend/*"
