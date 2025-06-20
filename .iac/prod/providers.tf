@@ -4,7 +4,7 @@ terraform {
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = "3.0.0" # Pinned to an exact version for repeatabilityneeded
+      version = "4.34.0" # Pinned to an exact version for repeatabilityneeded
     }
 
     neon = {
