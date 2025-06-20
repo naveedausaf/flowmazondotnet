@@ -8,6 +8,10 @@ UML Component diagram with description???
 
 See my [dev.to post]() for a justification as to why I use this and not Azure API Management or other Azure products.
 
+### Azure Key Vault
+
+Following [Best Practices](https://learn.microsoft.com/en-us/azure/key-vault/general/best-practices) for use of Key Vault from Microsoft.
+
 ## Setup (fter Cloning the Repo)
 
 1.  **Set up local PostgreSQL database:** This is used for local development and debugging whereas local continuous testing setup which uses Docker Compose creates its own, new database container separate from this every time `docker compose up` is run. Ensure that the local database is set up as follows:
@@ -38,7 +42,7 @@ For details of configuration key/value pairs that need to be provided to each se
 
 For environment-specific sources of configuration data, see [Environments](#environments) section below.
 
-## Environments
+## Local Environments
 
 Following environments are set up to run app and/or tests.
 
@@ -197,7 +201,22 @@ You can run or debug one or more Playwright tests from Testing sidebar (where Pl
 
 **NOTE:** I tried reating a separate config file as being able to select a different config file from Playwright panel in Testing sidebar would have been more ergonomic thatn deselecting projects and selecting the one to run tests against app running under `Frontend/Backend` launch configuration. However, Playwright still kept loading the original config file so I ditched the idea and created a project within the (sole) Playwright config file instead.
 
-## Test data generation
+## Remote Environments
+
+### Production
+
+## Quality Checks
+
+- Linting:
+
+  - Roslyn Analyzers in C#
+  - ESLint and Prettier setup mosly as per [my FreeCodeCamp article](https://www.freecodecamp.org/news/how-to-set-up-eslint-prettier-stylelint-and-lint-staged-in-nextjs/).
+
+- SonarQube provides static code analysis for code quality and security.
+
+- LinearB for pipeline quality (DORA metrics etc.)
+
+## Test Data Generation
 
 I moved to [Bogus](https://github.com/bchavez/Bogus) from [AutoFixture](https://github.com/AutoFixture/AutoFixture) because:
 
