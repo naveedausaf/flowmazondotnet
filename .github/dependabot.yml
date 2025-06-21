@@ -11,44 +11,55 @@ updates:
       - "/flowmazonfrontend"
     schedule:
       interval: "weekly"
-   # Enable version updates for Docker
+  
   - package-ecosystem: "docker"
-    # Look for a `Dockerfile` in the `root` directory
     directories:
       - "/flowmazonfrontend"
       - "/flowmazonbackend"
-    # Check for updates once a week
     schedule:
       interval: "weekly"
 
-  # Enable version updates for GitHub Actions
   - package-ecosystem: "github-actions"
-    # Workflow files stored in the default location of `.github/workflows`
-    # You don't need to specify `/.github/workflows` for `directory`. You can use `directory: "/"`.
     directory: "/"
     schedule:
       interval: "weekly"
 
-  # Enable version updates for terraform
   - package-ecosystem: "terraform"
-    # Workflow files stored in the default location of `.github/workflows`
-    # You don't need to specify `/.github/workflows` for `directory`. You can use `directory: "/"`.
     directories: 
       - "/.iac/*"
     schedule:
       interval: "weekly"
 
   - package-ecosystem: "docker-compose"
-    # Look for a `Dockerfile` in the `root` directory
     directory: "/"
-    # Check for updates once a week
     schedule:
       interval: "weekly"
 
+    # This includes all the csproj files
+    # in folders within the specified folder
   - package-ecosystem: "nuget"
-    # Look for a `Dockerfile` in the `root` directory
     directories: 
       - "/flowmazonbackend"
-    # Check for updates once a week
     schedule:
       interval: "weekly"
+
+  # For pipeline repeatability, I am 
+  # using a global.json in /flowmazonbackend
+  # which is a C# solution, to pint the version
+  # of .NET SDK - from which .NET CLI commands
+  # will be used when building the solution
+  # for unit and integration tests (for actual
+  # API project, the build is dockerized)
+  # 
+  # The update object given below would then
+  # let Dependabot update it as and when needed
+  - package-ecosystem: "dotnet-sdk"
+    directories: 
+      - "/flowmazonbackend"
+    schedule:
+      interval: "weekly"
+      # setting day to "wednesday" as new
+      # version of .NET SDK are released on 
+      # Tuesdays, as per this article:
+      # https://devblogs.microsoft.com/dotnet/using-dependabot-to-manage-dotnet-sdk-updates/
+      day: "wednesday"
