@@ -19,14 +19,12 @@
     "test-playwright:watch": "concurrently --names \"REPORT,COMPOSE,TEST\" --prefix-colors \"blue,green,magenta\" \"http-server playwright-report -s --port 6007\" \"docker compose -f ../compose.yaml --env-file ../compose.env up --watch\" \"onchange -i -k  src/**/* e2etests/**/* ../flowmazonbackend/flowmazonapi/**/*.cs ../flowmazonbackend/flowmazonapi/**/*.csproj -- npm run test-playwright:test\""
   },
   "dependencies": {
-    "@auth/prisma-adapter": "^1.6.0",
     "@guidepup/guidepup": "^0.24.0",
     "@prisma/client": "^5.12.1",
     "@tailwindcss/typography": "^0.5.16",
     "clsx": "^2.1.1",
     "formik": "^2.4.5",
     "next": "^15.3.0",
-    "next-auth": "^4.24.11",
     "prisma": "^5.12.1",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
