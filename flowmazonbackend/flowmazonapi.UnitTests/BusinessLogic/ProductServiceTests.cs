@@ -137,7 +137,7 @@ public class ProductServiceTests : IAsyncLifetime
             .Options;
 
         SUTContext = new FlowmazonDbContext(sutContextOptions);
-        await SUTContext.Database.MigrateAsync();
+        await SUTContext.Database.EnsureCreatedAsync();
 
         ServiceUnderTest = new ProductService(new ProductValidator(), new CreateProductArgsValidator(), SUTContext);
     }
