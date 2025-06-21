@@ -11,6 +11,10 @@ updates:
       - "/flowmazonfrontend"
     schedule:
       interval: "weekly"
+    groups:
+      all: 
+        patterns:
+          - "*"
   
   - package-ecosystem: "docker"
     directories:
@@ -63,3 +67,7 @@ updates:
       # Tuesdays, as per this article:
       # https://devblogs.microsoft.com/dotnet/using-dependabot-to-manage-dotnet-sdk-updates/
       day: "wednesday"
+    
+
+        
+      
