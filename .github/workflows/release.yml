@@ -17,7 +17,7 @@ jobs:
       released: ${{ env.RELEASED }}
       newVersion: ${{ env.NEW_VERSION }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         name: Checkout code
         id: checkout
         with:
@@ -90,7 +90,7 @@ jobs:
     needs: create-release
     if: ${{ needs.create-release.outputs.released == 1}}
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - name: Print version to console
         run: |
           echo "New Version Number is: ${{ needs.create-release.outputs.newVersion }}"
