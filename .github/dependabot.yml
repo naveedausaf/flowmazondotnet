@@ -22,22 +22,38 @@ updates:
       - "/flowmazonbackend"
     schedule:
       interval: "weekly"
+    groups:
+      all: 
+        patterns:
+          - "*"
 
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
       interval: "weekly"
+    groups:
+      all: 
+        patterns:
+          - "*"
 
   - package-ecosystem: "terraform"
     directories: 
       - "/.iac/*"
     schedule:
       interval: "weekly"
+    groups:
+      all: 
+        patterns:
+          - "*"
 
   - package-ecosystem: "docker-compose"
     directory: "/"
     schedule:
       interval: "weekly"
+    groups:
+      all: 
+        patterns:
+          - "*"
 
     # This includes all the csproj files
     # in folders within the specified folder
@@ -46,6 +62,10 @@ updates:
       - "/flowmazonbackend"
     schedule:
       interval: "weekly"
+    groups:
+      all: 
+        patterns:
+          - "*"
 
   # For pipeline repeatability, I am 
   # using a global.json in /flowmazonbackend
@@ -67,6 +87,10 @@ updates:
       # Tuesdays, as per this article:
       # https://devblogs.microsoft.com/dotnet/using-dependabot-to-manage-dotnet-sdk-updates/
       day: "wednesday"
+    groups:
+      all: 
+        patterns:
+          - "*"
     
 
         
