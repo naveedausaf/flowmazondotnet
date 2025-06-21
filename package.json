@@ -3,6 +3,7 @@
   "version": "0.0.0-managed.by.semantic.release",
   "description": "Monorepo containing a Dotnet API and a Next.js frontend",
   "main": "index.js",
+  
   "scripts": {
     "prepare": "husky",
     "release": "semantic-release",

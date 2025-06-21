@@ -30,9 +30,9 @@ const meta: Meta<typeof AddProductPage> = {
   parameters: {
     // 👇 Set default viewport for all component stories
     viewport: { defaultViewport: 'xl' },
-    chromatic: {
-      modes: { ...allModes },
-    },
+    // chromatic: {
+    //   modes: { ...allModes },
+    // },
   },
 };
 
