@@ -85,8 +85,6 @@
     "wait-on": "^8.0.3"
   },
   "overrides": {
-    "@types/react": "19.1.2",
-    "@types/react-dom": "19.1.2",
     "storybook": "$storybook"
   },
   "msw": {
