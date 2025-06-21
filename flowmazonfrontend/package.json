@@ -39,7 +39,7 @@
     "@guidepup/virtual-screen-reader": "^0.32.0",
     "@playwright/test": "^1.53.1",
     "@storybook/addon-a11y": "9.0.11",
-    "@storybook/addon-coverage": "^1.0.5",
+    "@storybook/addon-coverage": "^2.0.0",
     "@storybook/addon-docs": "9.0.11",
     "@storybook/addon-links": "9.0.11",
     "@storybook/addon-onboarding": "9.0.11",
