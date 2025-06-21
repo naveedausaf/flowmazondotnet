@@ -1,5 +1,5 @@
 import createAlertDialogPOM from '@/components/alertdialog/AlertDialog.pom';
-import { within } from '@storybook/test';
+import { within } from 'storybook/test';
 
 import { serverErrorTitle, serverErrorMessage } from '@/pages/add-product';
 import { ByRoleOptionsForPOM } from '@/utils/types';

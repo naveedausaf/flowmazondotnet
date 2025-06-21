@@ -1,4 +1,4 @@
-import { within } from '@storybook/test';
+import { within } from 'storybook/test';
 import { ByRoleOptions } from '@testing-library/dom';
 
 /**

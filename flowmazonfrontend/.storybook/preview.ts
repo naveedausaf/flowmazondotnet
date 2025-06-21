@@ -1,6 +1,6 @@
-import type { Preview } from '@storybook/react';
+import type { Preview } from '@storybook/nextjs';
 import '../src/styles/globals.css';
-import { INITIAL_VIEWPORTS } from '@storybook/addon-viewport';
+import { INITIAL_VIEWPORTS } from 'storybook/viewport';
 import { initialize, mswLoader } from 'msw-storybook-addon';
 
 /*
@@ -13,12 +13,14 @@ initialize();
 const preview: Preview = {
   parameters: {
     layout: 'fullscreen',
+
     controls: {
       matchers: {
         color: /(background|color)$/i,
         date: /Date$/i,
       },
     },
+
     viewport: {
       viewports: {
         sm: {
@@ -69,6 +71,10 @@ const preview: Preview = {
         },
       },
     },
+
+    docs: {
+      codePanel: true
+    }
   },
 
   tags: ['autodocs'],

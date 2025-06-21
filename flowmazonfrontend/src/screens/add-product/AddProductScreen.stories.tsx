@@ -1,8 +1,8 @@
-import type { Meta, StoryObj } from '@storybook/react';
+import type { Meta, StoryObj } from '@storybook/nextjs';
 
 import AddProductScreen from './AddProductScreen';
-import { fn } from '@storybook/test';
-import { allModes } from '../../../.storybook/modes.js';
+import { fn } from 'storybook/test';
+//import { allModes } from '../../../.storybook/modes.js';
 
 import { ErrorCase, ErrorCases } from '@/pageStories/add-product/testdata';
 

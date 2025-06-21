@@ -15,7 +15,7 @@ RUN npm ci
 COPY src ./src
 COPY public ./public
 COPY .storybook ./.storybook
-COPY tsconfig.json postcss.config.js .prettierrc.json .prettierignore .eslintrc.js .eslintignore ./
+COPY tsconfig.json postcss.config.mjs .prettierrc.json .prettierignore eslint.config.js ./
 COPY nextDockerCompose.config.mjs ./next.config.js
 
 

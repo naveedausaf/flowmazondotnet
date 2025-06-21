@@ -1,6 +1,6 @@
 import { ByRoleOptionsForPOM, WithinHTMLElement } from '@/utils/types';
 
-import { expect, screen } from '@storybook/test';
+import { expect, screen } from 'storybook/test';
 //import exp from 'constants';
 
 export default function createSubmitButtonPOM(

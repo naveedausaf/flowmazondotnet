@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import type { Meta, StoryObj } from '@storybook/react';
-import { fn, waitFor } from '@storybook/test';
+import type { Meta, StoryObj } from '@storybook/nextjs';
+import { fn, waitFor } from 'storybook/test';
 import { TestCase } from './testdata';
-import { within, expect, userEvent } from '@storybook/test';
+import { within, expect, userEvent } from 'storybook/test';
 import AlertDialog from './AlertDialog';
 import { useEffect, useId, useState } from 'react';
 import { resolve } from 'node:path';
@@ -204,6 +204,7 @@ export const AlertDialogIsAccessible: Story = {
 
     //now verify various accessibility features of the dialog
     await expect(dialog.ariaModal).toEqual('true');
+
     await waitFor(() =>
       expect(
         within(dialog).getByRole('button', { name: 'Close' }),
@@ -218,17 +219,21 @@ export const AlertDialogIsAccessible: Story = {
     //1. FIRST, we tab forward
     await userEvent.tab();
     //the Close button should still have focus
-    await expect(
-      within(dialog).getByRole('button', { name: 'Close' }),
-    ).toHaveFocus();
+    await waitFor(() =>
+      expect(
+        within(dialog).getByRole('button', { name: 'Close' }),
+      ).toHaveFocus(),
+    );
 
     //2. THEN, we tab backward
     await userEvent.tab({ shift: true });
 
     //the close button should still have focus
-    await expect(
-      within(dialog).queryByRole('button', { name: 'Close' }),
-    ).toHaveFocus();
+    await waitFor(() =>
+      expect(
+        within(dialog).queryByRole('button', { name: 'Close' }),
+      ).toHaveFocus(),
+    );
 
     //we should still be able to close the dialog
     //by pressing Enter though there is a separate
@@ -245,7 +250,9 @@ export const AlertDialogIsAccessible: Story = {
     //it was at the time the dialog was shown. This
     //is an accessibility requriement for alertdialog and/or
     //dialog role. Also important for usability.
-    await expect(canvas.getByLabelText(productPriceLabel)).toHaveFocus();
+    await waitFor(() =>
+      expect(canvas.getByLabelText(productPriceLabel)).toHaveFocus(),
+    );
     //and, for usability (this is over and above the
     //dialog role requirment that the field be focused
     //when dialog is closed):
