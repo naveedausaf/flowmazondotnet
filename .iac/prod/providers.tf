@@ -4,12 +4,12 @@ terraform {
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = "3.0.0" # Pinned to an exact version for repeatabilityneeded
+      version = "4.34.0" # Pinned to an exact version for repeatabilityneeded
     }
 
     neon = {
       source  = "kislerdm/neon"
-      version = "0.6.1" # Pinned for repeatability
+      version = "0.9.0" # Pinned for repeatability
     }
     # adding this provider as neon provider
     # only provisions a user in neon_superuser
