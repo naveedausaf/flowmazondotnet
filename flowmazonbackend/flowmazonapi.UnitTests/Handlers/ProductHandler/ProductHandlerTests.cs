@@ -1,27 +1,7 @@
-using System.Collections;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data.Common;
-using System.Net;
-using System.Reflection;
-using System.Runtime.CompilerServices;
-using System.Text.Json.Serialization;
-using flowmazonapi.Domain;
 using flowmazonapi.BusinessLogic;
 using flowmazonapi.BusinessLogic.ProductService;
-using Microsoft.AspNetCore.Authorization.Infrastructure;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Diagnostics;
-using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
-using Microsoft.EntityFrameworkCore;
 using Moq;
-using Npgsql.Internal;
-using NuGet.Frameworks;
-using Xunit.Abstractions;
-using flowmazonapi.UnitTests;
-using Microsoft.Extensions.ObjectPool;
-using flowmazonapi.UnitTests.BusinessLogic;
 using flowmazonapi.TestSupport;
 using flowmazonapi.TestSupport.Products;
 
