@@ -6,73 +6,43 @@
 version: 2
 updates:
   - package-ecosystem: "npm"
-    rebase-strategy: "disabled"
     directories: 
       - "/"
       - "/flowmazonfrontend"
     schedule:
       interval: "weekly"
-    groups:
-      all: 
-        patterns:
-          - "*"
   
   - package-ecosystem: "docker"
-    rebase-strategy: "disabled"
     directories:
       - "/flowmazonfrontend"
       - "/flowmazonbackend"
     schedule:
       interval: "weekly"
-    groups:
-      all: 
-        patterns:
-          - "*"
-
+    
   - package-ecosystem: "github-actions"
-    rebase-strategy: "disabled"
     directory: "/"
     schedule:
       interval: "weekly"
-    groups:
-      all: 
-        patterns:
-          - "*"
-
+    
   - package-ecosystem: "terraform"
-    rebase-strategy: "disabled"
     directories: 
       - "/.iac/*"
     schedule:
       interval: "weekly"
-    groups:
-      all: 
-        patterns:
-          - "*"
-
+    
   - package-ecosystem: "docker-compose"
-    rebase-strategy: "disabled"
     directory: "/"
     schedule:
       interval: "weekly"
-    groups:
-      all: 
-        patterns:
-          - "*"
-
+    
     # This includes all the csproj files
     # in folders within the specified folder
   - package-ecosystem: "nuget"
-    rebase-strategy: "disabled"
     directories: 
       - "/flowmazonbackend"
     schedule:
       interval: "weekly"
-    groups:
-      all: 
-        patterns:
-          - "*"
-
+    
   # For pipeline repeatability, I am 
   # using a global.json in /flowmazonbackend
   # which is a C# solution, to pint the version
@@ -84,7 +54,6 @@ updates:
   # The update object given below would then
   # let Dependabot update it as and when needed
   - package-ecosystem: "dotnet-sdk"
-    rebase-strategy: "disabled"
     directories: 
       - "/flowmazonbackend"
     schedule:
@@ -94,11 +63,6 @@ updates:
       # Tuesdays, as per this article:
       # https://devblogs.microsoft.com/dotnet/using-dependabot-to-manage-dotnet-sdk-updates/
       day: "wednesday"
-    groups:
-      all: 
-        patterns:
-          - "*"
-    
 
         
       
