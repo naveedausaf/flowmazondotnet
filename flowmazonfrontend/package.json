@@ -22,12 +22,12 @@
     "@guidepup/guidepup": "^0.24.0",
     "@tailwindcss/typography": "^0.5.12",
     "clsx": "^2.1.1",
-    "formik": "^2.4.5",
+    "formik": "^2.4.6",
     "next": "^15.3.4",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-error-boundary": "^6.0.0",
-    "yup": "^1.4.0",
+    "yup": "^1.6.1",
     "zod": "^3.22.4"
   },
   "devDependencies": {
