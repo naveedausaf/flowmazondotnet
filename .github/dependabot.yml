@@ -1,0 +1,97 @@
+# To get started with Dependabot version updates, you'll need to specify which
+# package ecosystems to update and where the package manifests are located.
+# Please see the documentation for all configuration options:
+# https://docs.github.com/code-security/dependabot/dependabot-version-updates/configuration-options-for-the-dependabot.yml-file
+
+version: 2
+updates:
+  - package-ecosystem: "npm"
+    directories: 
+      - "/"
+      - "/flowmazonfrontend"
+    schedule:
+      interval: "weekly"
+    groups:
+      all: 
+        patterns:
+          - "*"
+  
+  - package-ecosystem: "docker"
+    directories:
+      - "/flowmazonfrontend"
+      - "/flowmazonbackend"
+    schedule:
+      interval: "weekly"
+    groups:
+      all: 
+        patterns:
+          - "*"
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    groups:
+      all: 
+        patterns:
+          - "*"
+
+  - package-ecosystem: "terraform"
+    directories: 
+      - "/.iac/*"
+    schedule:
+      interval: "weekly"
+    groups:
+      all: 
+        patterns:
+          - "*"
+
+  - package-ecosystem: "docker-compose"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    groups:
+      all: 
+        patterns:
+          - "*"
+
+    # This includes all the csproj files
+    # in folders within the specified folder
+  - package-ecosystem: "nuget"
+    directories: 
+      - "/flowmazonbackend"
+    schedule:
+      interval: "weekly"
+    groups:
+      all: 
+        patterns:
+          - "*"
+
+  # For pipeline repeatability, I am 
+  # using a global.json in /flowmazonbackend
+  # which is a C# solution, to pint the version
+  # of .NET SDK - from which .NET CLI commands
+  # will be used when building the solution
+  # for unit and integration tests (for actual
+  # API project, the build is dockerized)
+  # 
+  # The update object given below would then
+  # let Dependabot update it as and when needed
+  - package-ecosystem: "dotnet-sdk"
+    directories: 
+      - "/flowmazonbackend"
+    schedule:
+      interval: "weekly"
+      # setting day to "wednesday" as new
+      # version of .NET SDK are released on 
+      # Tuesdays, as per this article:
+      # https://devblogs.microsoft.com/dotnet/using-dependabot-to-manage-dotnet-sdk-updates/
+      day: "wednesday"
+    groups:
+      all: 
+        patterns:
+          - "*"
+    
+
+        
+      
