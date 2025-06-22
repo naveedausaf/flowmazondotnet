@@ -19,7 +19,6 @@
     "test-playwright:watch": "concurrently --names \"REPORT,COMPOSE,TEST\" --prefix-colors \"blue,green,magenta\" \"http-server playwright-report -s --port 6007\" \"docker compose -f ../compose.yaml --env-file ../compose.env up --watch\" \"onchange -i -k  src/**/* e2etests/**/* ../flowmazonbackend/flowmazonapi/**/*.cs ../flowmazonbackend/flowmazonapi/**/*.csproj -- npm run test-playwright:test\""
   },
   "dependencies": {
-    "@guidepup/guidepup": "^0.24.0",
     "@tailwindcss/typography": "^0.5.12",
     "clsx": "^2.1.1",
     "formik": "^2.4.6",
@@ -30,7 +29,6 @@
     "yup": "^1.6.1"
   },
   "devDependencies": {
-    "@guidepup/virtual-screen-reader": "^0.32.0",
     "@playwright/test": "^1.52.0",
     "@storybook/addon-a11y": "9.0.12",
     "@storybook/addon-coverage": "^2.0.0",
@@ -38,7 +36,6 @@
     "@storybook/addon-links": "9.0.12",
     "@storybook/addon-onboarding": "9.0.12",
     "@storybook/addon-vitest": "9.0.12",
-    "@storybook/jest": "^0.2.3",
     "@storybook/nextjs": "9.0.12",
     "@storybook/nextjs-vite": "9.0.12",
     "@storybook/test-runner": "^0.23.0",
