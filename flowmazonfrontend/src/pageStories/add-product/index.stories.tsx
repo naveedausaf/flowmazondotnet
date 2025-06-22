@@ -10,10 +10,10 @@
 
 import AddProductPage from '@/pages/add-product';
 import { ErrorCase, ErrorCases, ValidInputs } from './testdata';
-import { allModes } from '../../../.storybook/modes.js';
+//import { allModes } from '../../../.storybook/modes.js';
 
-import { within, userEvent, expect, waitFor } from '@storybook/test';
-import { Meta, StoryObj } from '@storybook/react';
+import { within, userEvent, expect, waitFor } from 'storybook/test';
+import { Meta, StoryObj } from '@storybook/nextjs';
 import createAddProductPagePOM, {
   TextboxGet,
   TextboxQueries,
@@ -30,9 +30,9 @@ const meta: Meta<typeof AddProductPage> = {
   parameters: {
     // 👇 Set default viewport for all component stories
     viewport: { defaultViewport: 'xl' },
-    chromatic: {
-      modes: { ...allModes },
-    },
+    // chromatic: {
+    //   modes: { ...allModes },
+    // },
   },
 };
 

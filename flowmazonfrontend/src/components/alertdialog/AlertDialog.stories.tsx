@@ -1,12 +1,10 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import type { Meta, StoryObj } from '@storybook/react';
-import { fn, waitFor } from '@storybook/test';
+import type { Meta, StoryObj } from '@storybook/nextjs';
+import { fn, waitFor } from 'storybook/test';
 import { TestCase } from './testdata';
-import { within, expect, userEvent } from '@storybook/test';
+import { within, expect, userEvent } from 'storybook/test';
 import AlertDialog from './AlertDialog';
 import { useEffect, useId, useState } from 'react';
-import { resolve } from 'node:path';
-import { error } from 'node:console';
 
 /**
  * `AlertDialog` is accessible and following sources were used in its tests and implementation to ensure that that `AlertDialog` is acceessible (these also contributed to usability):
