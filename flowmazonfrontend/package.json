@@ -42,7 +42,7 @@
     "@swc/helpers": "^0.5.17",
     "@tailwindcss/postcss": "^4.1.4",
     "@types/node": "^24",
-    "@types/react": "19.1.2",
+    "@types/react": "19.1.8",
     "@types/react-dom": "19.1.2",
     "@types/sinonjs__fake-timers": "^8.1.5",
     "@typescript-eslint/eslint-plugin": "^8.32.0",
