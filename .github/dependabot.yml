@@ -6,6 +6,7 @@
 version: 2
 updates:
   - package-ecosystem: "npm"
+    rebase-strategy: "disabled"
     directories: 
       - "/"
       - "/flowmazonfrontend"
@@ -17,6 +18,7 @@ updates:
           - "*"
   
   - package-ecosystem: "docker"
+    rebase-strategy: "disabled"
     directories:
       - "/flowmazonfrontend"
       - "/flowmazonbackend"
@@ -28,6 +30,7 @@ updates:
           - "*"
 
   - package-ecosystem: "github-actions"
+    rebase-strategy: "disabled"
     directory: "/"
     schedule:
       interval: "weekly"
@@ -37,6 +40,7 @@ updates:
           - "*"
 
   - package-ecosystem: "terraform"
+    rebase-strategy: "disabled"
     directories: 
       - "/.iac/*"
     schedule:
@@ -47,6 +51,7 @@ updates:
           - "*"
 
   - package-ecosystem: "docker-compose"
+    rebase-strategy: "disabled"
     directory: "/"
     schedule:
       interval: "weekly"
@@ -58,6 +63,7 @@ updates:
     # This includes all the csproj files
     # in folders within the specified folder
   - package-ecosystem: "nuget"
+    rebase-strategy: "disabled"
     directories: 
       - "/flowmazonbackend"
     schedule:
@@ -78,6 +84,7 @@ updates:
   # The update object given below would then
   # let Dependabot update it as and when needed
   - package-ecosystem: "dotnet-sdk"
+    rebase-strategy: "disabled"
     directories: 
       - "/flowmazonbackend"
     schedule:
