@@ -2,23 +2,17 @@ import type { Meta, StoryObj } from '@storybook/nextjs';
 
 import AddProductScreen from './AddProductScreen';
 import { fn } from 'storybook/test';
-//import { allModes } from '../../../.storybook/modes.js';
+import { allModes } from '../../../.storybook/modes.js';
 
 import { ErrorCase, ErrorCases } from '@/pageStories/add-product/testdata';
 
 const meta: Meta<typeof AddProductScreen> = {
   component: AddProductScreen,
-  args: {
-    onBlur: fn(),
-    onChange: fn(),
-    onSubmit: fn(),
-  },
+  args: { onBlur: fn(), onChange: fn(), onSubmit: fn() },
   parameters: {
     // 👇 Set default viewport for all component stories
     viewport: { defaultViewport: 'xl' },
-    // chromatic: {
-    //   modes: { ...allModes },
-    // },
+    chromatic: { modes: { ...allModes } },
   },
 };
 
@@ -27,30 +21,10 @@ export default meta;
 type Story = StoryObj<typeof AddProductScreen>;
 
 const primaryArgs = {
-  errors: {
-    name: '',
-    description: '',
-    imageUrl: '',
-    price: '',
-  },
-  required: {
-    name: true,
-    description: true,
-    imageUrl: true,
-    price: true,
-  },
-  values: {
-    name: '',
-    description: '',
-    imageUrl: '',
-    price: '',
-  },
-  hasError: {
-    name: false,
-    description: false,
-    imageUrl: false,
-    price: false,
-  },
+  errors: { name: '', description: '', imageUrl: '', price: '' },
+  required: { name: true, description: true, imageUrl: true, price: true },
+  values: { name: '', description: '', imageUrl: '', price: '' },
+  hasError: { name: false, description: false, imageUrl: false, price: false },
   ids: {
     name: 'name',
     description: 'description',
@@ -59,25 +33,14 @@ const primaryArgs = {
   },
 };
 
-export const Primary: Story = {
-  args: { ...primaryArgs },
-};
+export const Primary: Story = { args: { ...primaryArgs } };
 
 function makeArgs<TInput>(arg: string, errorCase: ErrorCase<TInput>) {
   return {
     ...primaryArgs, //redundant to do this
-    values: {
-      ...primaryArgs.values,
-      [arg]: errorCase.InvalidValue,
-    },
-    hasError: {
-      ...primaryArgs.hasError,
-      [arg]: true,
-    },
-    errors: {
-      ...primaryArgs.errors,
-      [arg]: errorCase.ErrorMessage,
-    },
+    values: { ...primaryArgs.values, [arg]: errorCase.InvalidValue },
+    hasError: { ...primaryArgs.hasError, [arg]: true },
+    errors: { ...primaryArgs.errors, [arg]: errorCase.ErrorMessage },
   };
 }
 
