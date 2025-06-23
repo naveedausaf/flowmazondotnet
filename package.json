@@ -24,7 +24,7 @@
     "jest-axe": "^10.0.0",
     "lint-staged": "^16.1.2",
     "onchange": "^7.1.0",
-    "prettier": "^3.5.3",
+    "prettier": "^3.6.0",
     "prettier-plugin-tailwindcss": "^0.6.13",
     "prettier-plugin-terraform-formatter": "^1.2.1",
     "semantic-release": "^24.2.5",
