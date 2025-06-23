@@ -1,5 +1,25 @@
+# Azure variables
+
+variable "resource_group_name" {
+  description = "The name of the Azure resource group."
+  type        = string
+  default     = "rg-flowmazon-prod"
+}
+
+variable "resource_group_location" {
+  description = "The name of the Azure resource group."
+  type        = string
+  default     = "East US 2"
+}
+
+variable "key_vault_name" {
+  description = "The name of the key vault."
+  type        = string
+  default     = "kv-flowmazon-prod-2025"
+}
 
 
+# Neon DB variables
 variable "neon_org_id" {
   description = "The name for the Neon project."
   type        = string

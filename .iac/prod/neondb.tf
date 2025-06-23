@@ -7,6 +7,7 @@ resource "neon_project" "flowmazon_project" {
   branch {
     name = var.neon_branch_name
   }
+  
 
 }
 
