@@ -120,48 +120,11 @@ resource "postgresql_default_privileges" "app_sequences_usage_select_future" {
 
 }
 
-# --- Outputs ---
-#
-# REMOVE THESE AS THEY SHOULD BE STORED IN KEY VAULT
-#
-output "neon_endpoint_host" {
-  description = "The hostname of the Neon database endpoint."
-  value       = neon_project.flowmazon_project.database_host
-  sensitive   = true # Hostname can be considered sensitive
-}
+resource "azurerm_key_vault_secret" "connstr_for_api" {
+  name         = var.key_vault_secretname_connectionstring_for_api
 
-output "neon_owner_role_name_output" {
-  description = "The name of the Neon database owner role."
-  value       = neon_role.owner_role.name
-  sensitive   = true
-}
+  key_vault_id = azurerm_key_vault.vault.id
 
-output "neon_owner_role_password" {
-  description = "The auto-generated password for the Neon database owner role."
-  value       = neon_role.owner_role.password
-  sensitive   = true
-}
-
-output "neon_app_role_name_output" {
-  description = "The name of the Neon application role."
-  value       = neon_role.app_role.name
-  sensitive   = true
-}
-
-output "neon_app_role_password" {
-  description = "The auto-generated password for the Neon application role."
-  value       = neon_role.app_role.password
-  sensitive   = true
-}
-
-output "neon_connection_string_for_app_role" {
-  description = "Full PostgreSQL connection string for the application role."
-  value       = "postgresql://${neon_role.app_role.name}:${neon_role.app_role.password}@${neon_project.flowmazon_project.database_host}/${neon_database.flowmazon_db.name}?sslmode=require"
-  sensitive   = true
-}
-
-output "another_connection_string" {
-  description = "whatever"
-  value       = neon_project.flowmazon_project.connection_uri
-  sensitive   = true
+  value        = "Server=${neon_project.flowmazon_project.database_host};Port=5432;Database=FlowmazonDB;User Id=${neon_role.app_role.name};Password=${neon_role.app_role.password}"
+  
 }

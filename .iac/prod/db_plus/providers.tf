@@ -1,6 +1,12 @@
 
 
 terraform {
+  cloud {
+    organization = "EnableHub"
+    workspaces {
+      tags = ["test"]
+    }
+  }
   required_providers {
     azurerm = {
       # the service principal (or OIDC principal) that this uses 
@@ -109,6 +115,10 @@ provider "azurerm" {
       purge_soft_deleted_certificates_on_destroy = false
 
     }
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+
   }
 }
 

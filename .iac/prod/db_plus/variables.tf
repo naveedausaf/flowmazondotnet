@@ -15,9 +15,20 @@ variable "resource_group_location" {
 variable "key_vault_name" {
   description = "The name of the key vault."
   type        = string
-  default     = "kv-flowmazon-prod-2025"
+  default     = "kv-flowmazon-prod"
 }
 
+variable "key_vault_secretname_connectionstring_for_api" {
+  description = "name of the secret whose value is the connection string to be used by the API to connec to the database"
+  type= string
+  default = "FlowmazonDBConnectionStringForAPI"
+}
+
+variable "acr_name" { 
+  description = "The name of the Azure Ccontainer Registry instance."
+  type        = string
+  default     = "acrflowmazonprod"
+}
 
 # Neon DB variables
 variable "neon_org_id" {

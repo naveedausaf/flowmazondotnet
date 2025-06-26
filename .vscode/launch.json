@@ -18,7 +18,7 @@
       "type": "coreclr",
       "request": "launch",
       "preLaunchTask": "build-backend",
-      "program": "${workspaceFolder}/flowmazonbackend/flowmazonapi/bin/Debug/net8.0/flowmazonapi.dll",
+      "program": "${workspaceFolder}/flowmazonbackend/flowmazonapi/bin/Debug/net9.0/flowmazonapi.dll",
       "cwd": "${workspaceFolder}/flowmazonbackend/flowmazonapi",
       "stopAtEntry": false,
       "env": {
