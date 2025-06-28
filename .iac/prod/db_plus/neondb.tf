@@ -121,10 +121,10 @@ resource "postgresql_default_privileges" "app_sequences_usage_select_future" {
 }
 
 resource "azurerm_key_vault_secret" "connstr_for_api" {
-  name         = var.key_vault_secretname_connectionstring_for_api
+  name         = local.key_vault_secretname_connectionstring_for_api
 
   key_vault_id = azurerm_key_vault.vault.id
 
-  value        = "Server=${neon_project.flowmazon_project.database_host};Port=5432;Database=FlowmazonDB;User Id=${neon_role.app_role.name};Password=${neon_role.app_role.password}"
+  value        = "Server=${neon_project.flowmazon_project.database_host};Port=5432;Database=${neon_database.flowmazon_db.name};User Id=${neon_role.app_role.name};Password=${neon_role.app_role.password}"
   
 }

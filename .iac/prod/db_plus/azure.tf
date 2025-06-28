@@ -62,7 +62,7 @@ resource "azurerm_container_registry" "acr" {
 # in the Production environment (if we have GitHub Pro or higher).
 resource "azurerm_user_assigned_identity" "flowmazonapi" {
   location            = azurerm_resource_group.rg.location
-  name                = "flowmazon_api_managed_identity"
+  name                = var.flowmazon_api_managed_identity
   resource_group_name = azurerm_resource_group.rg.name
 }
 
@@ -72,16 +72,19 @@ resource "azurerm_user_assigned_identity" "flowmazonapi" {
 # to pull a specific image only.
 resource "azurerm_role_assignment" "acr_pull_with_abac_condition" {
   scope                = azurerm_container_registry.acr.id
-  role_definition_name = "Container Registry Repository Reader"
+  role_definition_name = "AcrPull"
   principal_id         = azurerm_user_assigned_identity.flowmazonapi.principal_id
 
-  # The condition block enables ABAC.
-  # Version "2.0" is the latest and recommended version.
-  condition_version = "2.0"
+  # HAD ISSUES WITH ABAC, so changed role above from
+  # 'Container Registry Repository Reader' TO  'AcrPull'
+  # and removed the condition below: 
 
-  # This condition checks if the requested repository name starts with "flowmazon-api/".
-  # The @Request attribute is evaluated at the time of the access request.
-  condition = "@Request[Microsoft.ContainerRegistry/registries/repositories:name] StringLike '*flowmazondotnet-flowmazonbackend'"
+  # # The condition block enables ABAC.
+  # # Version "2.0" is the latest and recommended version.
+  # condition_version = "2.0"
+
+  # # The @Request attribute is evaluated at the time of the access request.
+  # condition = "@Request[Microsoft.ContainerRegistry/registries/repositories:name] StringEquals '${local.image_repository_name}'"
 }
 
 # Access Policies aer a legacy authorization model in Azure Key Vault

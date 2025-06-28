@@ -119,7 +119,9 @@ builder.Services.AddHealthChecks()
     .AddNpgSql(connString, tags: [DatabaseHealthCheckName])
 
     // From the documentation (https://learn.microsoft.com/en-us/dotnet/api/microsoft.extensions.dependencyinjection.commonhealthchecksextensions.addapplicationlifecyclehealthcheck?view=net-9.0-pp), it is worth adding even if there are not IHostedService or IHostedLifecycleService (that exposes CheckHealthAsync method) registered wth build.Services.
-    // This will ensure that the health check endpoint is healthy as long as the application is running, Unhealthy if it is shutting down (And probably also when it is still starting up)
+    //also see:
+    //https://learn.microsoft.com/en-us/dotnet/core/diagnostics/diagnostic-health-checks#application-lifetime-health-checks
+    // This will ensure that the health check endpoint is healthy as long as the application is running, Unhealthy if it is shutting down or if it is still starting up)
     .AddApplicationLifecycleHealthCheck([ApplicationLifecycleHealthCheckName]);
 
 
