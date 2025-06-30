@@ -78,6 +78,7 @@ resource "azurerm_role_assignment" "acr_pull_with_abac_condition" {
   # HAD ISSUES WITH ABAC, so changed role above from
   # 'Container Registry Repository Reader' TO  'AcrPull'
   # and removed the condition below: 
+  # TODO: NEED TO REVISIT THIS
 
   # # The condition block enables ABAC.
   # # Version "2.0" is the latest and recommended version.

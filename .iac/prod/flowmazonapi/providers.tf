@@ -29,6 +29,19 @@ terraform {
       source  = "hashicorp/azurerm"
       version = "4.34.0" # Pinned to an exact version for repeatabilityneeded
     }
+    cloudflare = {
+      source  = "cloudflare/cloudflare"
+      version = "5.6.0" # pinned to exact version for repeatability
+    }
+    azapi = {
+      source  = "azure/azapi"
+      version = "2.4.0" # pinned to exact version for repeatability
+    }
+    time = {
+      source  = "hashicorp/time"
+      version = "0.13.1" # pinned version for repeatability
+    }
+
   }
 }
 
@@ -38,4 +51,24 @@ provider "azurerm" {
       prevent_deletion_if_contains_resources = false
     }
   }
+}
+
+provider "azapi" {
+  # this needs to the same four environment 
+  # variables to be provided that we are setting
+  # for the azurerm provider above
+
+}
+
+
+
+provider "cloudflare" {
+  # CLOUDFLARE_API_TOKEN env var must be provided
+  # This would contain the API TOKEN (which is the 
+  # preferred way of authenticating with CloudFlare
+  #over the legacy API KEY)
+}
+
+provider "time" {
+
 }
