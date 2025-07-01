@@ -1,12 +1,4 @@
 terraform {
-  cloud {
-
-    organization = "EnableHub"
-
-    workspaces {
-      name = "flowmazonapi"
-    }
-  }
   required_providers {
     azurerm = {
       # the service principal (or OIDC principal) that this uses 
@@ -41,6 +33,14 @@ terraform {
       source  = "hashicorp/time"
       version = "0.13.1" # pinned version for repeatability
     }
+    restapi = {
+      source  = "Mastercard/restapi"
+      version = "2.0.1" # version pinned for repeatability
+    }
+    restful = {
+      source  = "magodo/restful"
+      version = "0.22.0" # version pinned for repeatability
+    }
 
   }
 }
@@ -63,12 +63,33 @@ provider "azapi" {
 
 
 provider "cloudflare" {
-  # CLOUDFLARE_API_TOKEN env var must be provided
-  # This would contain the API TOKEN (which is the 
-  # preferred way of authenticating with CloudFlare
-  #over the legacy API KEY)
+  api_token = var.cloudflare_api_token
 }
 
 provider "time" {
 
+}
+
+# alising the provider as you could have multiple
+# of these for different APIs/targets
+provider "restapi" {
+  alias = "cloudflare"
+  # Configuration options
+  uri                  = "https://api.cloudflare.com/client/v4"
+  write_returns_object = true
+  headers = {
+    Content-Type  = "application/json"
+    Authorization = "Bearer ${var.cloudflare_api_token}"
+  }
+}
+
+provider "restful" {
+  alias = "cloudflare"
+  # Configuration options
+  base_url = "https://api.cloudflare.com/client/v4"
+
+  header = {
+    Content-Type  = "application/json"
+    Authorization = "Bearer ${var.cloudflare_api_token}"
+  }
 }

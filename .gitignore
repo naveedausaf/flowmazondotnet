@@ -46,8 +46,8 @@ yarn-error.log*
 # downloaded provider packages.
 .terraform
 
-.tfstate
-.tfstate.backup
+*.tfstate
+*.tfstate.backup
 
 # vercel
 .vercel

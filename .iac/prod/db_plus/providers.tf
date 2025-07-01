@@ -1,12 +1,7 @@
 
 
 terraform {
-  cloud {
-    organization = "EnableHub"
-    workspaces {
-      tags = ["test"]
-    }
-  }
+
   required_providers {
     azurerm = {
       # the service principal (or OIDC principal) that this uses 
@@ -57,7 +52,7 @@ provider "azurerm" {
 
   features {
     key_vault {
-      
+
       # In Production, we configure soft delete and purge-protectioon
       # to enabled on key vaults, as per the best practices:
       # https://learn.microsoft.com/en-us/azure/key-vault/general/best-practices
@@ -110,8 +105,8 @@ provider "azurerm" {
       # we would enable soft-delete on individual secrets,
       # cryptographic keys and certificates in the vault,
       # and therefore set the following to true.
-      purge_soft_deleted_secrets_on_destroy = false
-      purge_soft_deleted_keys_on_destroy = false
+      purge_soft_deleted_secrets_on_destroy      = false
+      purge_soft_deleted_keys_on_destroy         = false
       purge_soft_deleted_certificates_on_destroy = false
 
     }

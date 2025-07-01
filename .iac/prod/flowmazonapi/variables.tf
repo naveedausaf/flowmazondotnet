@@ -55,7 +55,7 @@ variable "flowmazon_api_managed_identity" {
 variable "key_vault_name" {
   description = "The name of the key vault."
   type        = string
-  default     = "kvflowmazonprod"
+  default     = "keyvaultflowmazonprod"
 }
 
 variable "api_domain_name" {
@@ -96,4 +96,10 @@ locals {
 # }
 
 # Cloudflare
+variable "cloudflare_api_token" {
+  description = "CloudFlare's API Token with appropriate permissions to create and modify TXT and CNAME records and setting that ensures that CloudFlare would present a certificate to origin (target of CNAME record) when communicating with it (to enforce for mTLS). This is required by the CloudFlare provider."
+  type        = string
+  sensitive   = true
+}
+
 

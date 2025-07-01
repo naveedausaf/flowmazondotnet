@@ -15,10 +15,10 @@ variable "resource_group_location" {
 variable "key_vault_name" {
   description = "The name of the key vault."
   type        = string
-  default     = "kvflowmazonprod"
+  default     = "keyvaultflowmazonprod"
 }
 
-variable "acr_name" { 
+variable "acr_name" {
   description = "The name of the Azure Ccontainer Registry instance."
   type        = string
   default     = "acrflowmazonprod"
@@ -26,14 +26,14 @@ variable "acr_name" {
 
 variable "flowmazon_api_managed_identity" {
   description = "Name of the user-assigned maanged identity that would be assigned to the ACA app"
-  type = string
-  default = "flowmazon_api_managed_identity"
+  type        = string
+  default     = "flowmazon_api_managed_identity"
 }
 
 locals {
   #repository name of the image in ACR (excluding the
   # '<registry name>.azurecr.io/' prefix and the ':<tag>' suffix)
-  image_repository_name="flowmazondotnet-flowmazonbackend"
+  image_repository_name = "flowmazondotnet-flowmazonbackend"
 
   # name of the secret whose value is the connection string to be used by the API to connect to the database
   key_vault_secretname_connectionstring_for_api = "flowmazon-db-connection-string-for-api"

@@ -48,6 +48,7 @@ locals {
 }
 
 resource "azurerm_container_app" "acaapp" {
+
   name                         = var.app-name
   container_app_environment_id = azurerm_container_app_environment.acaenv.id
   resource_group_name          = azurerm_resource_group.rg.name
@@ -133,6 +134,25 @@ resource "azurerm_container_app" "acaapp" {
       # TODO: add /health/live as both liveness_probe and startup_probe
     }
   }
+
+  lifecycle {
+    # we would be updating custom_domain shortly.
+    # Therefore we need to tell the resource
+    # to ignore its changed value.
+    #
+    # In fact we update custom_domain twice in this file:
+    #
+    # First a custom domain is created in the ingress.
+    # This is ony possible after DNS CNAME record 
+    # has been created with CloudFlare AND has propapagated.
+    #
+    # Then we create update the custom_domain
+    # with managed certificate.
+    # 
+    # Reasons for this rather complicated sequencing are
+    # given in other comments below.
+    ignore_changes = [ingress.0.custom_domain]
+  }
 }
 
 # Create DNS settings in CloudFlare
@@ -163,21 +183,37 @@ locals {
 # desired domain name (e.g. `api.efast.uk`) 
 # in the CloudFlare zone for the apex domain name (e.g. `efast.uk`)
 
+# TODO: Read the xoneid dynamicall, perhaps using
+# data source in cloudflare provider
 resource "cloudflare_dns_record" "acaapp_cname" {
+
   zone_id = "9aaa4b8d7f9f3fd24aa6e98906686272"
-  name    = local.subdomain
+  name    = var.api_domain_name
 
   # this should be the target FQDN without the `https://` prefix
   # which is how ingress's fqdn property returns it
   content = azurerm_container_app.acaapp.ingress[0].fqdn
   type    = "CNAME"
   ttl     = 1
-  proxied = false # we want it proxied through CloudFlare
+
+  # this is safe to do as we have already restricted
+  # traffic only to CloudFalre IP addresses.
+  # We are leaving it off for a blip because 
+  # if it is on, managed certificate verification
+  # would faile because it would not be able to verify
+  # the CNAME/TXT records with CloudFlare.
+  # As soon as managed certificate creation has 
+  # completed we would turn it on with a provisioner.
+  proxied = false
+  lifecycle {
+    ignore_changes = [proxied]
+  }
+
 }
 
 resource "cloudflare_dns_record" "acaapp_txt" {
   zone_id = "9aaa4b8d7f9f3fd24aa6e98906686272"
-  name    = format("%s.%s", "asuid", local.subdomain)
+  name    = format("%s.%s", "asuid", var.api_domain_name)
   # content of TXT record must be contained within quotes
   content = format("\"%s\"", local.custom_domain_verification_id)
   type    = "TXT"
@@ -189,64 +225,103 @@ resource "cloudflare_dns_record" "acaapp_txt" {
 # https://gist.github.com/fdelu/25f4eee056633abc03dc87b4a7e7704b
 
 # First we wait for the DNS records to have propagated
-resource "time_sleep" "dns_propagation" {
+resource "time_sleep" "cname_and_txt_propagated" {
   create_duration = "60s"
 
-  depends_on = [cloudflare_dns_record.acaapp_cname]
+  depends_on = [cloudflare_dns_record.acaapp_cname, cloudflare_dns_record.acaapp_txt]
 
   triggers = {
-    targetfqdn  = cloudflare_dns_record.acaapp_cname.content
-    modified_on = cloudflare_dns_record.acaapp_cname.modified_on
+    # TODO: see if there's a way of putting the entier
+    # dns record resource here. 
+    targetfqdn                    = cloudflare_dns_record.acaapp_cname.content
+    sourcefqdn                    = var.api_domain_name
+    custom_domain_verification_id = local.custom_domain_verification_id
   }
 }
 
-# Create a managed certificate
-# and map the custom domain using it on the ACA app.
+# Create a custom domain for the ACA app
+# If we don't do this before we create the managed cert
+# (which, as described above can only be done using AzAPI 
+# provider), then managed cert creation will fail with 
+# error:
 #
-# This can only be done after DNS entries for CNAME
-# and TXT have been created in CloudFlare
+# RESPONSE 400: 400 Bad Request
+# │ ERROR CODE: RequireCustomHostnameInEnvironment
 #
-# Without this, CloudFlare will return an SSL handshake error
-# (I have verified this: it's not enough just to take the 
-# FQDN of the ingress and create a CNAME record for it
-# in CloudFLare zone for your apex domain together with a 
-# TXT record)
-resource "azurerm_container_app_custom_domain" "acaapp" {
-  name             = var.api_domain_name
-  container_app_id = azurerm_container_app.acaapp.id
+# We then need to go go back and update the this resource
+# with managed crt's id, which is why " block
+# contins "ignore_changes" for fields related to managed
+# cert.
+# resource "azurerm_container_app_custom_domain" "acaapp" {
+
+#   # This resource can only be created after DNS entries for CNAME
+#   # and TXT have been created in CloudFlare otherwise
+#   # validation would fail (either here or when creating
+#   # the managed cert; not sure which of the two places
+#   # it would fail but I have seen it happen both here
+#   # in terraform and in Azure portal)
+#   depends_on = [time_sleep.cname_and_txt_propagated]
+
+#   name             = var.api_domain_name
+#   container_app_id = azurerm_container_app.acaapp.id
 
 
-  lifecycle {
-    // When using an Azure created Managed Certificate these values must be added to ignore_changes to prevent resource recreation.
-    ignore_changes = [certificate_binding_type, container_app_environment_certificate_id]
+#   lifecycle {
+#     // When using an Azure created Managed Certificate these values must be added to ignore_changes to prevent resource recreation.
+#     ignore_changes = [certificate_binding_type, container_app_environment_certificate_id]
+#   }
+# }
+
+# Before I put this in, I was using 
+# "azurerm_container_app_custom_domain" resource with 
+# azurerm provider version 4.34.0.
+# Fiddler showed that instead of a PATCH with the small
+# request body that you are seeing below, it was doing a
+# PUT (meaning "create or update" to Azure API) and sent
+# the entire app's JSON including all the stuff 
+# configured above. 
+# This was a big JSON document and to get
+# it first, it would probabaly also have done a GET.
+#
+# TOO INEFFICIENT!
+#
+# Hence I am back to using the 
+# resource below from the Gist linked above.
+resource "azapi_update_resource" "custom_domain" {
+  depends_on = [time_sleep.cname_and_txt_propagated]
+
+  type        = "Microsoft.App/containerApps@2023-05-01"
+  resource_id = azurerm_container_app.acaapp.id
+
+  body = {
+    properties = {
+      configuration = {
+        ingress = {
+          customDomains = [
+            {
+              bindingType = "Disabled",
+              name        = var.api_domain_name,
+            }
+          ]
+        }
+      }
+    }
   }
-  depends_on = [cloudflare_dns_record.acaapp_cname, cloudflare_dns_record.acaapp_txt, time_sleep.dns_propagation]
 }
 
 # azurerm can't create a managed TLS certificate - see https://github.com/hashicorp/terraform-provider-azurerm/issues/21866
-# The following resources are the workaround
+# Secondly, to create a cert, we need to have created a Custom Domain
+# for the container app (this goes in the app's HTTP ingress I am quite sure).
+# Therefore we need to go back and update this custom domain with the newly
+# created cert.
+#
+# Hence, instead of using azurerm provider the following resources are 
+# created using AzAPI provider to make directy API calls to Azure.
 
-# resource "azapi_update_resource" "custom_domain" {
-#   type        = "Microsoft.App/containerApps@2023-05-01"
-#   resource_id = azurerm_container_app.app.id
-
-#   body = jsonencode({
-#     properties = {
-#       ingress = {
-#         customDomains = [
-#           {
-#             bindingType = "Disabled",
-#             name        = time_sleep.dns_propagation.triggers["url"],
-#           }
-#         ]
-#       }
-#     }
-#   })
-# }
 
 resource "azapi_resource" "managed_certificate" {
-  depends_on = [azurerm_container_app_custom_domain.acaapp]
-  type       = "Microsoft.App/ManagedEnvironments/managedCertificates@2023-05-01"
+  depends_on = [azapi_update_resource.custom_domain, time_sleep.cname_and_txt_propagated]
+  type       = "Microsoft.App/managedEnvironments/managedCertificates@2023-05-01"
   name       = "${lower(var.app-environment-name)}-${lower(var.app-name)}-cert"
   parent_id  = azurerm_container_app_environment.acaenv.id
   location   = azurerm_resource_group.rg.location
@@ -261,35 +336,115 @@ resource "azapi_resource" "managed_certificate" {
   response_export_values = ["*"]
 }
 
-resource "azapi_update_resource" "custom_domain_binding" {
+
+
+resource "azapi_update_resource" "custom_domain_binding_create" {
   type        = "Microsoft.App/containerApps@2023-05-01"
   resource_id = azurerm_container_app.acaapp.id
 
 
   body = {
     properties = {
-      ingress = {
-        customDomains = [
-          {
-            bindingType   = "SniEnabled",
-            name          = var.api_domain_name,
-            certificateId = jsondecode(azapi_resource.managed_certificate.output).id
-          }
-        ]
+      configuration = {
+        ingress = {
+          customDomains = [
+            {
+              bindingType   = "SniEnabled",
+              name          = var.api_domain_name,
+              certificateId = azapi_resource.managed_certificate.output.id
+            }
+          ]
+        }
       }
     }
   }
 }
 
-# output variables for testin
-#TODO: remove when done
-# output "custom_domain_verification_id" {
-#   value     = local.custom_domain_verification_id
-#   sensitive = true
-# }
+resource "azapi_resource_action" "custom_domain_binding_destroy" {
+  type = "Microsoft.App/containerApps@2023-05-01"
 
-# output "subdomain" {
-#   value = local.subdomain
-# }
+  # following line also makes this resource a dependent 
+  # on the custom_domain_binding_create resource
+  resource_id = azapi_update_resource.custom_domain_binding_create.resource_id
+
+  # It seems `action` just gets appended to the URL obtained by
+  # appending `resource_id` to the base url for the `type`
+  # this gives us URLs for actions on some resources like 
+  # `/start` on a Web App in an App Service Plan.
+  # WE DON't WANT TO USE THIS HERE"
+  #
+  #action                 = ""
 
 
+  # default for this resource is POST
+  # unlike for the azapi_update_resource
+  # resource for which it seems to be PATCH
+  # from my Fiddler investigations
+  method = "PATCH"
+
+  response_export_values = ["*"]
+
+  body = {
+    properties = {
+      configuration = {
+        ingress = {
+          customDomains = []
+        }
+      }
+    }
+  }
+
+  # The all-important `when` argument, that makes this resource 
+  # act like a destroy provisioner counterpart to the 
+  # azapi_resource_action.custom_domain_binding_destroy resource's
+  # create provisioner behaviour for the ACA app resource
+  # (azapi_update_resource resource only runs on create whereas
+  # the present resoruce can run on either create or destroy; we
+  # are running it on destroy).
+  when = "destroy"
+}
+
+# TODO: Upadate this comment
+
+# we want requests to the app proxied through CloudFlare
+# This is why we added all the ip_restriction blocks 
+# to the ingress to allow trafix only from CloudFlare's
+# set of stable IPs
+#
+# HOWEVER, if we do this now, during creation of the 
+# managed certificate, CNAME verification will fail:
+#  RESPONSE 400: 400 Bad Request
+#│ ERROR CODE: FailedCnameValidation
+#
+# This also happens when you try to add a custom
+# domain to the app (for which the managed certificate
+# is probably created just in time by the UI) 
+#
+# Therefore we set it to false. Moreover
+# this is not being ignored in lifecycle block
+# so any subsequent changes to the underlying record
+# would ensure it stays false.
+# HOWEVER, I am going to use a provisioner to 
+# set it to true WHENEVER this resource changes,
+# i.e. is created or updated,
+# AND once the managed certificate and custom DNS
+# for the app have been created or updated if 
+# necessary.
+
+resource "restful_operation" "turn_on_proxied_in_cname_record" {
+  depends_on = [azapi_update_resource.custom_domain_binding_create, azapi_resource.managed_certificate]
+
+  lifecycle {
+    replace_triggered_by = [cloudflare_dns_record.acaapp_cname, cloudflare_dns_record.acaapp_txt]
+  }
+
+  provider = restful.cloudflare
+
+  path   = "/zones/${cloudflare_dns_record.acaapp_cname.zone_id}/dns_records/${cloudflare_dns_record.acaapp_cname.id}"
+  method = "PATCH"
+  body   = { "proxied" : true }
+
+  # I think we can also poll for retry. See resource
+  # documenation in terraform registry (under
+  # magodo/restful provider)
+}
