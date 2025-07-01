@@ -47,6 +47,10 @@ locals {
   cloudflare_ips = toset(data.cloudflare_ip_ranges.cloudflare.ipv4_cidrs)
 }
 
+# TODO: put in "require certificate in ACA" then update CloudFlare
+# to present cert to origin (I know how to do this manually in 
+# CloudFlare's UI)
+
 resource "azurerm_container_app" "acaapp" {
 
   name                         = var.app-name
@@ -185,6 +189,9 @@ locals {
 
 # TODO: Read the xoneid dynamicall, perhaps using
 # data source in cloudflare provider
+# TODO: Also read an yother bits from data sources
+# that I am currently reading from vars (thoug hnothing is 
+# hardcoded other than zone_id I believe)
 resource "cloudflare_dns_record" "acaapp_cname" {
 
   zone_id = "9aaa4b8d7f9f3fd24aa6e98906686272"
