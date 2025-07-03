@@ -29,8 +29,14 @@ variable "app-name" {
   default     = "aca-app-flowmazonapi-prod"
 }
 
+variable "app-container-port" {
+  description = "port at which the app container listens"
+  type        = number
+  default     = 8080
+}
+
 variable "app-environment-name" {
-  description = "Name of the ACA environment taht would be created and would contain the ACA app"
+  description = "Name of the ACA environment that would be created and would contain the ACA app"
   type        = string
   default     = "aca-env-flowmazonapi-prod"
 }
@@ -47,24 +53,28 @@ variable "version_to_deploy" {
 }
 
 variable "flowmazon_api_managed_identity" {
-  description = "Name of the user-assigned maanged identity that would be assigned to the ACA app"
+  description = "Name of the user-assigned managed identity that would be assigned to the ACA app"
   type        = string
   default     = "flowmazon_api_managed_identity"
 }
 
-variable "key_vault_name" {
+variable "app_key_vault_name" {
   description = "The name of the key vault."
   type        = string
   default     = "keyvaultflowmazonprod"
 }
 
-variable "api_domain_name" {
-  description = "The custom domain name for the API, e.g. api.efast.uk"
+variable "app_domain_name" {
+  description = "The custom domain name for the app, e.g. api.efast.uk"
+  type        = string
+}
+
+variable "app_container_name" {
+  description = "Name of the container that would be created in the ACA app"
   type        = string
 }
 
 locals {
-  acr_hostname = "${var.acr_name}.azurecr.io"
   #repository name of the image in ACR (excluding the
   # '<registry name>.azurecr.io/' prefix and the ':<tag>' suffix)
   image_repository_name                         = "flowmazondotnet-flowmazonbackend"
@@ -97,7 +107,13 @@ locals {
 
 # Cloudflare
 variable "cloudflare_api_token" {
-  description = "CloudFlare's API Token with appropriate permissions to create and modify TXT and CNAME records and setting that ensures that CloudFlare would present a certificate to origin (target of CNAME record) when communicating with it (to enforce for mTLS). This is required by the CloudFlare provider."
+  description = "CloudFlare's API Token This is required by the CloudFlare provider.Create a account API token (preferred to User API token) with following permissions: 1. 'Zone | DNS | Edit` (to create and modify TXT and CNAME records) and 2. 'Zone | Zone Settings | Edit' (to set 'tls_client_auth' setting to 'on' which ensures that CloudFlare would present a certificate to target of CNAME record when communicating with it; this achieves mTLS; n UI this can be done by going to the zone, then going to 'SSL/TLS | Origin Server' menu option on the left). Make sure that the zone of interest on which these permissions apply is also selected under 'Zone Resources' - or 'All zones from the acount' is selected - when you assign these permissions to the token."
+  type        = string
+  sensitive   = true
+}
+
+variable "cloudflare_zone_id" {
+  description = "Zone ID of the apex domain for domain name api_domain_name variable."
   type        = string
   sensitive   = true
 }
