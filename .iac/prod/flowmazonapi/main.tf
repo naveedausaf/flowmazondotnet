@@ -70,6 +70,17 @@ resource "azurerm_container_app" "app" {
       latest_revision = true
       percentage      = 100
     }
+
+    # Note this ingress would need to have a custom domain binding
+    # but we only add it (see use of azapi resources below to do 
+    # that) once DNS records (CNAME and TXT) have been created
+    # at CloudFlare and have propagated.
+    # If we do it now we would get an error.
+    #
+    # I have verified that once the custom domain has been created,
+    # subsequent `terraform apply` operations DO NOT detect
+    # the addition of custom domain to this ingress as drift and
+    # try to deleted it. So we're ok.
   }
   registry {
     server   = data.azurerm_container_registry.app.login_server
@@ -151,25 +162,6 @@ resource "azurerm_container_app" "app" {
 
     }
   }
-
-  # lifecycle {
-  #   # we would be updating custom_domain shortly.
-  #   # Therefore we need to tell the resource
-  #   # to ignore its changed value.
-  #   #
-  #   # In fact we update custom_domain twice in this file:
-  #   #
-  #   # First a custom domain is created in the ingress.
-  #   # This is ony possible after DNS CNAME record 
-  #   # has been created with CloudFlare AND has propapagated.
-  #   #
-  #   # Then we create update the custom_domain
-  #   # with managed certificate.
-  #   # 
-  #   # Reasons for this rather complicated sequencing are
-  #   # given in other comments below.
-  #   ignore_changes = [ingress.0.custom_domain]
-  # }
 }
 
 # Create DNS settings in CloudFlare
@@ -461,6 +453,6 @@ resource "restful_operation" "turn_on_proxied_in_cname_record" {
   body   = { "proxied" : true }
 
   # I think we can also poll for retry. See resource
-  # documenation in terraform registry (under
+  # documentation in terraform registry (under
   # magodo/restful provider)
 }
