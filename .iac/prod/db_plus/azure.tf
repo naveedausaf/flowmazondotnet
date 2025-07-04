@@ -3,9 +3,9 @@
 # 2. [Azure Container Registry Best Practices](https://learn.microsoft.com/en-us/azure/container-registry/container-registry-best-practices)
 # 3. [Best practices for using Azure Key Vault](https://learn.microsoft.com/en-us/azure/key-vault/general/best-practices)
 
-resource "azurerm_resource_group" "rg" {
-  name     = var.resource_group_name
-  location = var.resource_group_location
+resource "azurerm_resource_group" "core" {
+  name     = var.core_resource_group_name
+  location = var.core_resource_group_location
 }
 
 data "azurerm_client_config" "current" {}
@@ -20,13 +20,13 @@ data "azurerm_client_config" "current" {}
 # ACR, key vault has its own firewall which can be configured)
 resource "azurerm_key_vault" "vault" {
   name                       = var.key_vault_name
-  location                   = azurerm_resource_group.rg.location
-  resource_group_name        = azurerm_resource_group.rg.name
+  location                   = azurerm_resource_group.core.location
+  resource_group_name        = azurerm_resource_group.core.name
   tenant_id                  = data.azurerm_client_config.current.tenant_id
   sku_name                   = "standard"
-  enable_rbac_authorization = true
+  enable_rbac_authorization  = true
   soft_delete_retention_days = 90
-  purge_protection_enabled    = true
+  purge_protection_enabled   = true
 }
 
 # By default, access to pull or push content from an Azure container registry is only available to authenticated users. (https://learn.microsoft.com/en-us/azure/container-registry/anonymous-pull-access)
@@ -35,8 +35,8 @@ resource "azurerm_key_vault" "vault" {
 # Therefore I wouldn't confgure VNet/NSG for this.
 resource "azurerm_container_registry" "acr" {
   name                = var.acr_name
-  resource_group_name = azurerm_resource_group.rg.name
-  location            = azurerm_resource_group.rg.location
+  resource_group_name = azurerm_resource_group.core.name
+  location            = azurerm_resource_group.core.location
   sku                 = "Basic"
   admin_enabled       = false
 
@@ -61,9 +61,9 @@ resource "azurerm_container_registry" "acr" {
 # Perhaps this workflow file could be subject to a manual approval 
 # in the Production environment (if we have GitHub Pro or higher).
 resource "azurerm_user_assigned_identity" "flowmazonapi" {
-  location            = azurerm_resource_group.rg.location
+  location            = azurerm_resource_group.core.location
   name                = var.flowmazon_api_managed_identity
-  resource_group_name = azurerm_resource_group.rg.name
+  resource_group_name = azurerm_resource_group.core.name
 }
 
 # Role `Container Registry Repository Reader` is similar to 
@@ -85,7 +85,7 @@ resource "azurerm_role_assignment" "acr_pull_with_abac_condition" {
   # condition_version = "2.0"
 
   # # The @Request attribute is evaluated at the time of the access request.
-  # condition = "@Request[Microsoft.ContainerRegistry/registries/repositories:name] StringEquals '${local.image_repository_name}'"
+  # condition = "@Request[Microsoft.ContainerRegistry/registries/repositories:name] StringEquals '${var.image_repository_name}'"
 }
 
 # Access Policies aer a legacy authorization model in Azure Key Vault

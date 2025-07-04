@@ -7,7 +7,7 @@ resource "neon_project" "flowmazon_project" {
   branch {
     name = var.neon_branch_name
   }
-  
+
 
 }
 
@@ -67,7 +67,7 @@ resource "postgresql_grant" "app_schema_usage" {
   database    = neon_database.flowmazon_db.name
   role        = var.neon_app_role
   schema      = "public"
-  object_type = "schema"    
+  object_type = "schema"
   privileges  = ["USAGE"]
   depends_on  = [postgresql_grant.app_connect]
 }
@@ -121,10 +121,10 @@ resource "postgresql_default_privileges" "app_sequences_usage_select_future" {
 }
 
 resource "azurerm_key_vault_secret" "connstr_for_api" {
-  name         = local.key_vault_secretname_connectionstring_for_api
+  name = var.key_vault_secretname_connectionstring_for_api
 
   key_vault_id = azurerm_key_vault.vault.id
 
-  value        = "Server=${neon_project.flowmazon_project.database_host};Port=5432;Database=${neon_database.flowmazon_db.name};User Id=${neon_role.app_role.name};Password=${neon_role.app_role.password}"
-  
+  value = "Server=${neon_project.flowmazon_project.database_host};Port=5432;Database=${neon_database.flowmazon_db.name};User Id=${neon_role.app_role.name};Password=${neon_role.app_role.password}"
+
 }

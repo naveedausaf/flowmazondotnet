@@ -1,36 +1,40 @@
-data "azurerm_resource_group" "supporting" {
-  name = var.supporting_resource_group_name
+
+data "azurerm_resource_group" "core" {
+  name = var.core_resource_group_name
 
 }
 
 data "azurerm_user_assigned_identity" "app" {
   name                = var.flowmazon_api_managed_identity
-  resource_group_name = data.azurerm_resource_group.supporting.name
+  resource_group_name = data.azurerm_resource_group.core.name
 }
 
 data "azurerm_key_vault" "app" {
   name                = var.app_key_vault_name
-  resource_group_name = data.azurerm_resource_group.supporting.name
+  resource_group_name = data.azurerm_resource_group.core.name
 }
 
 data "azurerm_key_vault_secret" "connstr_for_app" {
-  name         = local.key_vault_secretname_connectionstring_for_api
+  name         = var.key_vault_secretname_connectionstring_for_api
   key_vault_id = data.azurerm_key_vault.app.id
 }
 
 data "azurerm_container_registry" "app" {
   name                = var.acr_name
-  resource_group_name = data.azurerm_resource_group.supporting.name
+  resource_group_name = data.azurerm_resource_group.core.name
 }
 
+locals {
+  full_image_name = "${data.azurerm_container_registry.app.login_server}/${var.image_repository_name}:${var.version_to_deploy}"
+}
 
 resource "azurerm_resource_group" "app" {
-  name     = var.resource_group_name
-  location = var.resource_group_location
+  name     = var.app_resource_group_name
+  location = var.app_resource_group_location
 }
 
 resource "azurerm_container_app_environment" "app" {
-  name                = var.app-environment-name
+  name                = var.app_environment_name
   location            = azurerm_resource_group.app.location
   resource_group_name = azurerm_resource_group.app.name
 
@@ -38,15 +42,15 @@ resource "azurerm_container_app_environment" "app" {
 
 resource "azurerm_container_app" "app" {
 
-  name                         = var.app-name
+  name                         = var.app_name
   container_app_environment_id = azurerm_container_app_environment.app.id
   resource_group_name          = azurerm_resource_group.app.name
-  revision_mode                = "Multiple"
+  revision_mode                = var.app_revision_mode
 
   ingress {
     external_enabled           = true
     allow_insecure_connections = false
-    target_port                = var.app-container-port
+    target_port                = var.app_container_port
     client_certificate_mode    = "require"
 
     dynamic "ip_security_restriction" {
@@ -88,7 +92,7 @@ resource "azurerm_container_app" "app" {
   }
 
   secret {
-    name                = local.key_vault_secretname_connectionstring_for_api
+    name                = var.key_vault_secretname_connectionstring_for_api
     identity            = data.azurerm_user_assigned_identity.app.id
     key_vault_secret_id = data.azurerm_key_vault_secret.connstr_for_app.id
   }
@@ -110,9 +114,9 @@ resource "azurerm_container_app" "app" {
   template {
     container {
       name   = var.app_container_name
-      image  = "${data.azurerm_container_registry.app.login_server}/${local.image_repository_name}:${var.version_to_deploy}"
+      image  = local.full_image_name
       cpu    = 0.5
-      memory = "1.0Gi"
+      memory = "1Gi"
       env {
         name  = local.allowed_cors_origins_env_var_name
         value = var.allowed_cors_origins_for_api
@@ -134,18 +138,18 @@ resource "azurerm_container_app" "app" {
         # which in turn requries a reference to a
         # azurerm_key_vault_secret data source and for that a
         # azurerm_key_vault data source.
-        secret_name = local.key_vault_secretname_connectionstring_for_api
+        secret_name = var.key_vault_secretname_connectionstring_for_api
       }
 
       liveness_probe {
         transport = "HTTP"
-        port      = var.app-container-port
+        port      = var.app_container_port
         path      = "/health/live"
       }
 
       readiness_probe {
         transport = "HTTP"
-        port      = var.app-container-port
+        port      = var.app_container_port
         path      = "/health/ready"
       }
 
@@ -156,7 +160,7 @@ resource "azurerm_container_app" "app" {
       # startup_probe also
       startup_probe {
         transport = "HTTP"
-        port      = var.app-container-port
+        port      = var.app_container_port
         path      = "/health/live"
       }
 
@@ -216,24 +220,9 @@ resource "cloudflare_dns_record" "app_cname" {
   ttl     = 1 # 1 means TTL is automatically set by CloudFlare
 
 
-  # We need to set proxied=false because if it is on, managed
-  # certificate verification would fail because it would not
-  # be able to  verify the CNAME/TXT records with CloudFlare.
-  #
-  # As soon as managed certificate creation has 
-  # completed, and the cert has been asssigned to 
-  # a custom domain binding on the ingress of the app,
-  # we would turn it on with a provisioner-like
-  # resource that calls CloudFlare's REST API to
-  # set proxied to true.
-  #
-  # This is safe to do as we have already restricted
-  # traffic only to CloudFalre IP addresses.
-  # We are leaving it off for a blip.
-  proxied = false
-  lifecycle {
-    ignore_changes = [proxied]
-  }
+  # This is what allows us to get CloudFlare protections
+  # such as DDoS protection, WAF and API Shield features
+  proxied = true
 
 }
 
@@ -246,6 +235,8 @@ resource "cloudflare_dns_record" "app_txt" {
   type    = "TXT"
   ttl     = 1 # 1 means TTL is automatically set by CloudFlare
 }
+
+
 
 # ENABLE mTLS (mutual TLS)
 #######################################################################
@@ -263,8 +254,41 @@ resource "cloudflare_zone_setting" "app_apex_domain" {
   value      = "on"
 }
 
-# bits below from this Gist:
-# https://gist.github.com/fdelu/25f4eee056633abc03dc87b4a7e7704b
+# PROCESS IMPLEMENTED BELOW:
+######################################################
+# If source (domain name) or target (ACA app's FQDN)
+# of the CNAME change - or if this is the the first
+# terraform apply of the config - we need to go through
+# the following steps:
+#
+# 1. Wait for the chagnes to propagate.
+# 2. Set 'proxied=off' on the CNAME record. Otherwise
+#   managed cert creation and almost certinly the 
+#   custom domain binding creation and update would fail.
+# 3. recreate the manager cert
+# 4. in order to recerate the cert, we need to destroy
+# any existing custom domain binding, then recreate is 
+# as Disabled
+# 5. Once managed cert has been created, we need to 
+# update the custom domain binding with the cert.
+# 6. Set proxied back on the CNAME record.
+#
+# PROCESS IMPLEMENATTION NOTE:
+# In implementing the provess, I have borne in mind the
+# details given in document
+# [Terraform Core Resource Destruction Notes](https://github.com/hashicorp/terraform/blob/main/docs/destroying.md)
+
+# This data resource collect the key attributes of CNAME
+# record that, if they change, should trigger a replace
+# of the key recources that follow whose purpose is to
+# suppor the above process
+resource "terraform_data" "cname_and_txt_info_for_triggering_replacement" {
+  input = {
+    targetfqdn                    = cloudflare_dns_record.app_cname.content
+    sourcefqdn                    = var.app_domain_name
+    custom_domain_verification_id = local.custom_domain_verification_id
+  }
+}
 
 # First we wait for the DNS records to have propagated
 resource "time_sleep" "cname_and_txt_propagated" {
@@ -272,13 +296,51 @@ resource "time_sleep" "cname_and_txt_propagated" {
 
   depends_on = [cloudflare_dns_record.app_cname, cloudflare_dns_record.app_txt]
 
-  triggers = {
-    # changes to any of these would trigger a new wait
-    # (this time_sleep resource would be recreated)
-    targetfqdn                    = cloudflare_dns_record.app_cname.content
-    sourcefqdn                    = var.app_domain_name
-    custom_domain_verification_id = local.custom_domain_verification_id
+  # this argument, which predates replace_triggered_by lifecycle property,
+  # requries a map of values rather than resources. So we set it to 
+  # .output of the terraform_data resoruce rather than the resource itself.
+  triggers = terraform_data.cname_and_txt_info_for_triggering_replacement.output
+}
+
+# Set proxied=false on the  CNAME record. 
+#
+# NOTE: 
+# we could have done that by setting proxiedfalse in the CNAME
+# record resource with lifecycle.ignore_changes = ["proxied"].
+# The problem with that is that if for any reason the cert or
+# custom domain binding had to change or be recreated (e.g,
+# we change the domain name that is the source of CNAME record,
+# or the ACAP app is replaced as that would generate a new FQDN
+# to set as content - i.e. target - of the CNAME record), then
+# managed cert would need to be regenerated and custom domain 
+# binding  updated which would fail because the last time round
+# we had set `proxied==true` right at the end of the process
+# when managed cert had been created and custom domain binding
+# updated. 
+#
+# We would still set proxied=true in that way (at the end
+# of the process), but we now we explicitly turn it to off
+# just after updates to key data in cname or txt records
+# (domain name, target of CNAME record, or TXT value) have
+# occurred and propagated, and just before any updates to
+# mnaged cert and custom domain binding may need to happen
+# as a result.
+resource "restful_operation" "turn_off_proxied_in_cname_record" {
+  depends_on = [time_sleep.cname_and_txt_propagated]
+
+  lifecycle {
+    replace_triggered_by = [terraform_data.cname_and_txt_info_for_triggering_replacement]
   }
+
+  provider = restful.cloudflare
+
+  path   = "/zones/${cloudflare_dns_record.app_cname.zone_id}/dns_records/${cloudflare_dns_record.app_cname.id}"
+  method = "PATCH"
+  body   = { "proxied" : false }
+
+  # I think we can also poll for retry. See resource
+  # documentation in terraform registry (under
+  # magodo/restful provider)
 }
 
 # Initialize a custom domain binding in the ingress of the app
@@ -286,11 +348,37 @@ resource "time_sleep" "cname_and_txt_propagated" {
 # now the DNS records with CloudFlare would have propagated. Those
 # would be validated by Azure when it creates the binding.
 resource "azapi_resource_action" "custom_domain_binding_initialize" {
-  depends_on = [time_sleep.cname_and_txt_propagated]
+  depends_on = [time_sleep.cname_and_txt_propagated, restful_operation.turn_off_proxied_in_cname_record]
+  lifecycle {
+    # This resource does nothing on update or destroy. 
+    # But we do want it to be re-created if key bits in CNAME
+    # or TXT change. Hence setting replace_triggered_by below.
+    #
+    # During replacement, the actual destruction of the custom
+    # binding that this resource creates/initialisez is achieved by
+    # resource azapi_resource_action.custom_domain_binding_destroy
+    # which  has been configured to ONLY operate during destroys and 
+    # deletes the very custom binding that resource below initializes.
+    replace_triggered_by = [terraform_data.cname_and_txt_info_for_triggering_replacement]
+  }
 
   type        = "Microsoft.App/containerApps@2023-05-01"
   resource_id = azurerm_container_app.app.id
-  method      = "PATCH"
+
+  # It seems `action` just gets appended to the URL obtained by
+  # appending `resource_id` to the base url for the `type`
+  # this gives us URLs for actions on some resources like 
+  # `/start` on a Web App in an App Service Plan.
+  # WE DON't WANT TO USE IT HERE
+  #
+  #action                 = ""
+
+
+  # default for this resource is POST, unlike for the
+  # azapi_update_resource for which it seems to be PATCH
+  # from my Fiddler investigations
+  method = "PATCH"
+
   body = {
     properties = {
       configuration = {
@@ -310,18 +398,26 @@ resource "azapi_resource_action" "custom_domain_binding_initialize" {
 # azurerm can't create a managed TLS certificate - 
 # see https://github.com/hashicorp/terraform-provider-azurerm/issues/21866
 #
-# Hence, instead of using azurerm provider the following resources are 
+# So instead of using azurerm provider the following resources are 
 # created using AzAPI provider to make directy API calls to Azure.
 resource "azapi_resource" "managed_certificate" {
 
-  # Can only create a cert when DNS record have propagated.
-  # I think (but am not sure) that in addition, custom domain binding
-  # should also have been created on the app.
-  depends_on = [azapi_resource_action.custom_domain_binding_initialize, time_sleep.cname_and_txt_propagated]
-  type       = "Microsoft.App/managedEnvironments/managedCertificates@2023-05-01"
-  name       = "${lower(var.app-environment-name)}-${lower(var.app-name)}-cert"
-  parent_id  = azurerm_container_app_environment.app.id
-  location   = azurerm_resource_group.app.location
+  depends_on = [azapi_resource_action.custom_domain_binding_initialize, time_sleep.cname_and_txt_propagated, cloudflare_dns_record.app_cname, cloudflare_dns_record.app_txt, restful_operation.turn_off_proxied_in_cname_record]
+
+  # Unlike azapi_update_resource and azapi_resource_action, that we have used in this
+  # process to patch the custom domain binding on the ingress of the ACA app
+  # this resource is fully managed through create update and destroy. However,
+  # an actual managed cert needs repalcement when the domain name or the FQDN
+  # of the backing ACA app changes. Hence lifecycle.repalce_triggered_by below
+  # is the same as that for the other azapi resources and restful_operation
+  # resources used in this process.
+  lifecycle {
+    replace_triggered_by = [terraform_data.cname_and_txt_info_for_triggering_replacement]
+  }
+  type      = "Microsoft.App/managedEnvironments/managedCertificates@2023-05-01"
+  name      = "${lower(var.app_name)}-cert"
+  parent_id = azurerm_container_app_environment.app.id
+  location  = azurerm_resource_group.app.location
 
   body = {
     properties = {
@@ -334,12 +430,21 @@ resource "azapi_resource" "managed_certificate" {
 }
 
 
-# update the already-create custom domani binding in the app's ingress
+# update the already-create custom domain binding in the app's ingress
 # with the certificate and make the binding enabled.
-resource "azapi_update_resource" "custom_domain_binding_create" {
+resource "azapi_update_resource" "custom_domain_binding_update" {
+  depends_on  = [restful_operation.turn_off_proxied_in_cname_record, azapi_resource_action.custom_domain_binding_initialize, azapi_resource.managed_certificate]
   type        = "Microsoft.App/containerApps@2023-05-01"
   resource_id = azurerm_container_app.app.id
-
+  lifecycle {
+    # this resource only operates during create and update, not destroy
+    # we do want the underlying domain binding to be destroyed when
+    # this resource needs to be recreated. That is acheived by the 
+    # azapi_resource_action.custom_domain_binding_destroy resource
+    # which would run only on destroy and deleted the custom domain 
+    # binding being updated by this resource.
+    replace_triggered_by = [terraform_data.cname_and_txt_info_for_triggering_replacement]
+  }
 
   body = {
     properties = {
@@ -366,31 +471,21 @@ resource "azapi_update_resource" "custom_domain_binding_create" {
 #
 # This resource does nothing during update and, depending on setting
 # of 'when' argument, works eother during create, or during destroy.
-# We have set it to durn during destroy so it destroys the 
+# We have set it to run during destroy so it destroys the 
 # custom domain binding, so that the managed cert can 
-# then be destroyed.
+# then be destroyed or the cusomt domain binding re-created by
+# the recreation of custim_domain_binding_initialize and
+# custom_domain_binding_update resources above in the right order.
 resource "azapi_resource_action" "custom_domain_binding_destroy" {
   type = "Microsoft.App/containerApps@2023-05-01"
+  lifecycle {
+    replace_triggered_by = [terraform_data.cname_and_txt_info_for_triggering_replacement]
+  }
 
   # following line also makes this resource a dependent 
   # on the custom_domain_binding_create resource.
-  # This resource itself would do nothing during create however, the 
-  # dependency just means on destroy it would run - and destoy  the
-  # custom domain - before destroy is called on the managed cert.
-  resource_id = azapi_update_resource.custom_domain_binding_create.resource_id
+  resource_id = azapi_update_resource.custom_domain_binding_update.resource_id
 
-  # It seems `action` just gets appended to the URL obtained by
-  # appending `resource_id` to the base url for the `type`
-  # this gives us URLs for actions on some resources like 
-  # `/start` on a Web App in an App Service Plan.
-  # WE DON't WANT TO USE IT HERE
-  #
-  #action                 = ""
-
-
-  # default for this resource is POST, unlike for the
-  # azapi_update_resource for which it seems to be PATCH
-  # from my Fiddler investigations
   method = "PATCH"
 
   response_export_values = ["*"]
@@ -409,41 +504,11 @@ resource "azapi_resource_action" "custom_domain_binding_destroy" {
   when = "destroy"
 }
 
-# TODO: Upadate this comment
-
-# we want requests to the app proxied through CloudFlare
-# This is why we added all the ip_restriction blocks 
-# to the ingress to allow trafix only from CloudFlare's
-# set of stable IPs
-#
-# HOWEVER, if we set proxied=true on the CNAME record
-# then during creation of the managed certificate,
-# CNAME verification would fail:
-#  RESPONSE 400: 400 Bad Request
-#│ ERROR CODE: FailedCnameValidation
-#
-# Therefore we set proxied=false when creating CNAME record.
-#
-# Having created managed cert  and updated binding,
-# we now set proxied true with this one-time REST call
-# (made at the time of creation of this resource only)
-#
-# We did set this change to `proxied` to be ignored in lifecycle
-# block of the CNAME resource so that on subsequent 
-# `terraform apply`, Terraform wouldn't try to set it back to false
-# as part of its drift detection.
-#
-# The particular resource we are using below is a one-time REST
-# call, done during create only. But if the underlying DNS 
-# record change, then managed cert would need to be recreated
-# which means proxied would need to set to false again on the
-# CNAME record, then wait for managed cert and custom domain binding
-# re-creation, then again  set proxied=true.
 resource "restful_operation" "turn_on_proxied_in_cname_record" {
-  depends_on = [azapi_update_resource.custom_domain_binding_create, azapi_resource.managed_certificate]
+  depends_on = [azapi_update_resource.custom_domain_binding_update, azapi_resource.managed_certificate]
 
   lifecycle {
-    replace_triggered_by = [cloudflare_dns_record.app_cname, cloudflare_dns_record.app_txt]
+    replace_triggered_by = [terraform_data.cname_and_txt_info_for_triggering_replacement]
   }
 
   provider = restful.cloudflare
@@ -455,4 +520,144 @@ resource "restful_operation" "turn_on_proxied_in_cname_record" {
   # I think we can also poll for retry. See resource
   # documentation in terraform registry (under
   # magodo/restful provider)
+}
+
+# TODO: Put this in the environment setup documentation and that 
+# if such a rule doesn't exist, and you get an error, then 
+# you would need to create one in the UI with name "default" first.
+# Also note there that:
+#
+# 1. this rule applies to whole zone as under the free plan,
+# you can't set rate limiting rules by hostname.
+# But beware that terraform destroy would be removing it for
+# the whole zone as well.
+#
+# 2. The rule of "AUthenticate Origin Pulls" where CLoudFLare
+# presents its own cert to the ACA app also applies to the whole
+# zone. This we are leaving in. WE SHOULD REALLY BE 
+# REMOVING THIS AS WELL, TO BE CONSISTENT WITH (1) ABOVE
+#
+# 3. The zone for the apex domani must already exist. Zone ID
+# for that is passed in as cvalue of the cloudflare_zone_id
+# variable.
+
+
+# In the free plan, this applies to all CNAME and A records in the
+# zone that are proxied through cloudflare. If you upgrade, you can
+# specify different rate limiting rules for hosts in your DNS records
+#
+# I generated this by creating the rule in the UI. They display
+# API Call at the bottom of the page. I took it and tweaked
+# it to be properties of this cloudflare_ruleset resource
+#
+# It still didn't work because a previously deleted rate limiting
+# rule, named "default" still existed. All that creating or
+# deleting a rate limiting rule for the zone in Cloudflare Dashboard
+# was doing was turning it on or off.
+#
+# This may be because there's
+# a limit of 1 rate limiting rule in the free account, but I am 
+# not sure sure if there wouldn't already be a rate limiting.
+#
+# So I executed the following cURL, which returned all ruleset.
+# From this I picked out the "name" of the ruleset for 
+# phase = "http_ratelimit" and specified its name - "default" - in
+# the name field of the ruleset.
+#
+# curl -X GET "https://api.cloudflare.com/client/v4/zones/{zone_id}/rulesets" \
+#     -H "Authorization: Bearer {api_token}" \
+#     -H "Content-Type: application/json"
+# 
+# Contrary to what the documentation for this Terraform resoruce 
+# suggested (at version 5.6.0), I would not set "id" of that
+# ruleset to the "id" that I saw in the returned results. When I 
+# tried to do that, and got the error that the provider doesn't allow
+# "id" to be set and it is a read-only field.
+resource "cloudflare_ruleset" "zone_rate_limit" {
+
+  # Sometime it can take up to half an hour for the domain name
+  # of the app to be reachable even though the DNS record
+  # has already propagated and that's why manager cert and custom 
+  # binding creation could succeed.
+  # I even verify that the app and its cert and custom binding
+  # have been created successfully, and that I can reach the app
+  # on its own FQDN (I get a SSL handshake error as I don't present
+  # my own cert, but that's ok).
+  # I also checked that that contianer unloaded due to inactivity over 
+  # its default 300second period. Then the first request to the app
+  # took quite long (about 20 second), but after that subsequent
+  # requests were very fast. So it wasn't an issue
+  # to do with container unloading because of inactivity and then
+  # ACA being unable to load it again.
+
+  # When the domain name is unreachable after a deployment, it stays
+  # unreachable for like 30 minutes, then finally I can reach it.
+  #
+  # I SUSPECT that it is because of rate limting being put in too early.
+  # because since I have moved it here, then for the first time after
+  # putting the rate limiting rule in, every time I deploy, I am able
+  # to reach the domain name of the app immediately as well as after
+  # waiting for the contianer to unload, then wait for it to load
+  # for about 20 seconds after which I get the response I expect.
+  #
+  # Hence I am putting it at the end of the process of cloudflare setup
+  # through this depends_on value
+  depends_on = [restful_operation.turn_on_proxied_in_cname_record]
+
+  zone_id = var.cloudflare_zone_id
+  name    = "default"
+
+  # the only kind allowed in free plan
+  kind  = "zone"
+  phase = "http_ratelimit"
+
+  rules = [{
+    # We need to set this. 
+    # But I have verified that it still deltes the rate limiting
+    # rule in the Cloudflare Dashboard on terraform destroy
+    # (although as described in the comment above, deletion in UI
+    #  just means disablement of the rule named "default")
+    enabled = true
+
+    # Dashboard UI generated this expressions. It means
+    # reqeusts to any path in the zone are counted
+    # towards the rate limiting threshold
+    expression = "(http.request.uri.path wildcard \"/*\")"
+    action     = "block"
+    ratelimit = {
+      characteristics = [
+        # This just has to be there, don't know why, otherwise
+        # we get an error on terraform apply
+        "cf.colo.id",
+
+        # I believe that this means that number of requests
+        # will be evaluated for the same source IP, i.e.
+        # if the same IP sends a number of requests specified
+        # by `requests_per_period` argument below, then that
+        # ip would be blocked.
+        # In free account, this is one of the few options available.
+        "ip.src"
+      ]
+      # Defines if ratelimit counting is only done when an origin 
+      # is reached. I am taking setting it to false to mean that
+      # request reaching cloudflare but that were not proxied
+      # would still count towards the rate limit.
+      requests_to_origin = false
+
+      # This is the number of requests in perion specified by `period`
+      # property that, if received, would trigger block on subsequent
+      # requests for a period specified by `mitigation_timeout` property.
+      requests_per_period = var.rate_limit_requests_per_period
+
+      # Over how many seconds should the specified number of requests
+      # (specified in requests_per_period above) should be received
+      # or exceeded for the block to be put in place.
+      # 10 is the only allowable value in free plan
+      period = 10
+
+      # How many seconds the block will stay in place for
+      # 10 is the only allowable value in free plan
+      mitigation_timeout = 10
+    }
+  }]
 }

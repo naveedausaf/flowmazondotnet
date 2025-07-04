@@ -1,23 +1,14 @@
 terraform {
   required_providers {
     azurerm = {
-      # the service principal (or OIDC principal) that this uses 
-      # should have the following permissions for manual execution.
-      # Taken from:
-      # https://learn.microsoft.com/en-us/azure/role-based-access-control/resource-provider-operations
+      # Following environment variables must be provided for this provider:
+      # ARM_SUBSCRIPTION_ID, ARM_CLIENT_ID, ARM_TENANT_ID, ARM_CLIENT_SECRET
       #
-      # 1. For creating and deleting resource groups:
+      # All of these - except ARM_SUBSCRIPTION_ID can be obtained when 
+      # you create a service principle in Entra in Azure portal.
       #
-      # Microsoft.Resources/subscriptions/resourceGroups/write
-      # Microsoft.Resources/subscriptions/resourceGroups/delete
-      #
-      # 2. For creating, deleting, updating and writing keys 
-      # into a Key Vault:
-      # 
-      # Microsoft.KeyVault/vaults/write
-      # Microsoft.KeyVault/vaults/delete
-      # Microsoft.KeyVault/vaults/secrets/write
-      #
+      # For ARM_SUBSCRIPTION_ID, provide the ID of a subscription
+      # in your Azure account.
       source  = "hashicorp/azurerm"
       version = "4.34.0" # Pinned to an exact version for repeatabilityneeded
     }
@@ -33,10 +24,10 @@ terraform {
       source  = "hashicorp/time"
       version = "0.13.1" # pinned version for repeatability
     }
-    restapi = {
-      source  = "Mastercard/restapi"
-      version = "2.0.1" # version pinned for repeatability
-    }
+    # restapi = {
+    #   source  = "Mastercard/restapi"
+    #   version = "2.0.1" # version pinned for repeatability
+    # }
     restful = {
       source  = "magodo/restful"
       version = "0.22.0" # version pinned for repeatability
@@ -70,18 +61,18 @@ provider "time" {
 
 }
 
-# alising the provider as you could have multiple
-# of these for different APIs/targets
-provider "restapi" {
-  alias = "cloudflare"
-  # Configuration options
-  uri                  = "https://api.cloudflare.com/client/v4"
-  write_returns_object = true
-  headers = {
-    Content-Type  = "application/json"
-    Authorization = "Bearer ${var.cloudflare_api_token}"
-  }
-}
+# # alising the provider as you could have multiple
+# # of these for different APIs/targets
+# provider "restapi" {
+#   alias = "cloudflare"
+#   # Configuration options
+#   uri                  = "https://api.cloudflare.com/client/v4"
+#   write_returns_object = true
+#   headers = {
+#     Content-Type  = "application/json"
+#     Authorization = "Bearer ${var.cloudflare_api_token}"
+#   }
+# }
 
 provider "restful" {
   alias = "cloudflare"

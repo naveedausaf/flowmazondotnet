@@ -1,12 +1,12 @@
 # Azure variables
 
-variable "resource_group_name" {
+variable "core_resource_group_name" {
   description = "The name of the Azure resource group."
   type        = string
-  default     = "rg-flowmazon-supporting-prod"
+  default     = "rg-core"
 }
 
-variable "resource_group_location" {
+variable "core_resource_group_location" {
   description = "The name of the Azure resource group."
   type        = string
   default     = "East US 2"
@@ -30,38 +30,39 @@ variable "flowmazon_api_managed_identity" {
   default     = "flowmazon_api_managed_identity"
 }
 
-locals {
-  #repository name of the image in ACR (excluding the
-  # '<registry name>.azurecr.io/' prefix and the ':<tag>' suffix)
-  image_repository_name = "flowmazondotnet-flowmazonbackend"
+variable "image_repository_name" {
+  description = "Name of the Docker image to deploy (excluding the '<registry name>.azurecr.io/' prefix and the ':<tag>' suffix)"
+  type        = string
+}
 
-  # name of the secret whose value is the connection string to be used by the API to connect to the database
-  key_vault_secretname_connectionstring_for_api = "flowmazon-db-connection-string-for-api"
-
+variable "key_vault_secretname_connectionstring_for_api" {
+  description = "name of the secret whose value is the connection string to be used by the API to connect to the database"
+  type        = string
 }
 
 # Neon DB variables
+
+# This can be found on Settings page in the Neon DB UI
 variable "neon_org_id" {
-  description = "The name for the Neon project."
+  description = "Organization ID of the Neon Organization in which the new project would be created."
   type        = string
-  default     = "org-sweet-cherry-48410063"
+  sensitive   = true
 }
+
+
 variable "neon_project_name" {
-  description = "The name for the Neon project."
+  description = "The name for the Neon project that would be created."
   type        = string
-  default     = "flowmazonprod"
 }
 
 variable "neon_branch_name" {
-  description = "The name for the Neon branch (e.g., 'main' or 'prod')."
+  description = "The name for the default Neon branch for the project (e.g., 'main' or 'prod')."
   type        = string
-  default     = "main"
 }
 
 variable "neon_database_name" {
   description = "The name of the database to be created in Neon (e.g., 'flowmazondb')."
   type        = string
-  default     = "flowmazondb"
 }
 
 # for the following role names,
@@ -71,13 +72,10 @@ variable "neon_app_role" {
   description = "The name for the Neon database role that the application will use."
   type        = string
   sensitive   = true
-  default     = "flowmazon_app_user"
 }
 
 variable "neon_owner_role" {
   description = "The name for the Neon database owner role."
   type        = string
   sensitive   = true
-  default     = "flowmazow_db_owner"
-
 }

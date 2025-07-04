@@ -4,23 +4,16 @@ terraform {
 
   required_providers {
     azurerm = {
-      # the service principal (or OIDC principal) that this uses 
-      # should have the following permissions for manual execution.
-      # Taken from:
-      # https://learn.microsoft.com/en-us/azure/role-based-access-control/resource-provider-operations
+      # TODO: Document permissions also
+
+      # Following environment variables must be provided for this provider:
+      # ARM_SUBSCRIPTION_ID, ARM_CLIENT_ID, ARM_TENANT_ID, ARM_CLIENT_SECRET
       #
-      # 1. For creating and deleting resource groups:
+      # All of these - except ARM_SUBSCRIPTION_ID can be obtained when 
+      # you create a service principle in Entra in Azure portal.
       #
-      # Microsoft.Resources/subscriptions/resourceGroups/write
-      # Microsoft.Resources/subscriptions/resourceGroups/delete
-      #
-      # 2. For creating, deleting, updating and writing keys 
-      # into a Key Vault:
-      # 
-      # Microsoft.KeyVault/vaults/write
-      # Microsoft.KeyVault/vaults/delete
-      # Microsoft.KeyVault/vaults/secrets/write
-      #
+      # For ARM_SUBSCRIPTION_ID, provide the ID of a subscription
+      # in your Azure account.
       source  = "hashicorp/azurerm"
       version = "4.34.0" # Pinned to an exact version for repeatabilityneeded
     }
@@ -35,9 +28,9 @@ terraform {
       version = "0.9.0" # Pinned for repeatability
     }
     # adding this provider as neon provider
-    # only provisions a user in neon_superuser
-    # to add other types of users they say to 
-    # user SQL:
+    # only provisions a user in neon_superuser role.
+    # To add other types of users - which we need to -
+    # we need to use this provider
     # https://neon.com/docs/manage/roles
     postgresql = {
       # Using cyrilgdn/postgresql provider
@@ -118,5 +111,5 @@ provider "azurerm" {
 }
 
 provider "neon" {
-  # API key is provided via env variable NEON_API_KEY
+  # API key to be provided via env variable NEON_API_KEY
 }
