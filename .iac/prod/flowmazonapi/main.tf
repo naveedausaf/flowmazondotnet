@@ -220,9 +220,43 @@ resource "cloudflare_dns_record" "app_cname" {
   ttl     = 1 # 1 means TTL is automatically set by CloudFlare
 
 
-  # This is what allows us to get CloudFlare protections
-  # such as DDoS protection, WAF and API Shield features
-  proxied = true
+  # Setting proxied = true is what allows us to get CloudFlare
+  # protections such as DDoS protection, WAF and API Shield features.
+  #
+  # However we need it to be false initially to allow domain
+  # name verification to be successful for creating custom
+  # domain binding on the app's ingress and for managed
+  # certificate generation.
+  # Even so, I have a restful_operation resource that, in the
+  # the multi-step Cloudflare setup process (signposted below)
+  # turn it off before creating custom domain binding, generating
+  # managed cert and updating the custom domain binding with it.
+  # Once that is done, another restful_operation would turn 
+  # it back on.
+  # SO I could have left proxied to true here.
+  #
+  # YET, the reason for leaving it to false at time of CNAME
+  # record creation is that if I leave it on, then even though
+  # it is later turned  off during the process and turned back
+  # on again, and during this "blip", DNS record verififcation
+  # happens successfully, once I turn it bacl on, it took
+  # a long time, sometimes even 30 minutes, for the DNS cache
+  # in Cloudflare to be flushed and the domain name to be reachable.
+  # In the meantime, I would keep getting DNS_PROBE_FINISHED_NXDOMAIN
+  # error in the browser.
+  #
+  # Now this does not happen and as soon as terraform apply has
+  # finidhed, the domain is instantly reachable (although if 
+  # container count is zero, it can take around 20 seconds for 
+  # a new container to spinup so that request take a while
+  # to complete). I have verified this by destroying and applying
+  # again and again many times. After every apply, I was able 
+  # to reach the domain name of the app immediately.
+  proxied = false
+
+  lifecycle {
+    ignore_changes = [proxied]
+  }
 
 }
 
@@ -254,6 +288,120 @@ resource "cloudflare_zone_setting" "app_apex_domain" {
   value      = "on"
 }
 
+# ENABLE RATE LIMITING ON THE ZONE
+#######################################################################
+# TODO: Put this in the environment setup documentation and that 
+# if such a rule doesn't exist, and you get an error, then 
+# you would need to create one in the UI with name "default" first.
+# Also note there that:
+#
+# 1. this rule applies to whole zone as under the free plan,
+# you can't set rate limiting rules by hostname.
+# But beware that terraform destroy would be removing it for
+# the whole zone as well.
+#
+# 2. The rule of "AUthenticate Origin Pulls" where CLoudFLare
+# presents its own cert to the ACA app also applies to the whole
+# zone. This we are leaving in. WE SHOULD REALLY BE 
+# REMOVING THIS AS WELL, TO BE CONSISTENT WITH (1) ABOVE
+#
+# 3. The zone for the apex domani must already exist. Zone ID
+# for that is passed in as cvalue of the cloudflare_zone_id
+# variable.
+
+
+# In the free plan, this applies to all CNAME and A records in the
+# zone that are proxied through cloudflare. If you upgrade, you can
+# specify different rate limiting rules for hosts in your DNS records
+#
+# I generated this by creating the rule in the UI. They display
+# API Call at the bottom of the page. I took it and tweaked
+# it to be properties of this cloudflare_ruleset resource
+#
+# It still didn't work because a previously deleted rate limiting
+# rule, named "default" still existed. All that creating or
+# deleting a rate limiting rule for the zone in Cloudflare Dashboard
+# was doing was turning it on or off.
+#
+# This may be because there's
+# a limit of 1 rate limiting rule in the free account, but I am 
+# not sure sure if there wouldn't already be a rate limiting.
+#
+# So I executed the following cURL, which returned all ruleset.
+# From this I picked out the "name" of the ruleset for 
+# phase = "http_ratelimit" and specified its name - "default" - in
+# the name field of the ruleset.
+#
+# curl -X GET "https://api.cloudflare.com/client/v4/zones/{zone_id}/rulesets" \
+#     -H "Authorization: Bearer {api_token}" \
+#     -H "Content-Type: application/json"
+# 
+# Contrary to what the documentation for this Terraform resoruce 
+# suggested (at version 5.6.0), I would not set "id" of that
+# ruleset to the "id" that I saw in the returned results. When I 
+# tried to do that, and got the error that the provider doesn't allow
+# "id" to be set and it is a read-only field.
+resource "cloudflare_ruleset" "zone_rate_limit" {
+
+  zone_id = var.cloudflare_zone_id
+  name    = "default"
+
+  # the only kind allowed in free plan
+  kind  = "zone"
+  phase = "http_ratelimit"
+
+  rules = [{
+    # We need to set this. 
+    # But I have verified that it still deltes the rate limiting
+    # rule in the Cloudflare Dashboard on terraform destroy
+    # (although as described in the comment above, deletion in UI
+    #  just means disablement of the rule named "default")
+    enabled = true
+
+    # Dashboard UI generated this expressions. It means
+    # reqeusts to any path in the zone are counted
+    # towards the rate limiting threshold
+    expression = "(http.request.uri.path wildcard \"/*\")"
+    action     = "block"
+    ratelimit = {
+      characteristics = [
+        # This just has to be there, don't know why, otherwise
+        # we get an error on terraform apply
+        "cf.colo.id",
+
+        # I believe that this means that number of requests
+        # will be evaluated for the same source IP, i.e.
+        # if the same IP sends a number of requests specified
+        # by `requests_per_period` argument below, then that
+        # ip would be blocked.
+        # In free account, this is one of the few options available.
+        "ip.src"
+      ]
+      # Defines if ratelimit counting is only done when an origin 
+      # is reached. I am taking setting it to false to mean that
+      # request reaching cloudflare but that were not proxied
+      # would still count towards the rate limit.
+      requests_to_origin = false
+
+      # This is the number of requests in perion specified by `period`
+      # property that, if received, would trigger block on subsequent
+      # requests for a period specified by `mitigation_timeout` property.
+      requests_per_period = var.rate_limit_requests_per_period
+
+      # Over how many seconds should the specified number of requests
+      # (specified in requests_per_period above) should be received
+      # or exceeded for the block to be put in place.
+      # 10 is the only allowable value in free plan
+      period = 10
+
+      # How many seconds the block will stay in place for
+      # 10 is the only allowable value in free plan
+      mitigation_timeout = 10
+    }
+  }]
+}
+
+
 # PROCESS IMPLEMENTED BELOW:
 ######################################################
 # If source (domain name) or target (ACA app's FQDN)
@@ -278,7 +426,7 @@ resource "cloudflare_zone_setting" "app_apex_domain" {
 # details given in document
 # [Terraform Core Resource Destruction Notes](https://github.com/hashicorp/terraform/blob/main/docs/destroying.md)
 
-# This data resource collect the key attributes of CNAME
+# This data resource to collect the key attributes of CNAME
 # record that, if they change, should trigger a replace
 # of the key recources that follow whose purpose is to
 # suppor the above process
@@ -305,7 +453,7 @@ resource "time_sleep" "cname_and_txt_propagated" {
 # Set proxied=false on the  CNAME record. 
 #
 # NOTE: 
-# we could have done that by setting proxiedfalse in the CNAME
+# It would probably have been enough to set proxied=false in CNAME
 # record resource with lifecycle.ignore_changes = ["proxied"].
 # The problem with that is that if for any reason the cert or
 # custom domain binding had to change or be recreated (e.g,
@@ -505,7 +653,14 @@ resource "azapi_resource_action" "custom_domain_binding_destroy" {
 }
 
 resource "restful_operation" "turn_on_proxied_in_cname_record" {
-  depends_on = [azapi_update_resource.custom_domain_binding_update, azapi_resource.managed_certificate]
+  depends_on = [azapi_update_resource.custom_domain_binding_update, azapi_resource.managed_certificate,
+
+    # We know that resource named below would 
+    # definitely be replaced for the same reasons as this one is.
+    # However, we want to be certain that the the present resource
+    # would run to turn proxied back on definitely after it has
+    # been turned off. Hence the following dependency.
+  restful_operation.turn_off_proxied_in_cname_record]
 
   lifecycle {
     replace_triggered_by = [terraform_data.cname_and_txt_info_for_triggering_replacement]
@@ -520,144 +675,4 @@ resource "restful_operation" "turn_on_proxied_in_cname_record" {
   # I think we can also poll for retry. See resource
   # documentation in terraform registry (under
   # magodo/restful provider)
-}
-
-# TODO: Put this in the environment setup documentation and that 
-# if such a rule doesn't exist, and you get an error, then 
-# you would need to create one in the UI with name "default" first.
-# Also note there that:
-#
-# 1. this rule applies to whole zone as under the free plan,
-# you can't set rate limiting rules by hostname.
-# But beware that terraform destroy would be removing it for
-# the whole zone as well.
-#
-# 2. The rule of "AUthenticate Origin Pulls" where CLoudFLare
-# presents its own cert to the ACA app also applies to the whole
-# zone. This we are leaving in. WE SHOULD REALLY BE 
-# REMOVING THIS AS WELL, TO BE CONSISTENT WITH (1) ABOVE
-#
-# 3. The zone for the apex domani must already exist. Zone ID
-# for that is passed in as cvalue of the cloudflare_zone_id
-# variable.
-
-
-# In the free plan, this applies to all CNAME and A records in the
-# zone that are proxied through cloudflare. If you upgrade, you can
-# specify different rate limiting rules for hosts in your DNS records
-#
-# I generated this by creating the rule in the UI. They display
-# API Call at the bottom of the page. I took it and tweaked
-# it to be properties of this cloudflare_ruleset resource
-#
-# It still didn't work because a previously deleted rate limiting
-# rule, named "default" still existed. All that creating or
-# deleting a rate limiting rule for the zone in Cloudflare Dashboard
-# was doing was turning it on or off.
-#
-# This may be because there's
-# a limit of 1 rate limiting rule in the free account, but I am 
-# not sure sure if there wouldn't already be a rate limiting.
-#
-# So I executed the following cURL, which returned all ruleset.
-# From this I picked out the "name" of the ruleset for 
-# phase = "http_ratelimit" and specified its name - "default" - in
-# the name field of the ruleset.
-#
-# curl -X GET "https://api.cloudflare.com/client/v4/zones/{zone_id}/rulesets" \
-#     -H "Authorization: Bearer {api_token}" \
-#     -H "Content-Type: application/json"
-# 
-# Contrary to what the documentation for this Terraform resoruce 
-# suggested (at version 5.6.0), I would not set "id" of that
-# ruleset to the "id" that I saw in the returned results. When I 
-# tried to do that, and got the error that the provider doesn't allow
-# "id" to be set and it is a read-only field.
-resource "cloudflare_ruleset" "zone_rate_limit" {
-
-  # Sometime it can take up to half an hour for the domain name
-  # of the app to be reachable even though the DNS record
-  # has already propagated and that's why manager cert and custom 
-  # binding creation could succeed.
-  # I even verify that the app and its cert and custom binding
-  # have been created successfully, and that I can reach the app
-  # on its own FQDN (I get a SSL handshake error as I don't present
-  # my own cert, but that's ok).
-  # I also checked that that contianer unloaded due to inactivity over 
-  # its default 300second period. Then the first request to the app
-  # took quite long (about 20 second), but after that subsequent
-  # requests were very fast. So it wasn't an issue
-  # to do with container unloading because of inactivity and then
-  # ACA being unable to load it again.
-
-  # When the domain name is unreachable after a deployment, it stays
-  # unreachable for like 30 minutes, then finally I can reach it.
-  #
-  # I SUSPECT that it is because of rate limting being put in too early.
-  # because since I have moved it here, then for the first time after
-  # putting the rate limiting rule in, every time I deploy, I am able
-  # to reach the domain name of the app immediately as well as after
-  # waiting for the contianer to unload, then wait for it to load
-  # for about 20 seconds after which I get the response I expect.
-  #
-  # Hence I am putting it at the end of the process of cloudflare setup
-  # through this depends_on value
-  depends_on = [restful_operation.turn_on_proxied_in_cname_record]
-
-  zone_id = var.cloudflare_zone_id
-  name    = "default"
-
-  # the only kind allowed in free plan
-  kind  = "zone"
-  phase = "http_ratelimit"
-
-  rules = [{
-    # We need to set this. 
-    # But I have verified that it still deltes the rate limiting
-    # rule in the Cloudflare Dashboard on terraform destroy
-    # (although as described in the comment above, deletion in UI
-    #  just means disablement of the rule named "default")
-    enabled = true
-
-    # Dashboard UI generated this expressions. It means
-    # reqeusts to any path in the zone are counted
-    # towards the rate limiting threshold
-    expression = "(http.request.uri.path wildcard \"/*\")"
-    action     = "block"
-    ratelimit = {
-      characteristics = [
-        # This just has to be there, don't know why, otherwise
-        # we get an error on terraform apply
-        "cf.colo.id",
-
-        # I believe that this means that number of requests
-        # will be evaluated for the same source IP, i.e.
-        # if the same IP sends a number of requests specified
-        # by `requests_per_period` argument below, then that
-        # ip would be blocked.
-        # In free account, this is one of the few options available.
-        "ip.src"
-      ]
-      # Defines if ratelimit counting is only done when an origin 
-      # is reached. I am taking setting it to false to mean that
-      # request reaching cloudflare but that were not proxied
-      # would still count towards the rate limit.
-      requests_to_origin = false
-
-      # This is the number of requests in perion specified by `period`
-      # property that, if received, would trigger block on subsequent
-      # requests for a period specified by `mitigation_timeout` property.
-      requests_per_period = var.rate_limit_requests_per_period
-
-      # Over how many seconds should the specified number of requests
-      # (specified in requests_per_period above) should be received
-      # or exceeded for the block to be put in place.
-      # 10 is the only allowable value in free plan
-      period = 10
-
-      # How many seconds the block will stay in place for
-      # 10 is the only allowable value in free plan
-      mitigation_timeout = 10
-    }
-  }]
 }
