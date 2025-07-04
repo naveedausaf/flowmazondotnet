@@ -103,6 +103,7 @@ locals {
 # Give the token the following permissions: 
 # 1. 'Zone | DNS | Edit` (to create and modify TXT and CNAME records)
 # 2. 'Zone | Zone Settings | Edit' (to set 'tls_client_auth' setting
+# 3. 'Zone | Zone WAF | Edit` (to set rate limiting rule)
 # to 'on' which ensures that CloudFlare would present a certificate
 # to target of CNAME record when communicating with it; this 
 # achieves mTLS.
@@ -117,15 +118,20 @@ variable "cloudflare_api_token" {
   sensitive   = true
 }
 
-# I assume you already have a DNS A record with CloudFlare for
-# the apex domain in the domain name of the app. For example
+# TODO: document this in my environments documentation
+#
+# I assume you already have a DNS zone with CloudFlare for
+# the apex domain used in the domain name of the app. For example
 # if the domain name if `api.efast.uk`, the apex domain is
-# efast.uk
+# efast.uk.
 #
-# Creating this A record would have given you a Zone for the
-# apex domain.
-#
-# Once you have created an A record, go to CloudFlare Dashboard.
+# Create this zone by transferring setting Cloudflare's nameservers
+# as nameservers of the apex domain in control panel of the registrar
+# from whom you purchased the apex domain.
+# Cloudflare would also guide you through the process.
+
+# Once you have created an zone, i.e. Cloudflare manage
+# DNS queries for the apex domain, then go to CloudFlare Dashboard.
 # There click the apex domain name, and you would be taken to
 # the detail page of the associated zone. ZoneID would be 
 # displayed on this page (you may have to scroll down the page).

@@ -337,7 +337,7 @@ resource "cloudflare_zone_setting" "app_apex_domain" {
 #     -H "Content-Type: application/json"
 # 
 # Contrary to what the documentation for this Terraform resoruce 
-# suggested (at version 5.6.0), I would not set "id" of that
+# suggested (at version 5.6.0), I could not set "id" of that
 # ruleset to the "id" that I saw in the returned results. When I 
 # tried to do that, and got the error that the provider doesn't allow
 # "id" to be set and it is a read-only field.

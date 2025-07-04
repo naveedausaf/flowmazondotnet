@@ -61,7 +61,7 @@ provider "time" {
 
 }
 
-# # alising the provider as you could have multiple
+# # aliasing the provider as you could have multiple
 # # of these for different APIs/targets
 # provider "restapi" {
 #   alias = "cloudflare"
