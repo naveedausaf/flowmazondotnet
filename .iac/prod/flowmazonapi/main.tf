@@ -46,12 +46,15 @@ resource "azurerm_container_app" "app" {
   container_app_environment_id = azurerm_container_app_environment.app.id
   resource_group_name          = azurerm_resource_group.app.name
   revision_mode                = var.app_revision_mode
+  max_inactive_revisions       = 4 #because default is ~100 and ther IS a (small) charge for inactive revsions
+
 
   ingress {
     external_enabled           = true
     allow_insecure_connections = false
     target_port                = var.app_container_port
     client_certificate_mode    = "require"
+
 
     dynamic "ip_security_restriction" {
       for_each = local.cloudflare_ips
@@ -112,11 +115,13 @@ resource "azurerm_container_app" "app" {
   }
 
   template {
+    max_replicas = 1 #as this is an experimental app, we want to be really economical
     container {
       name   = var.app_container_name
       image  = local.full_image_name
       cpu    = 0.5
       memory = "1Gi"
+
       env {
         name  = local.allowed_cors_origins_env_var_name
         value = var.allowed_cors_origins_for_api
