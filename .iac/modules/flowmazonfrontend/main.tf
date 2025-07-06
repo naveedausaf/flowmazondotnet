@@ -7,10 +7,7 @@ resource "vercel_project" "app" {
   #   }
 }
 
-output "vercel_project_id" {
-  value = vercel_project.app.id
 
-}
 
 resource "random_uuid" "vercel_internal_domain_prefix" {
 }
@@ -48,7 +45,11 @@ resource "cloudflare_dns_record" "nextjs_app_cname" {
   proxied = false
 }
 
-
+# IN VERCEL FREE PLAN THERE ARE TWO FIXED ENVIRONMENTS 
+# IN A PROJECT: Production and Preview.
+# This doesn't matter as I would use a separate Vercel 
+# project for each of my environments Production, Staging
+# and Preview.
 
 
 
