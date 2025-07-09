@@ -8,7 +8,6 @@ resource "neon_project" "flowmazon_project" {
     name = var.neon_branch_name
   }
 
-
 }
 
 
@@ -31,13 +30,25 @@ resource "neon_database" "flowmazon_db" {
   branch_id  = neon_project.flowmazon_project.default_branch_id
   name       = var.neon_database_name
   owner_name = neon_role.owner_role.name # Assign ownership to the neon_owner_role
-  depends_on = [neon_role.owner_role]    # Ensure owner role is created before db
 }
 
 # --- PostgreSQL Permissions Setup ---
 
+# It is discouraged to put provider configuration 
+# in a child module but in this case it made sense to
+# do so as it is using a lot of values that are generated
+# during creation of above database resources.
+
+# The provider version/declaration is still in the calling/
+# root module though.
+
+# I have aliased the provider block  to try and keep it 
+# encapsulated.
 provider "postgresql" {
-  alias           = "db_owner_connection" # Alias for clarity if multiple pg provider configs exist
+
+  # Alias for clarity if multiple pg provider configs exist
+  # USE RANDOM NAME IF FURTHER UNIQUENESS REQUIRED
+  alias           = "postgresql_provider_for_the_only_NeonDB_database_in_the_current_workspace"
   host            = neon_project.flowmazon_project.database_host
   port            = 5432
   database        = neon_database.flowmazon_db.name
@@ -52,20 +63,16 @@ provider "postgresql" {
 resource "postgresql_grant" "app_connect" {
   provider    = postgresql.db_owner_connection
   database    = neon_database.flowmazon_db.name
-  role        = var.neon_app_role # Grant to the application role
+  role        = neon_role.app_role.name
   object_type = "database"
   privileges  = ["CONNECT"]
-  depends_on = [
-    neon_database.flowmazon_db, # Ensure DB exists
-    neon_role.app_role,         # Ensure app role exists
-  ]
 }
 
 # Grant USAGE on the public schema for the app role
 resource "postgresql_grant" "app_schema_usage" {
   provider    = postgresql.db_owner_connection
   database    = neon_database.flowmazon_db.name
-  role        = var.neon_app_role
+  role        = neon_role.app_role.name
   schema      = "public"
   object_type = "schema"
   privileges  = ["USAGE"]
@@ -76,7 +83,7 @@ resource "postgresql_grant" "app_schema_usage" {
 resource "postgresql_grant" "app_tables_dml_existing" {
   provider    = postgresql.db_owner_connection
   database    = neon_database.flowmazon_db.name
-  role        = var.neon_app_role
+  role        = neon_role.app_role.name
   schema      = "public"
   object_type = "table" # Applies to all tables in the schema
   privileges  = ["SELECT", "INSERT", "UPDATE", "DELETE"]
@@ -100,7 +107,7 @@ resource "postgresql_default_privileges" "app_tables_dml_future" {
 resource "postgresql_grant" "app_sequences_usage_select_existing" {
   provider    = postgresql.db_owner_connection
   database    = neon_database.flowmazon_db.name
-  role        = var.neon_app_role
+  role        = neon_role.app_role.name
   schema      = "public"
   object_type = "sequence" # Applies to all sequences in the schema
   privileges  = ["USAGE", "SELECT"]
@@ -120,11 +127,43 @@ resource "postgresql_default_privileges" "app_sequences_usage_select_future" {
 
 }
 
+# NOW Put the connection string into key vault as a 
+# secret give read permission on this to the user-assigned
+# managed identity whose name is provided
+
+
+data "azurerm_key_vault" "app" {
+  name                = var.vault_name
+  resource_group_name = var.vault_resource_group_name
+}
+
 resource "azurerm_key_vault_secret" "connstr_for_api" {
-  name = var.key_vault_secretname_connectionstring_for_api
+  name = var.vault_secretname_for_connectionstring
 
   key_vault_id = azurerm_key_vault.vault.id
 
   value = "Server=${neon_project.flowmazon_project.database_host};Port=5432;Database=${neon_database.flowmazon_db.name};User Id=${neon_role.app_role.name};Password=${neon_role.app_role.password}"
 
 }
+
+# NOW assign read permission on the connection string secret
+# to the supplied user-asigned managed identity.
+
+data "azurerm_user_assigned_identity" "connection_string" {
+  name                = var.managed_identity_for_secret
+  resource_group_name = var.managed_identity_for_secret_resource_group_name
+}
+
+# Access Policies aer a legacy authorization model in Azure Key Vault
+# So using Azure RBAC which is now the recommendation
+# RBAC for Vault also allows key/secret/certificate-level access control
+# role and scope chosen based on this page and app requirements:
+# https://learn.microsoft.com/en-us/azure/key-vault/general/rbac-guide?tabs=azure-cli
+resource "azurerm_role_assignment" "connection_string" {
+  scope                = azurerm_key_vault.vault.id
+  role_definition_name = "Key Vault Secrets User"
+  principal_id         = azurerm_user_assigned_identity.connection_string.principal_id
+
+}
+
+

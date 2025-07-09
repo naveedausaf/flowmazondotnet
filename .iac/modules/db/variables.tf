@@ -1,41 +1,26 @@
 # Azure variables
 
-variable "core_resource_group_name" {
-  description = "The name of the Azure resource group."
-  type        = string
-  default     = "rg-core"
-}
-
-variable "core_resource_group_location" {
-  description = "The name of the Azure resource group."
-  type        = string
-  default     = "East US 2"
-}
-
-variable "key_vault_name" {
-  description = "The name of the key vault."
-  type        = string
-  default     = "keyvaultflowmazonprod"
-}
-
-variable "acr_name" {
-  description = "The name of the Azure Ccontainer Registry instance."
-  type        = string
-  default     = "acrflowmazonprod"
-}
-
-variable "flowmazon_api_managed_identity" {
-  description = "Name of the user-assigned maanged identity that would be assigned to the ACA app"
-  type        = string
-  default     = "flowmazon_api_managed_identity"
-}
-
-variable "image_repository_name" {
-  description = "Name of the Docker image to deploy (excluding the '<registry name>.azurecr.io/' prefix and the ':<tag>' suffix)"
+variable "vault_resource_group_name" {
+  description = "Name of the Azure resource group that contains the Azure Key Vault."
   type        = string
 }
 
-variable "key_vault_secretname_connectionstring_for_api" {
+variable "vault_name" {
+  description = "Name of the Azure Key Vault into which the connection string of the created database would be stored."
+  type        = string
+}
+
+variable "managed_identity_for_secret" {
+  description = "Name of the user-assigned maanged identity that would be assigned permission to read the conenction string that would be stored in the key vault as a secret."
+  type        = string
+}
+
+variable "managed_identity_for_secret_resource_group_name" {
+  description = "Name of user group in which the user-assigned maanged identity is contained."
+  type        = string
+}
+
+variable "vault_secretname_for_connectionstring" {
   description = "name of the secret whose value is the connection string to be used by the API to connect to the database"
   type        = string
 }
