@@ -35,6 +35,9 @@ services:
     environment:
       ConnectionStrings__FlowmazonDB: ${ConnectionStrings__FlowmazonDB}
       ALLOWED_CORS_ORIGINS: ${ALLOWED_CORS_ORIGINS}
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://aspire-dashboard:18889
+      OTEL_EXPORTER_OTLP_PROTOCOL: grpc
+      OTEL_RESOURCE_ATTRIBUTES: "deployment.environment.name=local_testing"
     restart: always
     # Even though port 8080 on which Kestrel listens
     # is `EXPOSE`d in the flowmazonapi's Dockerfile
@@ -116,6 +119,13 @@ services:
       # in which the ENTRYPOINT script runs initialization
       # scripts).
       - ./integration-test-support/10-init-app-user.sh:/docker-entrypoint-initdb.d/10-init-app-user.sh
+  aspire_dashboard:
+    container_name: aspire-dashboard
+    image: mcr.microsoft.com/dotnet/aspire-dashboard:latest
+    ports:
+      - 18888:18888
+    networks:
+      - flowmazon_network
 
 # Define a network, which allows containers to communicate
 # with each other, by using their container name as a hostname

@@ -36,16 +36,19 @@ variable "app_container_port" {
 variable "app_container_liveness_probe" {
   description = "The pathname (starting with `/`) of the Liveness probe for the container (e.g. an endpoint `/health/live` implemented by the app running in the container). For more details see https://learn.microsoft.com/en-us/azure/container-apps/health-probes?tabs=arm-template"
   type        = string
+  nullable    = true
 }
 
 variable "app_container_readiness_probe" {
   description = "The pathname (starting with `/`) of the Readiness probe for the container (e.g. an endpoint `/health/ready` implemented by the app running in the container). For more details see https://learn.microsoft.com/en-us/azure/container-apps/health-probes?tabs=arm-template"
   type        = string
+  nullable    = true
 }
 
 variable "app_container_startup_probe" {
   description = "The pathname (starting with `/`) of the Startup probe for the container (e.g. an endpoint `/health/startup` implemented by the app running in the container). For more details see https://learn.microsoft.com/en-us/azure/container-apps/health-probes?tabs=arm-template"
   type        = string
+  nullable    = true
 }
 
 variable "app_container_max_replicas" {

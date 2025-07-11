@@ -157,16 +157,22 @@ resource "azurerm_container_app" "app" {
         secret_name = var.vault_secretname_connectionstring_for_api
       }
 
-      liveness_probe {
-        transport = "HTTP"
-        port      = var.app_container_port
-        path      = var.app_container_liveness_probe
+      dynamic "liveness_probe" {
+        for_each = var.app_container_liveness_probe ? [1] : []
+        content {
+          transport = "HTTP"
+          port      = var.app_container_port
+          path      = var.app_container_liveness_probe
+        }
       }
 
-      readiness_probe {
-        transport = "HTTP"
-        port      = var.app_container_port
-        path      = var.app_container_readiness_probe
+      dynamic "readiness_probe" {
+        for_each = var.app_container_readiness_probe ? [1] : []
+        content {
+          transport = "HTTP"
+          port      = var.app_container_port
+          path      = var.app_container_readiness_probe
+        }
       }
 
       # because of the way liveness probe is implemented in 
@@ -174,12 +180,14 @@ resource "azurerm_container_app" "app" {
       # responds with Healthy and 2xx if 
       # startup has completed. So we are using it as
       # startup_probe also
-      startup_probe {
-        transport = "HTTP"
-        port      = var.app_container_port
-        path      = var.app_container_startup_probe
+      dynamic "startup_probe" {
+        for_each = var.app_container_startup_probe ? [1] : []
+        content {
+          transport = "HTTP"
+          port      = var.app_container_port
+          path      = var.app_container_startup_probe
+        }
       }
-
     }
   }
 }

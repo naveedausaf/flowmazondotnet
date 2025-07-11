@@ -17,6 +17,10 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using FluentValidation;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
+using OpenTelemetry.Metrics;
+using OpenTelemetry.Logs;
 
 
 
@@ -30,6 +34,104 @@ if (builder.Environment.IsDevelopment())
 }
 
 builder.Services.AddProblemDetails();
+
+//////////////////////////////////////////////////////
+//Initialise Otel SDK and the instrumentation libraries
+//////////////////////////////////////////////////////
+
+// Note that in code below we initialise OtlpExporter
+// for each of the local pipelines for the three
+// Otel signals (logs, traces, metrics) BUT did not
+// pass in the OTLP endpoint or the protocol to use.
+// These would be configured by environment variables,
+// (as described here: https://opentelemetry.io/docs/languages/sdk-configuration/otlp-exporter/#endpoint-configuration)
+//
+// OTEL_EXPORTER_OTLP_ENDPOINT
+// and
+// OTEL_EXPORTER_OTLP_PROTOCOL
+// that the SDK reads automatically.
+
+// Extension method of IServiceCollection to
+// initialise Otel SDK
+builder.Services.AddOpenTelemetry()
+    //configure attributes of the Resource
+    // that describes this Service (i.e. 
+    // described this API)
+    // See details of what a Resource is:
+    // https://opentelemetry.io/docs/languages/dotnet/resources/
+
+    //and the semantic conventions, i..e. standardised attribute names, that apply to a Resource:
+    // https://opentelemetry.io/docs/specs/semconv/resource/
+    .ConfigureResource(resource =>
+    {
+        //add service.* attributes on the resource
+        resource.AddService(
+            serviceName: "flowmazonapi",
+            serviceNamespace: "flowmazon",
+
+            //see my FreeCodeCamp post:
+            //https://www.freecodecamp.org/news/set-semantic-versioning-for-net/
+            serviceVersion: Assembly.GetEntryAssembly()?.
+  GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.
+  InformationalVersion);
+
+        //deployment.environment.name to be set
+        //by OTEL_RESOURCE_ATTRIBUTES="deployment.environment.name=<local_testing|preview|uat|staging|production>"
+
+
+    })
+    .WithMetrics(
+        metrics =>
+        {
+            //enable metrics autoinstrumentations
+            //provided by added instrumentation libraries
+            metrics.AddAspNetCoreInstrumentation()
+                .AddHttpClientInstrumentation();
+
+            //Entity Framework Core instumentation library
+            //does not have any metrics to initialise
+
+            //set OtlpExporter as the metrics exporter
+            metrics.AddOtlpExporter();
+        }
+    )
+    //build up SDKs signal processing pipelines
+    .WithTracing(tracing =>
+    {
+        //enable tracing autoinstrumentations
+        //provided by added instrumentation libraries
+        tracing.AddAspNetCoreInstrumentation()
+        .AddHttpClientInstrumentation()
+        .AddEntityFrameworkCoreInstrumentation();
+
+        //configure OTLP exporter as the tracing exporter
+        //as both Aspire and remote observability
+        //backend expose an OTLP ingestion endpoint
+        tracing.AddOtlpExporter();
+
+    });
+
+// To initialise Otel's Logging pipeline, instead of
+// appending .WithLogging to builder.Services.AddOpenTelemetry()
+// which we probabaly could have done, we instead set up
+// Otel as the logging provider in standard .NET logging.
+//
+// This allows us to write .NET Core logs as normal - with 
+// good things like source generators introduced in .NET 7 -
+// as these would get written out as Otel logs. 
+
+// Also, if a log is written while a span is in progress 
+// (Activity.Current would not be null) then the log would
+// automatically be attached to that span.
+builder.Logging.AddOpenTelemetry(
+    //configure the logging pipeline (only exporter
+    //need to be configured)
+    logging =>
+    {
+        logging.AddOtlpExporter();
+    }
+);
+
 
 
 string connString = builder.Configuration.GetConnectionString("FlowmazonDB") ?? throw new InvalidOperationException("Connection string 'FlowmazonDB' is not configured.");

@@ -4,6 +4,8 @@
     <TargetFramework>net9.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
+    <Version>0.0.0-semantic-release</Version>
     <UserSecretsId>d923de63-851d-4a10-9907-96d9e66afff8</UserSecretsId>
   </PropertyGroup>
   <PropertyGroup>
@@ -26,6 +28,11 @@
     
     <PackageReference Include="Microsoft.Extensions.Diagnostics.HealthChecks.Common" Version="9.6.0" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.4" />
+    <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.12.0" />
+    <PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.12.0" />
+    <PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.12.0" />
+    <PackageReference Include="OpenTelemetry.Instrumentation.EntityFrameworkCore" Version="1.12.0-beta.2" />
+    <PackageReference Include="OpenTelemetry.Instrumentation.Http" Version="1.12.0" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="9.0.1" />
   </ItemGroup>
 
