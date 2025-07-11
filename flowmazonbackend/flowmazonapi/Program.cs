@@ -49,7 +49,10 @@ builder.Services.AddProblemDetails();
 // OTEL_EXPORTER_OTLP_ENDPOINT
 // and
 // OTEL_EXPORTER_OTLP_PROTOCOL
-// that the SDK reads automatically.
+// and, token for GRafana Cloud or other observability backend that requries an authentication token
+// OTEL_EXPORTER_OTLP_HEADERS
+//
+// The SDK reads these automatically.
 
 // Extension method of IServiceCollection to
 // initialise Otel SDK
@@ -92,12 +95,15 @@ builder.Services.AddOpenTelemetry()
             //does not have any metrics to initialise
 
             //set OtlpExporter as the metrics exporter
+            //as both Aspire and remote observability
+            //backend expose an OTLP ingestion endpoint
             metrics.AddOtlpExporter();
         }
     )
     //build up SDKs signal processing pipelines
     .WithTracing(tracing =>
     {
+
         //enable tracing autoinstrumentations
         //provided by added instrumentation libraries
         tracing.AddAspNetCoreInstrumentation()
@@ -105,20 +111,18 @@ builder.Services.AddOpenTelemetry()
         .AddEntityFrameworkCoreInstrumentation();
 
         //configure OTLP exporter as the tracing exporter
-        //as both Aspire and remote observability
-        //backend expose an OTLP ingestion endpoint
         tracing.AddOtlpExporter();
 
     });
 
 // To initialise Otel's Logging pipeline, instead of
 // appending .WithLogging to builder.Services.AddOpenTelemetry()
-// which we probabaly could have done, we instead set up
-// Otel as the logging provider in standard .NET logging.
+// which we probably could have done, we instead set up
+// Otel's logging provider in standard .NET logging.
 //
 // This allows us to write .NET Core logs as normal - with 
 // good things like source generators introduced in .NET 7 -
-// as these would get written out as Otel logs. 
+// and these would get written out as Otel logs. 
 
 // Also, if a log is written while a span is in progress 
 // (Activity.Current would not be null) then the log would
@@ -128,6 +132,22 @@ builder.Logging.AddOpenTelemetry(
     //need to be configured)
     logging =>
     {
+        //it would be nice to be able to see the complete
+        //parameter value-substituted, log message in the
+        //observability backend:
+        logging.IncludeFormattedMessage = true;
+
+        // I am not not setting logging.IncludeLogScopes=true
+        // as I do not intend to use Log Scope. 
+        // They would unneessarily complicate telemetry 
+        // given that we already have traces which may be 
+        // seen as scoped logs, plus any (semantic) log 
+        // we do write would automatically be attached to
+        // the current span if there is one in context 
+        // (i.e. Activity.Current != null) so we have that 
+        // extra level of richness.
+
+        //configure exporter for Otel SDK's logging pipeline
         logging.AddOtlpExporter();
     }
 );

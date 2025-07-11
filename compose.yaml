@@ -37,7 +37,8 @@ services:
       ALLOWED_CORS_ORIGINS: ${ALLOWED_CORS_ORIGINS}
       OTEL_EXPORTER_OTLP_ENDPOINT: http://aspire-dashboard:18889
       OTEL_EXPORTER_OTLP_PROTOCOL: grpc
-      OTEL_RESOURCE_ATTRIBUTES: "deployment.environment.name=local_testing"
+      OTEL_RESOURCE_ATTRIBUTES: deployment.environment.name=local_testing
+
     restart: always
     # Even though port 8080 on which Kestrel listens
     # is `EXPOSE`d in the flowmazonapi's Dockerfile
