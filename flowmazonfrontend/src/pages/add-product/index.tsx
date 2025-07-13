@@ -4,7 +4,7 @@ import * as Yup from 'yup';
 /* import { useRouter } from 'next/router'; */
 import clsx from 'clsx';
 import useForm from '@/utils/useForm';
-import { config } from '@/utils/config';
+import config from '@/config/config';
 import AddProductScreen from '@/screens/add-product/AddProductScreen';
 import AlertDialog from '@/components/alertdialog/AlertDialog';
 import { useState } from 'react';

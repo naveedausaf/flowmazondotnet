@@ -6,6 +6,15 @@ services:
       dockerfile: Dockerfile
       args:
         NEXT_PUBLIC_BACKEND_URL: ${NEXT_PUBLIC_BACKEND_URL}
+        NEXT_PUBLIC_FARO_URL: ${NEXT_PUBLIC_FARO_URL}
+        NEXT_PUBLIC_OTEL_ENVIRONMENT: ${NEXT_PUBLIC_OTEL_ENVIRONMENT}
+
+    environment:
+      OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT}
+      #http://aspire-dashboard:18889
+      OTEL_EXPORTER_OTLP_PROTOCOL: ${OTEL_EXPORTER_OTLP_PROTOCOL}
+      #grpc
+      NEXT_PUBLIC_OTEL_ENVIRONMENT: ${NEXT_PUBLIC_OTEL_ENVIRONMENT}
     restart: always
     ports:
       - 4000:3000
@@ -35,9 +44,12 @@ services:
     environment:
       ConnectionStrings__FlowmazonDB: ${ConnectionStrings__FlowmazonDB}
       ALLOWED_CORS_ORIGINS: ${ALLOWED_CORS_ORIGINS}
-      OTEL_EXPORTER_OTLP_ENDPOINT: http://aspire-dashboard:18889
-      OTEL_EXPORTER_OTLP_PROTOCOL: grpc
-      OTEL_RESOURCE_ATTRIBUTES: deployment.environment.name=local_testing
+      OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT}
+      #http://aspire-dashboard:18889
+      OTEL_EXPORTER_OTLP_PROTOCOL: ${OTEL_EXPORTER_OTLP_PROTOCOL}
+      #grpc
+      OTEL_RESOURCE_ATTRIBUTES: deployment.environment.name=${OTEL_ENVIRONMENT}
+      OTEL_EXPORTER_OTLP_HEADERS: ${OTEL_EXPORTER_OTLP_HEADERS}
 
     restart: always
     # Even though port 8080 on which Kestrel listens

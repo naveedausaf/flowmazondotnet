@@ -21,15 +21,7 @@
       "program": "${workspaceFolder}/flowmazonbackend/flowmazonapi/bin/Debug/net9.0/flowmazonapi.dll",
       "cwd": "${workspaceFolder}/flowmazonbackend/flowmazonapi",
       "stopAtEntry": false,
-      "env": {
-        "ASPNETCORE_ENVIRONMENT": "Development",
-        //setting this to the same value as the port used
-        //by the launch profiel from launchSettings.json in the
-        //.net core project that would be picked
-        //by default when theproject is launched using dotnet run
-        "ASPNETCORE_URLS": "http://localhost:3022",
-        "ALLOWED_CORS_ORIGINS": "http://localhost:3020"
-      },
+      "envFile": "${workspaceFolder}/.vscode/flowmazonapi.env",
       "sourceFileMap": {
         "/Views": "${workspaceFolder}/Views"
       },
@@ -54,9 +46,7 @@
       "program": "${workspaceFolder}/flowmazonfrontend/node_modules/next/dist/bin/next",
       "args": ["dev", "--port", "3020"],
       "console": "integratedTerminal",
-      "env": {
-        "NEXT_PUBLIC_BACKEND_URL": "http://localhost:3022"
-      },
+      "envFile": "${workspaceFolder}/.vscode/flowmazonfrontend.env",
       "serverReadyAction": {
         "pattern": "- Local:.+(https?://.+)",
         "uriFormat": "%s",

@@ -69,8 +69,8 @@ builder.Services.AddOpenTelemetry()
     {
         //add service.* attributes on the resource
         resource.AddService(
-            serviceName: "flowmazonapi",
-            serviceNamespace: "flowmazon",
+            serviceName: OtelConsts.ServiceName,
+            serviceNamespace: OtelConsts.ServiceNamespace,
 
             //see my FreeCodeCamp post:
             //https://www.freecodecamp.org/news/set-semantic-versioning-for-net/
@@ -79,7 +79,7 @@ builder.Services.AddOpenTelemetry()
   InformationalVersion);
 
         //deployment.environment.name to be set
-        //by OTEL_RESOURCE_ATTRIBUTES="deployment.environment.name=<local_testing|preview|uat|staging|production>"
+        //by OTEL_RESOURCE_ATTRIBUTES="deployment.environment.name=<vscode_launch|local_testing|preview|uat|staging|production>"
 
 
     })

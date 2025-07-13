@@ -21,7 +21,7 @@ import createAddProductPagePOM, {
 } from './index.pom';
 
 import { http, HttpResponse } from 'msw';
-import { config } from '@/utils/config';
+import config from '@/config/config';
 import createSubmitButtonPOM from '@/components/submitbutton/SubmitButton.pom';
 
 const meta: Meta<typeof AddProductPage> = {

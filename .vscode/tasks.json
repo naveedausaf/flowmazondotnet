@@ -14,7 +14,7 @@
       ],
       "problemMatcher": "$msCompile"
     },
-    //
+
     //IF YOU HAVE JUST ONE dotnet test PROJECT TO WATCH,
     //THEN the following would be enough. If not, use the
     //task currently in operation whic huses npm script
