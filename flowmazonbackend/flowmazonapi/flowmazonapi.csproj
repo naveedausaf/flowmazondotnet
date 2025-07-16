@@ -1,12 +1,10 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Web">
-
   <PropertyGroup>
     <TargetFramework>net9.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
     <Version>0.0.0-semanticrelease</Version>
-    <UserSecretsId>d923de63-851d-4a10-9907-96d9e66afff8</UserSecretsId>
   </PropertyGroup>
   <PropertyGroup>
 	  <GenerateDocumentationFile>true</GenerateDocumentationFile>

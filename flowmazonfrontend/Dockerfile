@@ -24,7 +24,13 @@ COPY nextDockerCompose.config.mjs ./next.config.mjs
 # ARG ENV_VARIABLE
 # ENV ENV_VARIABLE=${ENV_VARIABLE}
 ARG NEXT_PUBLIC_BACKEND_URL
+ARG NEXT_PUBLIC_FARO_URL
+ARG NEXT_PUBLIC_OTEL_ENVIRONMENT
+ARG NEXT_PUBLIC_FARO_SERVICE_NAME
 ENV NEXT_PUBLIC_BACKEND_URL=${NEXT_PUBLIC_BACKEND_URL}
+ENV NEXT_PUBLIC_FARO_URL=${NEXT_PUBLIC_FARO_URL}
+ENV NEXT_PUBLIC_OTEL_ENVIRONMENT=${NEXT_PUBLIC_OTEL_ENVIRONMENT}
+ENV NEXT_PUBLIC_FARO_SERVICE_NAME=${NEXT_PUBLIC_FARO_SERVICE_NAME}
 
 # Next.js collects completely anonymous telemetry data about general usage. Learn more here: https://nextjs.org/telemetry
 # Uncomment the following line to disable telemetry at build time

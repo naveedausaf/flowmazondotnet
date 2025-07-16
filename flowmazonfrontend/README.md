@@ -12,12 +12,22 @@ For actual sources of configuration data in each environment of this app, see to
 
 ### Required Configuration Keys
 
-1. `NEXT_PUBLIC_BACKEND_URL` is the URL of the backend API, without a slash (`/`) at the end.
-   Example: `http://localhost:5022`.
+- `NEXT_PUBLIC_BACKEND_URL` is the URL of the backend API, without a slash (`/`) at the end.
+  Example: `http://localhost:5022`.
+
+### Observability Configuration
+
+**For Observability,** the following keys should be provided otherwise no telemetry would be received in the observability backend (Grafana Cloud at the moment):
+
+- `NEXT_PUBLIC_FARO_URL`: URL of the Grafana Faro collector to which telemetry would be sent by the client-side part of the app that runs in the browse. This is displayed in Grafana Cloud when you create a Frontend Observability instance.
+- `NEXT_PUBLIC_FARO_SERVICE_NAME`: Name specified when creating a Frontend Observability instance in Grafana Cloud. This will be reported by client-side part of the app that runs in the browser when sending telemetry.
+- `NEXT_PUBLIC_OTEL_ENVIRONMENT`: An identifier for the environment in which the app is running e.g. `production`, `staging` or the local environment `local_testing`. For details, see Environments in wiki.
+  This will be reported by both the client- and server-side code in the app when sending telemetry. Client side browser code reports it as environment to the Faro collector whereas the server-side code reports it as `deployment.environment.name` attribute on the Open Telemetry [Resource](https://opentelemetry.io/docs/specs/semconv/resource/deployment-environment/)).
+- `OTEL_EXPORTER_OTLP_ENDPOINT`: URL of an OpenTelemetry Protocol (OTLP) ingestion endpoint. Server-side code in the app will use this to write telemetry.
+- `OTEL_EXPORTER_OTLP_PROTOCOL`: The transport, e.g. `grpc` or `http/protobuf`, that would be used to write telemetry to the OTLP endpoint by server-side code in the app.
+- `OTEL_EXPORTER_OTLP_HEADERS`: Authorization header that would be provided by the server-side code in the app to the observability backend. Grafana Cloud would show this if you press **Details** button on your **Stack**, then generate a new token; base-64 encoded value of this token would be included in the generated Authorization header that would be shown.
 
 ### Optional Configuration Keys
-
-- No optional configuration keys are set.
 
 - In addition to configuartion keys, one bit of configuartion may be provided as a command line parameter to the next server: the parameter `-p` passed to `next dev` and `next run` that sets the port at which the next web server would listen. **Default for this is 3000**.
 
