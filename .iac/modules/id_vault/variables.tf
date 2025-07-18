@@ -18,13 +18,8 @@ variable "id_and_vault_resource_group_location" {
   type        = string
 }
 
-variable "container_registry_name" {
-  description = "Name of the Azure Container Registry instance on which the created User-assigned Managed Identity would be assigned image pull premission."
-  type        = string
-}
-
-variable "container_registry_resource_group_name" {
-  description = "Name of the resource group in which the Azure container Registry instance lives."
+variable "container_registry_id" {
+  description = "ID of the Azure Container Registry instance on which the created User-assigned Managed Identity would be assigned image pull permission."
   type        = string
 }
 

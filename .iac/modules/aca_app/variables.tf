@@ -57,18 +57,17 @@ variable "app_container_max_replicas" {
   default     = 1 # safe, and economical for toy apps
 }
 
-variable "acr_name" {
-  description = "The name of the Azure Ccontainer Registry instance which contains the image to be deployed to the ACA app."
-  type        = string
-}
 
-variable "acr_resource_group_name" {
-  description = "Name of the Azure resource group in which the ACR instance exists."
+
+# TODO: Refactor the following three
+# module args into a single argument
+variable "image_login_server" {
+  description = "login_Server part of the name of the container image that is to be run e.g. in 'mcr.microsoft.com/apnet:8.0' the login_Server is 'mcr.microsoft.com'."
   type        = string
 }
 
 variable "image_repository" {
-  description = "Name of the Docker image to deploy (excluding the '<registry name>.azurecr.io/' prefix and the ':<tag>' suffix)"
+  description = "Name of the Docker image to deploy (excluding the '<login_server>/' prefix and the ':<tag>' suffix)"
   type        = string
 }
 
@@ -86,23 +85,13 @@ variable "app_revision_mode" {
   # default = "Single"
 }
 
-variable "managed_identity_name" {
-  description = "Name of the user-assigned managed identity that would be assigned to the ACA app. This would be used to pull image from Azure Container Regitry and read secret value from Azure Key Vault"
+variable "managed_identity_id" {
+  description = "id of the user-assigned managed identity that would be assigned to the ACA app. This would be used to pull image from Azure Container Regitry and read secret value from Azure Key Vault"
   type        = string
 }
 
-variable "managed_identity_resource_group_name" {
-  description = "Name of the resource group in which the user-assigned managed identity exists."
-  type        = string
-}
-
-variable "vault_name" {
-  description = "The name of the key vault from which secrets required by the app will be read."
-  type        = string
-}
-
-variable "vault_resource_group_name" {
-  description = "The name of the resource group that contains the key vault."
+variable "key_vault_id" {
+  description = "id of the key vault from which secrets required by the app will be read."
   type        = string
 }
 
@@ -112,8 +101,13 @@ variable "vault_resource_group_name" {
 # TODO: Make passing of secrets and non-secret
 # config keys and values to the deployed app generic
 # This would make the module reusable and publishable.
-variable "vault_secretname_connectionstring_for_api" {
+variable "vault_secretname_for_connectionstring" {
   description = "name of the secret whose value is the connection string to be used by the API to connect to the database"
+  type        = string
+}
+
+variable "vault_secretid_for_connectionstring" {
+  description = "id of the secret whose value is the connection string to be used by the API to connect to the database. This is required because we are using a user-assigned managed identity to access the secret."
   type        = string
 }
 
@@ -155,25 +149,8 @@ variable "cloudflare_api_token" {
   sensitive   = true
 }
 
-# TODO: document this in my environments documentation
-#
-# I assume you already have a DNS zone with CloudFlare for
-# the apex domain used in the domain name of the app. For example
-# if the domain name if `api.efast.uk`, the apex domain is
-# efast.uk.
-#
-# Create this zone by transferring setting Cloudflare's nameservers
-# as nameservers of the apex domain in control panel of the registrar
-# from whom you purchased the apex domain.
-# Cloudflare would also guide you through the process.
-
-# Once you have created an zone, i.e. Cloudflare manage
-# DNS queries for the apex domain, then go to CloudFlare Dashboard.
-# There click the apex domain name, and you would be taken to
-# the detail page of the associated zone. ZoneID would be 
-# displayed on this page (you may have to scroll down the page).
 variable "cloudflare_zone_id" {
-  description = "Zone ID of the apex domain for domain name specified in api_domain_name variable."
+  description = "Zone ID of the apex domain for domain name specified in api_domain_name variable. It is assumed that Cloudflare is managing the apex domain and therefore has a zone for it, whose Zone ID needs to be provided in this variable. If Cloudflare is does not manage the apex domain, then in order to use this module, you would need to transfer it to Cloudflare which would involve registering the nameservers that Cloudflare would show you when you transfer the apex domain to it, and registering these with your domain registrar."
   type        = string
   sensitive   = true
 }

@@ -1,22 +1,11 @@
 # Azure variables
 
-variable "vault_resource_group_name" {
-  description = "Name of the Azure resource group that contains the Azure Key Vault."
+variable "key_vault_id" {
+  description = "id of the Azure Key Vault into which the connection string of the created database would be stored."
   type        = string
 }
-
-variable "vault_name" {
-  description = "Name of the Azure Key Vault into which the connection string of the created database would be stored."
-  type        = string
-}
-
-variable "managed_identity_for_secret" {
-  description = "Name of the user-assigned maanged identity that would be assigned permission to read the conenction string that would be stored in the key vault as a secret."
-  type        = string
-}
-
-variable "managed_identity_for_secret_resource_group_name" {
-  description = "Name of user group in which the user-assigned maanged identity is contained."
+variable "managed_identity_for_secret_principal_id" {
+  description = "principal_id of the user-assigned maanged identity that would be assigned permission to read the conenction string that would be stored in the key vault as a secret."
   type        = string
 }
 

@@ -68,7 +68,7 @@ provider "azurerm" {
     }
     key_vault {
 
-      # In Production, we configure soft delete and purge-protectioon
+      # In Production, we configure soft delete and purge-protection
       # to enabled on key vaults, as per the best practices:
       # https://learn.microsoft.com/en-us/azure/key-vault/general/best-practices
       #      
@@ -167,27 +167,6 @@ provider "restful" {
     Content-Type  = "application/json"
     Authorization = "Bearer ${var.cloudflare_api_token}"
   }
-}
-
-provider "vercel" {
-
-  # TODO: Document this in environment documentation:
-
-  # To use this provider:
-  #
-  # 1. Log in to Vercel and click your avatar in top right hand side 
-  # of the page. Select "Account Settings". Then click "Tokens"
-  # in men on the left hand side. There, create a Token.
-  # Provide value of the generated token in an envirnment variable named 
-  # VERCEL_API_TOKEN when running this Terraform configuartion.
-  #
-  # 2. Copy your team id from the Settings page of a Team in your
-  # account and provide it as value of Terraform variable named
-  # `vercel_team_id` (again, yo ucan provide it as environment variable
-  # named TF_VAR_vercel_team_id).
-
-  team = var.vercel_team_id
-
 }
 
 provider "random" {

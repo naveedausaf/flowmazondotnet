@@ -48,7 +48,7 @@ provider "postgresql" {
 
   # Alias for clarity if multiple pg provider configs exist
   # USE RANDOM NAME IF FURTHER UNIQUENESS REQUIRED
-  alias           = "postgresql_provider_for_the_only_NeonDB_database_in_the_current_workspace"
+  alias           = "db_owner_connection"
   host            = neon_project.flowmazon_project.database_host
   port            = 5432
   database        = neon_database.flowmazon_db.name
@@ -132,15 +132,10 @@ resource "postgresql_default_privileges" "app_sequences_usage_select_future" {
 # managed identity whose name is provided
 
 
-data "azurerm_key_vault" "app" {
-  name                = var.vault_name
-  resource_group_name = var.vault_resource_group_name
-}
-
 resource "azurerm_key_vault_secret" "connstr_for_api" {
   name = var.vault_secretname_for_connectionstring
 
-  key_vault_id = azurerm_key_vault.vault.id
+  key_vault_id = var.key_vault_id
 
   value = "Server=${neon_project.flowmazon_project.database_host};Port=5432;Database=${neon_database.flowmazon_db.name};User Id=${neon_role.app_role.name};Password=${neon_role.app_role.password}"
 
@@ -149,20 +144,15 @@ resource "azurerm_key_vault_secret" "connstr_for_api" {
 # NOW assign read permission on the connection string secret
 # to the supplied user-asigned managed identity.
 
-data "azurerm_user_assigned_identity" "connection_string" {
-  name                = var.managed_identity_for_secret
-  resource_group_name = var.managed_identity_for_secret_resource_group_name
-}
-
 # Access Policies aer a legacy authorization model in Azure Key Vault
 # So using Azure RBAC which is now the recommendation
 # RBAC for Vault also allows key/secret/certificate-level access control
 # role and scope chosen based on this page and app requirements:
 # https://learn.microsoft.com/en-us/azure/key-vault/general/rbac-guide?tabs=azure-cli
 resource "azurerm_role_assignment" "connection_string" {
-  scope                = azurerm_key_vault.vault.id
+  scope                = var.key_vault_id
   role_definition_name = "Key Vault Secrets User"
-  principal_id         = azurerm_user_assigned_identity.connection_string.principal_id
+  principal_id         = var.managed_identity_for_secret_principal_id
 
 }
 

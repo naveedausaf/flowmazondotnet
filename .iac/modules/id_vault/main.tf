@@ -36,18 +36,13 @@ data "azurerm_client_config" "current" {}
 # ACR, key vault has its own firewall which can be configured)
 resource "azurerm_key_vault" "vault" {
   name                       = var.key_vault_name
-  location                   = azurerm_resource_group.core.location
-  resource_group_name        = azurerm_resource_group.core.name
+  location                   = azurerm_resource_group.id_and_vault.location
+  resource_group_name        = azurerm_resource_group.id_and_vault.name
   tenant_id                  = data.azurerm_client_config.current.tenant_id
   sku_name                   = "standard"
   enable_rbac_authorization  = true
   soft_delete_retention_days = 90
   purge_protection_enabled   = true
-}
-
-data "azurerm_container_registry" "registry" {
-  name                = var.container_registry_name
-  resource_group_name = var.container_registry_resource_group_name
 }
 
 
@@ -56,7 +51,7 @@ data "azurerm_container_registry" "registry" {
 # support Azure ABAC whereby we can constrain permissions
 # to pull a specific image only.
 resource "azurerm_role_assignment" "container_registry_reader" {
-  scope                = azurerm_container_registry.registry.id
+  scope                = var.container_registry_id
   role_definition_name = "AcrPull"
   principal_id         = azurerm_user_assigned_identity.identity.principal_id
 

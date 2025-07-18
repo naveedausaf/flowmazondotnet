@@ -1,6 +1,6 @@
 This Terraform module does the following:
 
-- creates a new resource group for housing the Azure Contanier App environment and app.
+- creates a new resource group for housing the Azure Container App environment and app.
 - creates a new Azure Container Apps environment in the newly created resoruce group
 - creates a new Azure Container Apps app in the newly created environment, with the following configuartion:
   - Has an HTTP Ingress that:
@@ -9,7 +9,12 @@ This Terraform module does the following:
     - only from [IP addresses that CloudFlare uses to proxy traffic](https://developers.cloudflare.com/fundamentals/concepts/cloudflare-ip-addresses/#allow-cloudflare-ip-addresses) to proxied servers.
     - accepts a TLS certificate provided by the caller but doesn't require it.
       I do not set `client_certificate_mode` on the app to `required` because merely requiring a client certificate does not enable mTLS (see note below).
-  - runs a container from image located in Azure Container Registry with name `var.acr_name`. The image itself has repository `var.image_repository` and tag `var.image_tag`. Liveness, Health and Readiness probes are as specified by corresponding input variables.
+  - runs a container from image located in Azure Container Registry with name `var.image_login_server`.
+
+    The image itself has repository `var.image_repository` and tag `var.image_tag`.
+
+    Liveness, Health and Readiness probes are as specified by corresponding input variables.
+
   - The container is passed environment variable named `ALLOWED_CORS_ORIGINS` and a secret named `ConnectionStrings__FlowmazonDB` from vault named `var.vault_name`
 
 - creates a CNAME and TXT record in the CloudFlare Zone identified by `var.cloudflare_zone_id` which proxies requests through cloudflare to the FQDN of the ACA app.
@@ -20,19 +25,19 @@ This Terraform module does the following:
 
 ### Assumptions
 
-- This module assumes that a cloudflare zone already exists for the apex domain, a subdomain of which is going to be mapped to the ACA app via a CNAME record. The Zone ID of this zone is waht is provided as value of input variable `cloudflare_zone_id`.
+- This module assumes that a cloudflare zone already exists for the apex domain, a subdomain of which is going to be mapped to the ACA app via a CNAME record. The Zone ID of this zone is what is provided as value of input variable `cloudflare_zone_id`.
 
 ### Rate Limiting Rule
 
 - On paid plans, you can create multiple reate limiting rules and different rate limiting rules for different hostnames in the zone.
 
-  However, on the free plan, you can have just one Rate Lmiting Rule and this may only be created at the zone level.
+  However, on the free plan, you can have just **one Rate Limiting Rule per zone** and this may only be created at the zone level.
 
   **To be able to work with the CloudFlare Free plan, this module creates a zone-level rate limiting rule. BEWARE THAT:**
   - the rule would apply to all CNAME and A records in the zone that are proxied through cloudflare.
-  - On `terraform delete` the rule would be deleted. This may be problem if yo u have other DNS records on the zone that are proxied through Cloudflare for they would lose the protection of that rule also.
+  - On `terraform delete` the rule would be deleted. This may be problem if you have other DNS records on the zone that are proxied through Cloudflare for they would lose the protection of that rule also.
 
-- The slight complication with a zone-level rate limiting rule (at least on the free plan), is that it may already exist even if you can't see it in the Cloudflare Dashboard (perhaps you created it in the CloudFlare UI and later deleted it?). If such a rule does exist and you can't see it in the UI, all that creating a new rule in the UI would do is enable the existing rule.
+- A slight complication with a zone-level rate limiting rule (at least on the free plan), is that it may already exist even if you can't see it in the Cloudflare Dashboard (perhaps you created it in the CloudFlare UI and later deleted it?). If such a rule does exist and you can't see it in the UI, all that creating a new rule in the UI would do is enable the existing rule.
 
   So in Terraform code I assume the rule if it exists is called `"default"`. I got this name by executing the following cURL, which returned all ruleset.
   From this I picked out the "name" of the ruleset for
