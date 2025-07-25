@@ -33,31 +33,6 @@ terraform {
       version = "0.22.0" # version pinned for repeatability
     }
 
-    vercel = {
-
-      source  = "vercel/vercel"
-      version = "3.7.0" # version pinned for repeatability
-    }
-
-    random = {
-      source  = "hashicorp/random"
-      version = "3.7.2"
-    }
-
-    neon = {
-      source  = "kislerdm/neon"
-      version = "0.9.0" # Pinned for repeatability
-    }
-    # adding this provider as neon provider
-    # only provisions a user in neon_superuser role.
-    # To add other types of users - which we need to -
-    # we need to use this provider
-    # https://neon.com/docs/manage/roles
-    postgresql = {
-      # Using cyrilgdn/postgresql provider
-      source  = "cyrilgdn/postgresql"
-      version = "1.25.0" # Pinned to specific version
-    }
   }
 }
 
@@ -167,12 +142,4 @@ provider "restful" {
     Content-Type  = "application/json"
     Authorization = "Bearer ${var.cloudflare_api_token}"
   }
-}
-
-provider "random" {
-  # Configuration options
-}
-
-provider "neon" {
-  # API key to be provided via env variable NEON_API_KEY
 }

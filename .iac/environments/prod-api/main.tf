@@ -9,7 +9,13 @@ module "aca_app" {
   app_container_port            = var.app_container_port
   app_container_liveness_probe  = "/health/live"
   app_container_readiness_probe = "/health/ready"
-  app_container_startup_probe   = "/health/live"
+
+  # Given the definition of liveness probe in the 
+  # ASP.NET Core API, it is stronger than def of livenvess
+  # probe for an ACA app and meets the definition of startup
+  # probe of an ACA app. 
+  # Hence why we have used it in both places.
+  app_container_startup_probe = "/health/live"
 
   acr_name = var.acr_name
 
