@@ -1,114 +1,150 @@
-# vars for aca_app module
-#
-# We already have info for the following input variables 
-# for this module:
-#
-# acr_name
-# acr_resource_group_name
-# app_revison_mode - this would always be "Multiple" for Blue-Green
-# managed_identity_name
-# managed_identity_resource_group_name
-# vault_name
-# vault_resource_group_name
-# vault_secretname_connectionstring_for_api
-#
-# And for the following we are relying on defaults, so not
-# inputting or supplying a value:
-#
-# app_container_max_replicas
-# cloudflare_rate_limiting_rule_name
-
-
 variable "app_resource_group_name" {
   description = "The name of the Azure resource group in which the app would be created."
   type        = string
-  default     = "rg-flowmazon-api-prod"
 }
 
 variable "app_resource_group_location" {
   description = "Location of the Azure resource group n which the app would be created."
   type        = string
-  default     = "East US 2"
 }
 
 variable "app_name" {
   description = "Name of the ACA app that would be created."
   type        = string
-  default     = "aca-app-flowmazonapi-prod"
 }
 
 variable "app_environment_name" {
   description = "Name of the ACA environment that would be created and would contain the ACA app"
   type        = string
-  default     = "aca-env-flowmazonapi-prod"
 }
 
 variable "app_domain_name" {
   description = "The custom domain name for the app, e.g. api.efast.uk"
   type        = string
-  default     = "api.efast.uk"
 }
 
 variable "app_container_name" {
   description = "Name of the Docker container that would be created in the ACA app"
   type        = string
-  default     = "flowmazonapi"
 }
 
 variable "app_container_port" {
   description = "port at which the app container listens"
   type        = number
-  default     = 8080
 }
 
-variable "app_container_liveness_probe" {
-  description = "The pathname (starting with `/`) of the Liveness probe for the container (e.g. an endpoint `/health/live` implemented by the app running in the container). For more details see https://learn.microsoft.com/en-us/azure/container-apps/health-probes?tabs=arm-template"
-  type        = string
-  nullable    = true
-  default     = "/health/live"
+variable "app_container_max_replicas" {
+  description = "Mazimum number of replicas that the container should scale to."
+  type        = number
+  default     = 1 # safe, and economical for toy apps
 }
 
-variable "app_container_readiness_probe" {
-  description = "The pathname (starting with `/`) of the Readiness probe for the container (e.g. an endpoint `/health/ready` implemented by the app running in the container). For more details see https://learn.microsoft.com/en-us/azure/container-apps/health-probes?tabs=arm-template"
+variable "acr_name" {
+  description = "The name of the Azure Ccontainer Registry instance which contains the image to be deployed to the ACA app."
   type        = string
-  nullable    = true
-  default     = "/health/ready"
 }
 
-variable "app_container_startup_probe" {
-  description = "The pathname (starting with `/`) of the Startup probe for the container (e.g. an endpoint `/health/startup` implemented by the app running in the container). For more details see https://learn.microsoft.com/en-us/azure/container-apps/health-probes?tabs=arm-template"
+variable "acr_resource_group_name" {
+  description = "Name of the Azure resource group in which the ACR instance exists."
   type        = string
-  nullable    = true
-  default     = "/health/live"
 }
 
 variable "image_repository" {
   description = "Name of the Docker image to deploy (excluding the '<registry name>.azurecr.io/' prefix and the ':<tag>' suffix)"
   type        = string
-  default     = "flowmazondotnet-flowmazonbackend"
 }
 
 variable "image_tag" {
   description = "tag of the image whose name is provided in `image_repository`"
   type        = string
-  default     = "v1.0.1"
+}
+
+variable "managed_identity_name" {
+  description = "Name of the user-assigned managed identity that would be assigned to the ACA app. This would be used to pull image from Azure Container Regitry and read secret value from Azure Key Vault"
+  type        = string
+}
+
+variable "managed_identity_resource_group_name" {
+  description = "Name of the resource group in which the user-assigned managed identity exists."
+  type        = string
+}
+
+variable "vault_name" {
+  description = "The name of the key vault from which secrets required by the app will be read."
+  type        = string
+}
+
+variable "vault_resource_group_name" {
+  description = "The name of the resource group that contains the key vault."
+  type        = string
+}
+
+# Variables for configuration specific to application logic
+############################################################
+
+# TODO: Make passing of secrets and non-secret
+# config keys and values to the deployed app generic
+# This would make the module reusable and publishable.
+variable "vault_secretname_connectionstring_for_api" {
+  description = "name of the secret whose value is the connection string to be used by the API to connect to the database"
+  type        = string
 }
 
 variable "allowed_cors_origins_for_api" {
   description = "the string that would be set as value of config key ALLOWED_CORS_ORIGINS for the API"
   type        = string
-  default     = "www.efast.uk"
 
 }
 
-# cloudflare and restful PROVIDERS
+locals {
+  allowed_cors_origins_env_var_name = "ALLOWED_CORS_ORIGINS"
+  connection_string_env_var_name    = "ConnectionStrings__FlowmazonDB"
+
+}
+
+
+# Cloudflare variables
+############################################################
+# To generate this token, create an Account API token by going
+# to your user profile in your CloudFalre account, then clicking
+# **API Token** in the nav on the left hand side.
+#
+# Note an Account API token is preferred to a User API token.
+#
+# Give the token the following permissions: 
+# 1. 'Zone | DNS | Edit` (to create and modify TXT and CNAME records)
+# 2. 'Zone | Zone WAF | Edit` (to set rate limiting rule)
+# to 'on' which ensures that CloudFlare would present a certificate
+# to target of CNAME record when communicating with it; this 
+# achieves mTLS.
+# 
+# Make sure that the zone of interest on which these permissions apply
+# is also selected under 'Zone Resources' - or 'All zones from the acount' 
+# is selected - when you assign permissions to the token.
+#
 variable "cloudflare_api_token" {
   description = "CloudFlare's API Token."
   type        = string
   sensitive   = true
-
 }
 
+# TODO: document this in my environments documentation
+#
+# I assume you already have a DNS zone with CloudFlare for
+# the apex domain used in the domain name of the app. For example
+# if the domain name if `api.efast.uk`, the apex domain is
+# efast.uk.
+#
+# Create this zone by transferring setting Cloudflare's nameservers
+# as nameservers of the apex domain in control panel of the registrar
+# from whom you purchased the apex domain.
+# Cloudflare would also guide you through the process.
+
+# Once you have created an zone, i.e. Cloudflare manage
+# DNS queries for the apex domain, then go to CloudFlare Dashboard.
+# There click the apex domain name, and you would be taken to
+# the detail page of the associated zone. ZoneID would be 
+# displayed on this page (you may have to scroll down the page).
 variable "cloudflare_zone_id" {
   description = "Zone ID of the apex domain for domain name specified in api_domain_name variable."
   type        = string
@@ -118,5 +154,31 @@ variable "cloudflare_zone_id" {
 variable "rate_limit_requests_per_period" {
   description = "number of request that, if received in the configured `period` (fixed to 10 seconds in free plan), would lead to the sending IP being blocked for the configured `mitigation_timeout` (also fixed to 10 seconds in free plan)"
   type        = number
-  default     = 20
 }
+
+variable "cloudflare_rate_limiting_rule_name" {
+  description = "Name of the rate limiting rule. This has several nuances, including why it is creaed at the Zone level rather than hostname level and why it defaults to value \"default\". See README for details."
+  type        = string
+  default     = "default"
+
+}
+
+##########
+
+# variable "blue-version-number" {
+#     description = "SemVer version number of the last deployment to the Blue environment"
+#     type = string
+
+# }
+
+# variable "green-version-number" {
+#     description = "SemVer version number of the last deployment to the Green environment"
+#     type = string
+
+# }
+
+# variable "production-env" {
+#     description = "Label - either `blue` or `green` - of the environment that is currently live"
+#     type = string
+#     default = "blue"
+# }
