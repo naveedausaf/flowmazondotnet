@@ -300,8 +300,8 @@ resource "cloudflare_dns_record" "app_txt" {
 # ENABLE RATE LIMITING ON THE ZONE
 #######################################################################
 
-# I generated this by creating the rule in the UI. They display
-# API Call at the bottom of the page. I took it and tweaked
+# I created this resource by first creating the rule in the UI. That
+# displayed an API Call at the bottom of the page. I took it and tweaked
 # it to be properties of this cloudflare_ruleset resource
 
 # It still didn't work because a previously deleted rate limiting
