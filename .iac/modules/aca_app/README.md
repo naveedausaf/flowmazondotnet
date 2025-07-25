@@ -79,3 +79,8 @@ Here is how you could enable mTLS between CloudFlare and your app:
 - The second thing you ned to do is to authenticate the presented certificate when a call is received in to your app. This may be done in several ways. Two possibilities are as follows:
   - Store the expected client certificate with a sevice like Azure Gateway which would check it on every call to your app that it intercepts.
   - Set the `clientCertificateMode` of the Ingress on the ACA app to `require` (in Terraform this means setting `ingress.client_certificate_mode` on the app to `"require"`) as described [here](https://learn.microsoft.com/en-us/azure/container-apps/mtls) and [here](https://learn.microsoft.com/en-us/azure/container-apps/client-certificate-authorization#example-x-forwarded-client-cert-header-value), then verify the received certificate in application code which in an ASP.NET Core app can be done using the Authentication middleware [as described here](https://learn.microsoft.com/en-us/aspnet/core/security/authentication/certauth?view=aspnetcore-9.0).
+
+## Other Usage Notes
+
+- Creating an ACA app requires that a container image be provided. If this could not be sourced during `terraform apply`, e.g. because the specified image was not uploaded into the specified ACR instance, then ACA app creation would fail.
+  When this happens, `terrraform destroy` can take a lot of time to complete, sometimes upwards of 12 minutes, almost all of which seems to be spent tearing down the ACA app and the ACA app environment.
