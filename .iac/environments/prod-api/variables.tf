@@ -45,7 +45,12 @@ variable "acr_name" {
 }
 
 variable "acr_resource_group_name" {
-  description = "Name of the Azure resource group in which the ACR instance exists."
+  description = "Name of the resource group that would be created. The Azure Container Registry instance created by this module would be placed in this resource group."
+  type        = string
+}
+
+variable "id_and_vault_resource_group_name" {
+  description = "Name of the Azure resource group in which the vault and user-assinged managed identity exists."
   type        = string
 }
 
@@ -64,18 +69,8 @@ variable "managed_identity_name" {
   type        = string
 }
 
-variable "managed_identity_resource_group_name" {
-  description = "Name of the resource group in which the user-assigned managed identity exists."
-  type        = string
-}
-
-variable "vault_name" {
+variable "key_vault_name" {
   description = "The name of the key vault from which secrets required by the app will be read."
-  type        = string
-}
-
-variable "vault_resource_group_name" {
-  description = "The name of the resource group that contains the key vault."
   type        = string
 }
 
@@ -85,7 +80,7 @@ variable "vault_resource_group_name" {
 # TODO: Make passing of secrets and non-secret
 # config keys and values to the deployed app generic
 # This would make the module reusable and publishable.
-variable "vault_secretname_connectionstring_for_api" {
+variable "vault_secretname_for_connectionstring" {
   description = "name of the secret whose value is the connection string to be used by the API to connect to the database"
   type        = string
 }

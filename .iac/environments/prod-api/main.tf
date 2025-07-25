@@ -18,13 +18,13 @@ module "aca_app" {
   image_tag                            = var.image_tag
   app_revision_mode                    = "Multiple"
   managed_identity_name                = var.managed_identity_name
-  managed_identity_resource_group_name = var.managed_identity_resource_group_name
+  managed_identity_resource_group_name = var.id_and_vault_resource_group_name
 
-  vault_name = var.vault_name
+  vault_name = var.key_vault_name
 
-  vault_resource_group_name = var.vault_resource_group_name
+  vault_resource_group_name = var.id_and_vault_resource_group_name
 
-  vault_secretname_connectionstring_for_api = var.vault_secretname_connectionstring_for_api
+  vault_secretname_connectionstring_for_api = var.vault_secretname_for_connectionstring
 
   allowed_cors_origins_for_api   = var.allowed_cors_origins_for_api
   cloudflare_api_token           = var.cloudflare_api_token

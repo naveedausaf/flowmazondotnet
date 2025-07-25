@@ -1,8 +1,8 @@
 module "registry" {
   source                                     = "../../modules/registry"
-  container_registry_name                    = var.container_registry_name
-  container_registry_resource_group_name     = var.container_registry_resource_group_name
-  container_registry_resource_group_location = var.container_registry_resource_group_location
+  container_registry_name                    = var.acr_name
+  container_registry_resource_group_name     = var.acr_resource_group_name
+  container_registry_resource_group_location = var.acr_resource_group_location
 
 }
 
