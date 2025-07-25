@@ -37,21 +37,22 @@ This Terraform module does the following:
   - the rule would apply to all CNAME and A records in the zone that are proxied through cloudflare.
   - On `terraform delete` the rule would be deleted. This may be problem if you have other DNS records on the zone that are proxied through Cloudflare for they would lose the protection of that rule also.
 
-- A slight complication with a zone-level rate limiting rule (at least on the free plan), is that it may already exist even if you can't see it in the Cloudflare Dashboard (perhaps you created it in the CloudFlare UI and later deleted it?). If such a rule does exist and you can't see it in the UI, all that creating a new rule in the UI would do is enable the existing rule.
-
-  So in Terraform code I assume the rule if it exists is called `"default"`. I got this name by executing the following cURL, which returned all ruleset.
-  From this I picked out the "name" of the ruleset for
-  `phase = "http_ratelimit"` and used this name in Terraform to create/update the rate limiting rule
+- **A complication with the zone-level rate limiting rule tha this module creates, at least on the free plan, is that it may already exist** even if you can't see it in the Cloudflare Dashboard. This may be because you created it earlier in the CloudFlare UI and then deleted it. If so, it would likely not have been been deleted and continue to exist, most likely with the name of **"default"** even if you had given it another name.
+  **BEFORE USING THIS MODULE,** certainly if you are on the Free plan, **check if a zone level rate-limiting rule exists and delete it if it does, as follows** (deleting the rule in the UI would not work!). You can use the same `{api token}` that you have created to use this module:
+  1. Run the following cURL to see if there is an existing ruleset with `phase = "http_ratelimit"`:
 
   ```bash
   curl -X GET "https://api.cloudflare.com/client/v4/zones/{zone_id}/rulesets" \
-   -H "Authorization: Bearer {api_token}" \
-   -H "Content-Type: application/json"
+    -H "Authorization: Bearer {api_token}" \
+    -H "Content-Type: application/json"
   ```
+  2. In the list of rulesets that gets printed, take note of the `id` property of the ruleset with `phase = "http_ratelimit"`.
 
-  **If you're on the free plan and get an error creating the rate limiting rule when running the module,** check if there is an existing rate limiting rule with `phase = "http_ratelimit"`and what its name is. If different from `"default"`, supply that name as value of input variable `cloudflare_rate_limiting_rule_name`.
+  3. Now run the following cURL to delete the rule with `phase = "http_ratelimit"` if you found one:
 
-  **Note that the name of the rule returned by cURL above may be different from how it appears in the UI** (if the rule already exists). **We want the rule name as it is reported by the above cURL**.
+  ```bash
+  curl -X DELETE  "https://api.cloudflare.com/client/v4/zones/{zone id}/rulesets/{id of the ruleset}"   -H "Authorization: Bearer {api_token}"
+  ```
 
 ## Enabling mTLS (mutual Transport Layer Security) between CloudFlare and your ACA app
 

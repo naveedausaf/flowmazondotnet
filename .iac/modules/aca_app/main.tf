@@ -309,18 +309,16 @@ resource "cloudflare_dns_record" "app_txt" {
 # deleting a rate limiting rule for the zone in Cloudflare Dashboard
 # was doing was turning it on or off.
 
-# So I ran the following cURL to get the "name" of the existing rule
-# for the ruleset with phase = "http_ratelimit":
+# So I ran the following cURL to see the existing ruleset 
+# with phase = "http_ratelimit":
 
 # curl -X GET "https://api.cloudflare.com/client/v4/zones/{zone_id}/rulesets" \
 #  -H "Authorization: Bearer {api_token}" \
 #  -H "Content-Type: application/json"
 
-# Contrary to what the documentation for this Terraform resource
-# suggested (at version 5.6.0), I could not set "id" of that
-# ruleset to the "id" that I saw in the returned results. When I
-# tried to do that, and got the error that the provider doesn't allow
-# "id" to be set and it is a read-only field.
+# I delete this via a curl -X DELETE call. The whole process
+# is documented in the README of this module. From then on, this
+# module runs fine on every apply and destroy.
 
 resource "cloudflare_ruleset" "zone_rate_limit" {
 
