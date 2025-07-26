@@ -12,6 +12,7 @@ using System.Text;
 using DotNet.Testcontainers.Networks;
 using flowmazonapi.TestSupport;
 using Microsoft.EntityFrameworkCore;
+using System.Net;
 
 namespace flowmazonapi.IntegrationTests;
 
@@ -70,9 +71,11 @@ public class APITestFixture : IAsyncLifetime
 
     public async Task InitializeAsync()
     {
+        //create Docker network
         Network = new NetworkBuilder()
             .Build();
 
+        //create db container
         const string databaseCotainerNetworkAlias = "database-container";
         PostgresContainer = new PostgreSqlBuilder()
         .WithNetwork(_network)
@@ -82,13 +85,14 @@ public class APITestFixture : IAsyncLifetime
         await PostgresContainer.StartAsync().ConfigureAwait(false);
         await ProductTestData.MigratePgsqlSUTDatabase(PostgresContainer.GetConnectionString());
 
-        var futureImage = new ImageFromDockerfileBuilder()
+
+        var sutImage = new ImageFromDockerfileBuilder()
   .WithDockerfileDirectory(CommonDirectoryPath.GetSolutionDirectory(), string.Empty)
   .WithDockerfile("Dockerfile")
   //.WithLogger(Logger)
   .Build();
 
-        await futureImage.CreateAsync().ConfigureAwait(false);
+        await sutImage.CreateAsync().ConfigureAwait(false);
 
         //basing this on the format of the connection string
         //returned by PostgreContainer.GetConnectionString()
@@ -105,13 +109,28 @@ public class APITestFixture : IAsyncLifetime
         //also exposed on the container, and the network alias
         //that we have assigned to the DB container on the SDN
         //instead of 127.0.0.1.
-        var networkConnectionString = $"Host={databaseCotainerNetworkAlias};Port={PostgreSqlBuilder.PostgreSqlPort};Database={PostgreSqlBuilder.DefaultDatabase};Username={PostgreSqlBuilder.DefaultUsername};Password={PostgreSqlBuilder.DefaultPassword}";
+        var connectionStringInDockerNetwork = $"Host={databaseCotainerNetworkAlias};Port={PostgreSqlBuilder.PostgreSqlPort};Database={PostgreSqlBuilder.DefaultDatabase};Username={PostgreSqlBuilder.DefaultUsername};Password={PostgreSqlBuilder.DefaultPassword}";
 
-        SUTContainer = new ContainerBuilder().WithImage(futureImage)
-        .WithEnvironment("ConnectionStrings__FlowmazonDB", networkConnectionString)
+        SUTContainer = new ContainerBuilder().WithImage(sutImage)
+        .WithEnvironment("ConnectionStrings__FlowmazonDB", connectionStringInDockerNetwork)
         .WithEnvironment("ALLOWED_CORS_ORIGINS", "http://localhost")
+        //
+        //Grafana Cloud Otel configuration below. 
+        //Uncomment to obtain telmetry for debugging.
+        //Provide Authirization Header TEMPORARILY when
+        //uncommenting (DO NOT CHECK THAT IN!)
+        //
+        // .WithEnvironment("OTEL_EXPORTER_OTLP_ENDPOINT", "https://otlp-gateway-prod-eu-west-2.grafana.net/otlp")
+        // .WithEnvironment("OTEL_EXPORTER_OTLP_PROTOCOL", "http/protobuf")
+        // .WithEnvironment("OTEL_EXPORTER_OTLP_HEADERS", "<put Authorization Header displayed in Grafana Cloud's UI here>")
+        // .WithEnvironment("OTEL_RESOURCE_ATTRIBUTES", "deployment.environment.name=api-int-test")
         .WithPortBinding(SUTContainerExposedPort, true)
         .WithNetwork(_network)
+        .WithWaitStrategy(Wait.ForUnixContainer().UntilHttpRequestIsSucceeded(request => request
+    .ForPath(ConfigConsts.ReadinessEndpoint)
+    .ForPort(SUTContainerExposedPort)
+    .ForStatusCode(HttpStatusCode.OK)
+    ))
         .Build();
 
         await SUTContainer.StartAsync().ConfigureAwait(false);

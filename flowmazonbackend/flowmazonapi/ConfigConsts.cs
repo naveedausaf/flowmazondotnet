@@ -6,4 +6,9 @@ public static class ConfigConsts
     public const string CORSConfigKey = "ALLOWED_CORS_ORIGINS";
     public const string UnitTestingEnvironmentName = "UnitTesting";
 
+    public const string ReadinessEndpoint = "/health/ready";
+    public const string LivenessEndpoint = "/health/live";
 }
+
+
+

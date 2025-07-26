@@ -63,7 +63,7 @@ builder.Services.AddOpenTelemetry()
     // See details of what a Resource is:
     // https://opentelemetry.io/docs/languages/dotnet/resources/
 
-    //and the semantic conventions, i..e. standardised attribute names, that apply to a Resource:
+    //and the semantic conventions, i.e. standardised attribute names, that apply to a Resource:
     // https://opentelemetry.io/docs/specs/semconv/resource/
     .ConfigureResource(resource =>
     {
@@ -79,7 +79,7 @@ builder.Services.AddOpenTelemetry()
   InformationalVersion);
 
         //deployment.environment.name to be set
-        //by OTEL_RESOURCE_ATTRIBUTES="deployment.environment.name=<vscode_launch|local_testing|preview|uat|staging|production>"
+        //by OTEL_RESOURCE_ATTRIBUTES="deployment.environment.name=<see individual environment definitions>"
 
 
     })
@@ -168,6 +168,7 @@ if (!builder.Environment.IsEnvironment(ConfigConsts.UnitTestingEnvironmentName))
 
         }
     );
+
 }
 
 // builder.Services.AddScoped(typeof(FluentValidation.IValidator<Product>), typeof(ProductValidator));
@@ -253,6 +254,8 @@ if (!builder.Environment.IsEnvironment(ConfigConsts.UnitTestingEnvironmentName))
 }
 var app = builder.Build();
 
+app.Logger.LogInformation("Built the WebApplication with builder.Build() call");
+
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler();
@@ -271,24 +274,30 @@ ProductHandlers.MapRoutes(app.MapGroup("/product")).WithTags("product Operations
 
 if (!builder.Environment.IsEnvironment(ConfigConsts.UnitTestingEnvironmentName))
 {
+    app.Logger.LogInformation("Configuring health checks...");
     /*
     Map readiness check endpoint.
 
     Could be to make sure service is available to handle requests, e.g. when using `wait-on` NPM package or in Docker Compose service dependencies
     */
-    app.MapHealthChecks("/health/ready");
+    app.MapHealthChecks(ConfigConsts.ReadinessEndpoint);
+    app.Logger.LogInformation("Configured readiness health check");
 
     /*
     Map LIVENESS check endpoint
 
     Could be used by an orchestrator to restart an instance/container
     */
-    app.MapHealthChecks("/health/live", new HealthCheckOptions()
+    app.MapHealthChecks(ConfigConsts.LivenessEndpoint, new HealthCheckOptions()
     {
         Predicate = healthCheck => healthCheck.Tags.Contains(ApplicationLifecycleHealthCheckName),
     });
+    app.Logger.LogInformation("Configured liveness health check");
 }
+
+app.Logger.LogInformation("About to call app.Run()");
 app.Run();
+app.Logger.LogInformation("app.Run() called successfully. App is now running...");
 
 
 public partial class Program { }
