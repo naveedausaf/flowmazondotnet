@@ -6,7 +6,7 @@ Generic Host in .NET Core loads configuartion key/value pairs from a number of s
 
 You can also add optional sources of configuration data such as Azure App Configuration.
 
-For actual sources of configuration data in each environment of this app, see top-level README for the solution.
+For actual sources of configuration data in a particular (local or non-local) environment of this app, see environment definition in project wiki.
 
 ### Required Configuration Keys
 
@@ -23,6 +23,8 @@ The following confguration settings must be provided:
   **This does need to be set to a valid value,** even if the app is not supposed take requests from a browser. **Therefore in API integration tests, I set it to a dummy value ( e.g. `http://localhost`)**.
 
 ### Observability Configuration
+
+**For Observability,** the following keys should be provided otherwise no telemetry would be received in the observability backend (some local environments do not generate telemetry and so may not provides values for these; see relevant evironment's definition for details):
 
 - `OTEL_EXPORTER_OTLP_ENDPOINT`: URL of an OpenTelemetry Protocol (OTLP) ingestion endpoint to which telemetry would be written using Open Telemetry.
 - `OTEL_EXPORTER_OTLP_PROTOCOL`: The transport, e.g. `grpc` or `http/protobuf`, that would be used to write telemetry to the OTLP endpoint.

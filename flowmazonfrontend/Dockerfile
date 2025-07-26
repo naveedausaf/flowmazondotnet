@@ -58,11 +58,20 @@ COPY --from=builder /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
-# Environment variables must be redefined at run time
-ARG ENV_VARIABLE
-ENV ENV_VARIABLE=${ENV_VARIABLE}
-ARG NEXT_PUBLIC_ENV_VARIABLE
-ENV NEXT_PUBLIC_ENV_VARIABLE=${NEXT_PUBLIC_ENV_VARIABLE}
+# Environment variables may be redefined at run time
+# but right now, while building the image, we assign
+# them default values from ARGs for NEXT_PUBLIC_ vars
+# they shouldn't really need to be overridden at run time.
+# Also see:
+# https://github.com/vercel/next.js/discussions/14030
+ARG NEXT_PUBLIC_BACKEND_URL
+ARG NEXT_PUBLIC_FARO_URL
+ARG NEXT_PUBLIC_OTEL_ENVIRONMENT
+ARG NEXT_PUBLIC_FARO_SERVICE_NAME
+ENV NEXT_PUBLIC_BACKEND_URL=${NEXT_PUBLIC_BACKEND_URL}
+ENV NEXT_PUBLIC_FARO_URL=${NEXT_PUBLIC_FARO_URL}
+ENV NEXT_PUBLIC_OTEL_ENVIRONMENT=${NEXT_PUBLIC_OTEL_ENVIRONMENT}
+ENV NEXT_PUBLIC_FARO_SERVICE_NAME=${NEXT_PUBLIC_FARO_SERVICE_NAME}
 
 # Uncomment the following line to disable telemetry at run time
 # ENV NEXT_TELEMETRY_DISABLED 1

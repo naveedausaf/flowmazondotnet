@@ -8,7 +8,7 @@ This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next
 
 **In all other settings, as far as I know,** configuartion key/value pairs should be set as environment variables even thoug hit is possible to provide them in an `.env` file.
 
-For actual sources of configuration data in each environment of this app, see top-level README for the solution.
+For actual sources of configuration data in a particular (local or non-local) environment of this app, see environment definition in project wiki.
 
 ### Required Configuration Keys
 
@@ -17,7 +17,7 @@ For actual sources of configuration data in each environment of this app, see to
 
 ### Observability Configuration
 
-**For Observability,** the following keys should be provided otherwise no telemetry would be received in the observability backend (Grafana Cloud at the moment):
+**For Observability,** the following keys should be provided otherwise no telemetry would be received in the observability backend (some local environments do not generate telemetry and so may not provides values for these; see relevant evironment's definition for details):
 
 - `NEXT_PUBLIC_FARO_URL`: URL of the Grafana Faro collector to which telemetry would be sent by the client-side part of the app that runs in the browse. This is displayed in Grafana Cloud when you create a Frontend Observability instance.
 - `NEXT_PUBLIC_FARO_SERVICE_NAME`: Name specified when creating a Frontend Observability instance in Grafana Cloud. This will be reported by client-side part of the app that runs in the browser when sending telemetry.
