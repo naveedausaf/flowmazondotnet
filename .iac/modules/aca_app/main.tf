@@ -50,8 +50,19 @@ resource "azurerm_container_app_environment" "app" {
 
 }
 
-resource "azurerm_container_app" "app" {
+# Create key vault secret for env_OTLP_EXPORTER_OTLP_HEADERS.
+# Doing so means the value of the variables wouldn't be visible
+# in Azure.
+locals {
+  vault_secretname_env_OTEL_EXPORTER_OTLP_HEADERS = "otlp-headers"
+}
+resource "azurerm_key_vault_secret" "otlp_headers" {
+  name         = local.vault_secretname_env_OTEL_EXPORTER_OTLP_HEADERS
+  key_vault_id = data.azurerm_key_vault.vault.id
+  value        = var.env_OTEL_EXPORTER_OTLP_HEADERS
+}
 
+resource "azurerm_container_app" "app" {
   name                         = var.app_name
   container_app_environment_id = azurerm_container_app_environment.app.id
   resource_group_name          = azurerm_resource_group.app.name
@@ -99,6 +110,7 @@ resource "azurerm_container_app" "app" {
     # the addition of custom domain to this ingress as drift and
     # try to deleted it. So we're ok.
   }
+
   registry {
     server   = data.azurerm_container_registry.app.login_server
     identity = data.azurerm_user_assigned_identity.managed_identity.id
@@ -111,6 +123,19 @@ resource "azurerm_container_app" "app" {
     # key_vault_secret_id is mandatory together with name above (even # though this seems redundant) when using a user-assigned managed 
     # identity to access the key vault as we are doing here.
     key_vault_secret_id = data.azurerm_key_vault_secret.connstr_for_api.id
+  }
+
+  # Reference secret in key vault that stores value of 
+  # env_OTEL_EXPORTER_OTLP_HEADERS argument of this
+  # module. (we created this secret above). 
+  # We would later set this referenced secret as value
+  # of an environmentr variable on the app.
+  secret {
+    name     = local.vault_secretname_env_OTEL_EXPORTER_OTLP_HEADERS
+    identity = data.azurerm_user_assigned_identity.managed_identity.id
+    # key_vault_secret_id is mandatory together with name above (even # though this seems redundant) when using a user-assigned managed 
+    # identity to access the key vault as we are doing here.
+    key_vault_secret_id = azurerm_key_vault_secret.otlp_headers.id
   }
 
   identity {
@@ -157,6 +182,36 @@ resource "azurerm_container_app" "app" {
         # azurerm_key_vault_secret data source and for that a
         # azurerm_key_vault data source.
         secret_name = var.vault_secretname_connectionstring_for_api
+      }
+
+      # ENVIROINMENT VARS FOR OTEL CONFIGURATION
+      #################################################
+      # We did not configure ACA App environment's Otel
+      # collector because that can only send telemetry
+      # using gRPC whereas Gafana Cloud's OTLP endpoint
+      # to which it would write only support HTTP with 
+      # Protocol Buffers (http/protobuf), as the following
+      # links show:
+      #
+      # https://grafana.com/docs/grafana-cloud/send-data/otlp/otlp-format-considerations/
+      #
+      # https://learn.microsoft.com/en-us/azure/container-apps/opentelemetry-agents?tabs=terraform%2Cbicep-example#known-limitations
+
+      env {
+        name  = "OTEL_RESOURCE_ATTRIBUTES"
+        value = var.env_OTEL_RESOURCE_ATTRIBUTES
+      }
+      env {
+        name  = "OTEL_EXPORTER_OTLP_ENDPOINT"
+        value = var.env_OTEL_EXPORTER_OTLP_ENDPOINT
+      }
+      env {
+        name  = "OTEL_EXPORTER_OTLP_PROTOCOL"
+        value = var.env_OTEL_EXPORTER_OTLP_PROTOCOL
+      }
+      env {
+        name        = "OTEL_EXPORTER_OTLP_HEADERS"
+        secret_name = local.vault_secretname_env_OTEL_EXPORTER_OTLP_HEADERS
       }
 
       dynamic "liveness_probe" {
@@ -568,7 +623,7 @@ resource "azapi_update_resource" "custom_domain_binding_update" {
     # we do want the underlying domain binding to be destroyed when
     # this resource needs to be recreated. That is acheived by the 
     # azapi_resource_action.custom_domain_binding_destroy resource
-    # which would run only on destroy and deleted the custom domain 
+    # which would run only on destroy and delete the custom domain 
     # binding being updated by this resource.
     replace_triggered_by = [terraform_data.cname_and_txt_info_for_triggering_replacement]
   }
@@ -590,14 +645,14 @@ resource "azapi_update_resource" "custom_domain_binding_update" {
   }
 }
 
-# The azapiupdate_resource that creates custom binding above works
+# The azapi_update_resource that creates custom binding above works
 # during create and update phases of the lifecycle. 
 # However, it does nothing during destroy. This leads to a problem
 # when destroying the managed cert with the error that the cert 
 # is in use in a custom binding (which has not beeen destroyed).
 #
 # This resource does nothing during update and, depending on setting
-# of 'when' argument, works eother during create, or during destroy.
+# of 'when' argument, works either during create, or during destroy.
 # We have set it to run during destroy so it destroys the 
 # custom domain binding, so that the managed cert can 
 # then be destroyed or the cusomt domain binding re-created by

@@ -29,8 +29,11 @@ The following confguration settings must be provided:
 - `OTEL_EXPORTER_OTLP_ENDPOINT`: URL of an OpenTelemetry Protocol (OTLP) ingestion endpoint to which telemetry would be written using Open Telemetry.
 - `OTEL_EXPORTER_OTLP_PROTOCOL`: The transport, e.g. `grpc` or `http/protobuf`, that would be used to write telemetry to the OTLP endpoint.
 - `OTEL_EXPORTER_OTLP_HEADERS`: Authorization header that would be provided to the observability backend. Grafana Cloud would show this if you press **Details** button on your **Stack**, then generate a new token; base-64 encoded value of this token would be included in the generated Authorization header that would be shown.
-- `OTEL_RESOURCE_ATTRIBUTES`: This is used to provide value of environment, an attribute named [`deployment.environment.name`](https://opentelemetry.io/docs/specs/semconv/resource/deployment-environment/), for the Resource when sending telemetry, for example `production`, `staging` or `local_testing`.
-  See Environments in the wiki for the value of this attribute in each environment.
+- `OTEL_RESOURCE_ATTRIBUTES`: This is used to provide value of environment, an attribute named [`deployment.environment.name`](https://opentelemetry.io/docs/specs/semconv/resource/deployment-environment/), for the Resource when sending telemetry, for example `production`, `staging` or `local_testing`. Other resource attributes such as name and namespace that could be provided through this environment variable are already hardcoded.
+
+  The exact value of this attribute should be `deployment.environment.name={environment identifier}` e.g. `deployment.environment.name=prod`.
+
+  See Environments in the project wiki for the environment identifier to use in the value of this variable in partcular environment.
 
 ### Optional Configuration Keys
 

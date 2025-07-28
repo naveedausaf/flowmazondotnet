@@ -21,6 +21,8 @@ This Terraform module does the following:
 
 - Puts in place a rate limiting rule on the zone (per-hostname rate limiting not possible on CloudFlare free plan)
 
+Note that this module DOES NOT use the collector in the ACA App Environment that it creates for sending telemetry to observability backend whose OTLP endpoint is provided as argument `env_OTEL_EXPORTER_OTLP_ENDPOINT`. This is because the the collector only supports gRPC wheras the observability backend we are currently using, Grafana Cloud, does not support gRPC on its OTLP endpoint and I don't at present want the complication of running my own Otel Collector in the ACAP app environment.
+
 ## Usage Notes
 
 ### Assumptions

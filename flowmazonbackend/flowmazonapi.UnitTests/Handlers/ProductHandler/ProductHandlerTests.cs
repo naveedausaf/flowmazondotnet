@@ -10,6 +10,11 @@ namespace flowmazonapi.UnitTests.Handlers.ProductHandler;
 
 public class ProductHandlerTests(HandlerTestApplicationFactory appFactory) : IClassFixture<HandlerTestApplicationFactory>
 {
+    // static ProductHandlerTests()
+    // {
+    //     Console.WriteLine($"Process ID: {System.Diagnostics.Process.GetCurrentProcess().Id}. Press Enter to continue...");
+    //     //Console.ReadLine(); // Pauses execution
+    // }
     private FakerOfCreateProductArgs ProductArgsFaker { get; } = new FakerOfCreateProductArgs();
 
     //This is the Problem Details response

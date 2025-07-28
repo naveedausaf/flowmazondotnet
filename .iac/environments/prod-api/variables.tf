@@ -158,6 +158,28 @@ variable "cloudflare_rate_limiting_rule_name" {
 
 }
 
+# Otel Endpoint details
+variable "env_OTEL_RESOURCE_ATTRIBUTES" {
+  description = "Used to pass value of environment variable OTEL_RESOURCE_ATTRIBUTES that the API expects. See README of flowmazonbackend for details."
+  type        = string
+}
+
+variable "env_OTEL_EXPORTER_OTLP_ENDPOINT" {
+  description = "OTLP endpoint of the observability backend. This would be configured as a destination endpoint in ACAP app environment's Otel collector."
+  type        = string
+}
+
+variable "env_OTEL_EXPORTER_OTLP_PROTOCOL" {
+  description = "The transport, e.g. grpc or http/protobuf, that would be used to write telemetry to the OTLP endpoint. This variable would be set as an environment variable on the created Vercel app."
+  type        = string
+}
+
+variable "env_OTEL_EXPORTER_OTLP_HEADERS" {
+  description = "Authorization header that would be provided when writing telemetry to the observability backend using OpenTelemetry protocol. Grafana Cloud would show this if you press Details button on your Stack, then generate a new token; base-64 encoded value of this token would be included in the generated Authorization header that would be shown. This variable would be set as an environment variable on the created Vercel app and marked as SENSITIVE."
+  type        = string
+  sensitive   = true
+}
+
 ##########
 
 # variable "blue-version-number" {

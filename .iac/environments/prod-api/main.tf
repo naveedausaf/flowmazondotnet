@@ -17,6 +17,12 @@ module "aca_app" {
   # Hence why we have used it in both places.
   app_container_startup_probe = "/health/live"
 
+  env_OTEL_EXPORTER_OTLP_ENDPOINT = var.env_OTEL_EXPORTER_OTLP_ENDPOINT
+  env_OTEL_EXPORTER_OTLP_HEADERS  = var.env_OTEL_EXPORTER_OTLP_HEADERS
+  env_OTEL_RESOURCE_ATTRIBUTES    = var.env_OTEL_RESOURCE_ATTRIBUTES
+  env_OTEL_EXPORTER_OTLP_PROTOCOL = var.env_OTEL_EXPORTER_OTLP_PROTOCOL
+
+
   acr_name = var.acr_name
 
   acr_resource_group_name              = var.acr_resource_group_name

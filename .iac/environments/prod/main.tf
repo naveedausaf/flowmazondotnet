@@ -33,10 +33,16 @@ module "db" {
 }
 
 module "flowmazonfrontend" {
-  source                 = "../../modules/flowmazonfrontend"
-  vercel_team_id         = var.vercel_team_id
-  vercel_project_name    = var.vercel_project_name
-  vercel_app_domain_name = var.vercel_app_domain_name
-  cloudflare_api_token   = var.cloudflare_api_token
-  cloudflare_zone_id     = var.cloudflare_zone_id
+  source                                  = "../../modules/flowmazonfrontend"
+  vercel_team_id                          = var.vercel_team_id
+  vercel_project_name                     = var.vercel_project_name
+  vercel_app_domain_name                  = var.vercel_app_domain_name
+  vercel_region_for_server_side_execution = var.vercel_region_for_server_side_execution
+  cloudflare_api_token                    = var.cloudflare_api_token
+  cloudflare_zone_id                      = var.cloudflare_zone_id
+  env_NEXT_PUBLIC_OTEL_ENVIRONMENT        = var.env_NEXT_PUBLIC_OTEL_ENVIRONMENT
+  env_OTEL_EXPORTER_OTLP_ENDPOINT         = var.env_OTEL_EXPORTER_OTLP_ENDPOINT
+  env_OTEL_EXPORTER_OTLP_PROTOCOL         = var.env_OTEL_EXPORTER_OTLP_PROTOCOL
+  env_OTEL_EXPORTER_OTLP_HEADERS          = var.env_OTEL_EXPORTER_OTLP_HEADERS
+
 }

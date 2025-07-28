@@ -10,22 +10,49 @@ This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next
 
 For actual sources of configuration data in a particular (local or non-local) environment of this app, see environment definition in project wiki.
 
+### Consumers of Configuration Data
+
+Next.js app consists of two parts and they need to be configured separately, and in different ways:
+
+- the part that executes in the browser (the brower bundle). For this configuration key/values pairs need to be provided at build time and the keys should have the prefix `NEXT_PUBLIC_`.
+
+- the part that executes on the server (e.g. on Vercel during SSR). For this the configuration key/value pairs are provided as environment variables and keys DO NOT need to, but CAN, have the prefix `NEXT_PUBLIC_`.
+
 ### Required Configuration Keys
 
 - `NEXT_PUBLIC_BACKEND_URL` is the URL of the backend API, without a slash (`/`) at the end.
-  Example: `http://localhost:5022`.
+
+  Example: `http://localhost:5022`
 
 ### Observability Configuration
 
 **For Observability,** the following keys should be provided otherwise no telemetry would be received in the observability backend (some local environments do not generate telemetry and so may not provides values for these; see relevant evironment's definition for details):
 
 - `NEXT_PUBLIC_FARO_URL`: URL of the Grafana Faro collector to which telemetry would be sent by the client-side part of the app that runs in the browse. This is displayed in Grafana Cloud when you create a Frontend Observability instance.
+
+  **Required by:** browser part of the app.
+
 - `NEXT_PUBLIC_FARO_SERVICE_NAME`: Name specified when creating a Frontend Observability instance in Grafana Cloud. This will be reported by client-side part of the app that runs in the browser when sending telemetry.
+
+  **Required by:** browser part of the app.
+
 - `NEXT_PUBLIC_OTEL_ENVIRONMENT`: An identifier for the environment in which the app is running e.g. `production`, `staging` or the local environment `local_testing`. For details, see Environments in wiki.
+
   This will be reported by both the client- and server-side code in the app when sending telemetry. Client side browser code reports it as environment to the Faro collector whereas the server-side code reports it as `deployment.environment.name` attribute on the Open Telemetry [Resource](https://opentelemetry.io/docs/specs/semconv/resource/deployment-environment/)).
+
+  **Required by:** BOTH browser part and server-side code of the app.
+
 - `OTEL_EXPORTER_OTLP_ENDPOINT`: URL of an OpenTelemetry Protocol (OTLP) ingestion endpoint. Server-side code in the app will use this to write telemetry.
+
+  **Required by:** server-side code of the app.
+
 - `OTEL_EXPORTER_OTLP_PROTOCOL`: The transport, e.g. `grpc` or `http/protobuf`, that would be used to write telemetry to the OTLP endpoint by server-side code in the app.
+
+  **Required by:** server-side code of the app.
+
 - `OTEL_EXPORTER_OTLP_HEADERS`: Authorization header that would be provided by the server-side code in the app to the observability backend. Grafana Cloud would show this if you press **Details** button on your **Stack**, then generate a new token; base-64 encoded value of this token would be included in the generated Authorization header that would be shown.
+
+  **Required by:** server-side code of the app.
 
 ### Optional Configuration Keys
 

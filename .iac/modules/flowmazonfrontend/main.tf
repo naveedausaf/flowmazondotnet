@@ -1,12 +1,63 @@
+# IN VERCEL FREE PLAN THERE ARE TWO FIXED ENVIRONMENTS 
+# IN A PROJECT: Production and Preview.
+# This doesn't matter as I would use a separate Vercel 
+# project for each of my environments Production, Staging
+# and Preview.
+
 resource "vercel_project" "app" {
-  name      = var.vercel_project_name
-  framework = "nextjs"
+  name                       = var.vercel_project_name
+  framework                  = "nextjs"
+  serverless_function_region = var.vercel_region_for_server_side_execution
+
+  # The following page is a MUST-READ for setting and
+  # using environment variables in a Vercel project:
+  # https://vercel.com/docs/environment-variables
+
+  # Salient details of environments variables in a project:
+  #
+  # 1. You have to choose which Environments in the project
+  #   they apply to.
+  # 2. Any changes you make to these only apply to future 
+  #   deployments and not current ones.
+  # 3. If you mark a variable as sensitive, its value cannot
+  #   be read (by a human user) after being set:
+  #   https://vercel.com/docs/environment-variables/sensitive-environment-variables
+
+  environment = [
+    {
+      key    = "NEXT_PUBLIC_OTEL_ENVIRONMENT"
+      value  = var.env_NEXT_PUBLIC_OTEL_ENVIRONMENT
+      target = ["production", "preview"]
+    },
+    {
+      key    = "OTEL_EXPORTER_OTLP_ENDPOINT"
+      value  = var.env_OTEL_EXPORTER_OTLP_ENDPOINT
+      target = ["production", "preview"]
+    },
+    {
+      key    = "OTEL_EXPORTER_OTLP_PROTOCOL"
+      value  = var.env_OTEL_EXPORTER_OTLP_PROTOCOL
+      target = ["production", "preview"]
+    },
+    {
+      key       = "OTEL_EXPORTER_OTLP_HEADERS"
+      value     = var.env_OTEL_EXPORTER_OTLP_HEADERS
+      target    = ["production", "preview"]
+      sensitive = true
+    }
+  ]
+
+
+
+
+
+
+
   #   git_repository = {
   #     type = "github"
   #     repo = "<username>/nextjs-terraform-demo"
   #   }
 }
-
 
 
 resource "random_uuid" "vercel_internal_domain_prefix" {
@@ -44,12 +95,6 @@ resource "cloudflare_dns_record" "nextjs_app_cname" {
   # might have with CloudFlare on their free tier.
   proxied = false
 }
-
-# IN VERCEL FREE PLAN THERE ARE TWO FIXED ENVIRONMENTS 
-# IN A PROJECT: Production and Preview.
-# This doesn't matter as I would use a separate Vercel 
-# project for each of my environments Production, Staging
-# and Preview.
 
 
 
