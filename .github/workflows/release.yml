@@ -156,7 +156,8 @@ jobs:
     runs-on: ubuntu-24.04
     environment:
       name: Production
-      url: ${{ steps.deploy-artifacts.outputs.previewUrl }}
+      #url: ${{ steps.deploy-artifacts.outputs.previewUrl }}
+      url: https://www.efast.uk
     env:
       # VERCEL_ORG_ID is the vercel_team_id variable that
       # we supply to Terraform prod workspace that creates
