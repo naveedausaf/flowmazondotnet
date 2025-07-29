@@ -115,9 +115,8 @@ jobs:
           az acr login --name ${{ vars.ACR_NAME }}
 
       - name: Build Docker image
-        run: |
-          cd ./flowmazonbackend |
-          docker build -t ${{ vars.ACR_NAME }}.azurecr.io/${{ vars.IMAGE_REPOSITORY }}:${{ needs.create-release.outputs.newVersion }} .
+        working-directory: ./flowmazonbackend
+        run: docker build -t ${{ vars.ACR_NAME }}.azurecr.io/${{ vars.IMAGE_REPOSITORY }}:${{ needs.create-release.outputs.newVersion }} .
 
       # - name: Push Docker image
       #   run: |
