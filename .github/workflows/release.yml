@@ -95,7 +95,7 @@ jobs:
         uses: azure/login@v1
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }} # JSON with client id, client secret, tenant id, subscription id of the service principal
-
+          auth-type: service-principal
 
       # - name: Login to ACR
       #   run: |
