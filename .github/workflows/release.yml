@@ -180,59 +180,39 @@ jobs:
         working-directory: ./flowmazonfrontend
         run: npm install --global vercel@latest
 
-      - name: Get Vercel Project ID (Robust Version)
-        id: get-vercel-id
-        env:
-          TF_API_TOKEN: ${{ secrets.TF_API_TOKEN }}
+      - name: Get Vercel Project ID from Terraform Cloud API
+        id: get_project_id
         run: |
-          # 1. Hardcoded values (from your successful workspace lookup)
-          WORKSPACE_ID="ws-4nC22c2buxZWrkYg"
-
-          # 2. Get outputs with API v2
-          echo "Fetching outputs for workspace $WORKSPACE_ID..."
-          API_RESPONSE=$(curl -sS \
-            --header "Authorization: Bearer $TF_API_TOKEN" \
+          # Get the workspace ID for the 'prod' workspace
+          WORKSPACE_RESPONSE=$(curl -s \
+            --header "Authorization: Bearer ${{ secrets.TF_API_TOKEN }}" \
             --header "Content-Type: application/vnd.api+json" \
-            "https://app.terraform.io/api/v2/workspaces/$WORKSPACE_ID/outputs")
+            "https://app.terraform.io/api/v2/organizations/${{ vars.TF_ORG_NAME }}/workspaces/prod")
 
-          # 3. Validate response
-          if [ -z "$API_RESPONSE" ]; then
-            echo "::error::Empty API response. Check token permissions."
+          WORKSPACE_ID=$(echo "$WORKSPACE_RESPONSE" | jq -r '.data.id')
+
+          if [ "$WORKSPACE_ID" == "null" ] || [ -z "$WORKSPACE_ID" ]; then
+            echo "::error::Could not find workspace 'prod' in organization '${{ vars.TF_ORG_NAME }}'."
+            echo "API Response: $WORKSPACE_RESPONSE"
             exit 1
           fi
 
-          # 4. Debug: Show ALL output names (masked)
-          echo "::group::Available Outputs (masked)"
-          echo "$API_RESPONSE" | jq '.data[].attributes.name' | while read -r name; do
-            echo "::add-mask::$name"
-            echo "$name"
-          done
-          echo "::endgroup::"
+          # Get the outputs from the current state version of the workspace
+          OUTPUTS_RESPONSE=$(curl -s \
+            --header "Authorization: Bearer ${{ secrets.TF_API_TOKEN }}" \
+            --header "Content-Type: application/vnd.api+json" \
+            "https://app.terraform.io/api/v2/workspaces/${WORKSPACE_ID}/current-state-version?include=outputs")
 
-          # 5. Extract value with backup methods
-          VERCEL_PROJECT_ID=$(echo "$API_RESPONSE" | \
-            jq -r '.data[] | select(.attributes.name == "vercel_project_id").attributes.value')
+          PROJECT_ID=$(echo "$OUTPUTS_RESPONSE" | jq -r '.included[] | select(.attributes.name == "vercel_project_id") | .attributes.value')
 
-          # 6. Fallback to legacy API if needed
-          if [ -z "$VERCEL_PROJECT_ID" ]; then
-            echo "Trying legacy API method..."
-            LEGACY_RESPONSE=$(curl -sS \
-              --header "Authorization: Bearer $TF_API_TOKEN" \
-              "https://app.terraform.io/api/v2/workspaces/$WORKSPACE_ID/current-state-version")
-            VERCEL_PROJECT_ID=$(echo "$LEGACY_RESPONSE" | \
-              jq -r '.data.outputs[] | select(.name == "vercel_project_id").value')
-          fi
-
-          # 7. Final validation
-          if [ -z "$VERCEL_PROJECT_ID" ]; then
-            echo "::error::vercel_project_id not found in:"
-            echo "$API_RESPONSE" | jq
+          if [ "$PROJECT_ID" == "null" ] || [ -z "$PROJECT_ID" ]; then
+            echo "::error::Could not find output 'vercel_project_id' in workspace 'prod'."
+            echo "API Response: $OUTPUTS_RESPONSE"
             exit 1
           fi
 
-          echo "::add-mask::$VERCEL_PROJECT_ID"
-          echo "VERCEL_PROJECT_ID=$VERCEL_PROJECT_ID" >> $GITHUB_ENV
-          echo "Success! Value retrieved and masked."
+          echo "::add-mask::$PROJECT_ID"
+          echo "VERCEL_PROJECT_ID=$PROJECT_ID" >> $GITHUB_ENV
       - name: Pull Vercel Environment Information
         working-directory: ./flowmazonfrontend
         run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_API_TOKEN }}
