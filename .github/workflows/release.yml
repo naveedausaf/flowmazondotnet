@@ -94,16 +94,29 @@ jobs:
       - name: Login to Azure
         uses: azure/login@v1
         with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }} # JSON with client id, client secret, tenant id, subscription id of the service principal
-          auth-type: SERVICE_PRINCIPAL
+          # The referenced secret AZURE_CREDENTIALS contains
+          # JSON with client id, client secret, tenant id and
+          # subscription id of the service principal which
+          # has AcrPush permission on the subscrpition or at least
+          # on the ACR instance to which it will push in this job
+          # within the subscription whose subscription id is provided.
+          #
+          # Format of the JSON is:
+          # {
+          #     "clientId": "<visible on service principal when you create it in portal>",
+          #     "clientSecret": "<in portal you have to create it after creating the service principal>",
+          #     "subscriptionId": "<subscription id of the subscription on which you have given AcrPush permission to the service principal>",
+          #     "tenantId": "<visible on service principal when you create it in portal>"
+          # }
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      # - name: Login to ACR
-      #   run: |
-      #     az acr login --name ${{ env.ACR_NAME }} --username ${{ env.SERVICE_PRINCIPAL }} --password ${{ env.SERVICE_PRINCIPAL_SECRET }}
+      - name: Login to ACR
+        run: |
+          az acr login --name ${{ env.ACR_NAME }}
 
-      # - name: Build Docker image
-      #   run: |
-      #     docker build -t ${{ env.ACR_NAME }}.azurecr.io/${{ env.APP_NAME }}:${{ steps.extract-version.outputs.version }} .
+      - name: Build Docker image
+        run: |
+          docker build -t ${{ env.ACR_NAME }}.azurecr.io/${{ env.IMAGE_REPOSITORY }}:${{ needs.create-release.outputs.newVersion }} .
 
       # - name: Push Docker image
       #   run: |
