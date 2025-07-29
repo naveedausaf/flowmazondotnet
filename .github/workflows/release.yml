@@ -179,7 +179,7 @@ jobs:
         run: npm install --global vercel@latest
       - name: Pull Vercel Environment Information
         working-directory: ./flowmazonfrontend
-        run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
+        run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_API_TOKEN }}
         # USing --prod with vercel build below
         # means the build would use environment variables
         # from Production environment in Vercel project
@@ -187,7 +187,7 @@ jobs:
         # used Preview environment variables.
       - name: Build Project Artifacts
         working-directory: ./flowmazonfrontend
-        run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
+        run: vercel build --prod --token=${{ secrets.VERCEL_API_TOKEN }}
       - name: Deploy Project Artifacts to Vercel
         working-directory: ./flowmazonfrontend
         id: deploy-artifacts
