@@ -90,7 +90,9 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-
+      - name: Print version to console
+        run: |
+          echo "New Version Number is: ${{ needs.create-release.outputs.newVersion }}"
       - name: Login to Azure
         uses: azure/login@v1
         with:
@@ -146,6 +148,9 @@ jobs:
           cd .iac/environments/prod-api
           terraform init
           terraform apply -auto-approve -var="image_tag=${{ needs.create-release.outputs.newVersion }}"
+
+  # this job is based on this Vercel sample:
+  # https://github.com/vercel/examples/tree/main/ci-cd/github-actions
   deploy-frontend-to-vercel:
     name: Deploy to Vercel
     runs-on: ubuntu-24.04
@@ -154,7 +159,7 @@ jobs:
       url: ${{ steps.deploy-artifacts.outputs.previewUrl }}
     env:
       VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+      VERCEL_PROJECT_NAME: ${{ secrets.VERCEL_PROJECT_ID }}
     needs: create-release
     if: ${{ needs.create-release.outputs.released == 1}}
     steps:
@@ -171,6 +176,11 @@ jobs:
       - name: Pull Vercel Environment Information
         working-directory: ./flowmazonfrontend
         run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
+        # USing --prod with vercel build below
+        # means the build would use environment variables
+        # from Production environment in Vercel project
+        # which is what we want. Otherwise it would have
+        # used Preview environment variables.
       - name: Build Project Artifacts
         working-directory: ./flowmazonfrontend
         run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
@@ -178,5 +188,5 @@ jobs:
         working-directory: ./flowmazonfrontend
         id: deploy-artifacts
         run: |
-          previewUrl=$(vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }})
+          previewUrl=$(vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_API_TOKEN }})
           echo "previewUrl=$previewUrl" >> "$GITHUB_OUTPUT"
