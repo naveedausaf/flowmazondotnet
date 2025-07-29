@@ -80,7 +80,7 @@ jobs:
       #   if: ${{ env.RELEASED == 1 }}
 
   # OTHER JOBS HERE...
-  build-container-and-push-to-acr:
+  deploy-backend:
     environment:
       name: Production
     needs: create-release
@@ -128,7 +128,9 @@ jobs:
       # also (otherwise the whole wrorkspace would faile to apply).
       #
       # Therefore we use the workspace to deploy the latest version
-      # and later would be doing Blue-Green with it.
+      # and later would be doing Blue-Green with it. The ACA resource
+      # in the Terraform workspace would pull the container image with
+      # the specified version upon terraform apply.
       #
       # As terraform apply runs on HCP Terraform's clean runner machine,
       # we don't need to create a separate job to run terraform apply.
@@ -143,38 +145,38 @@ jobs:
         run: |
           cd .iac/environments/prod-api
           terraform init
-          terraform apply -auto-approve
-  # deploy:
-  #   name: Deploy to Vercel
-  #   runs-on: ubuntu-24.04
-  #   environment:
-  #     name: Production
-  #     url: ${{ steps.deploy-artifacts.outputs.previewUrl }}
-  #   env:
-  #     VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-  #     VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
-  #   needs: create-release
-  #   if: ${{ needs.create-release.outputs.released == 1}}
-  #   steps:
-  #     - uses: actions/checkout@v4
-  #     - name: Print version to console
-  #       run: |
-  #         echo "New Version Number is: ${{ needs.create-release.outputs.newVersion }}"
-  #     - name: Update Version Number in package.json
-  #       working-directory: ./flowmazonfrontend
-  #       run: npm --no-git-tag-version version ${{ needs.create-release.outputs.newVersion }}
-  #     - name: Install Vercel CLI
-  #       working-directory: ./flowmazonfrontend
-  #       run: npm install --global vercel@latest
-  #     - name: Pull Vercel Environment Information
-  #       working-directory: ./flowmazonfrontend
-  #       run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
-  #     - name: Build Project Artifacts
-  #       working-directory: ./flowmazonfrontend
-  #       run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
-  #     - name: Deploy Project Artifacts to Vercel
-  #       working-directory: ./flowmazonfrontend
-  #       id: deploy-artifacts
-  #       run: |
-  #         previewUrl=$(vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }})
-  #         echo "previewUrl=$previewUrl" >> "$GITHUB_OUTPUT"
+          terraform apply -auto-approve -var="image_tag=${{ needs.create-release.outputs.newVersion }}"
+  deploy-frontend-to-vercel:
+    name: Deploy to Vercel
+    runs-on: ubuntu-24.04
+    environment:
+      name: Production
+      url: ${{ steps.deploy-artifacts.outputs.previewUrl }}
+    env:
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+    needs: create-release
+    if: ${{ needs.create-release.outputs.released == 1}}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Print version to console
+        run: |
+          echo "New Version Number is: ${{ needs.create-release.outputs.newVersion }}"
+      - name: Update Version Number in package.json
+        working-directory: ./flowmazonfrontend
+        run: npm --no-git-tag-version version ${{ needs.create-release.outputs.newVersion }}
+      - name: Install Vercel CLI
+        working-directory: ./flowmazonfrontend
+        run: npm install --global vercel@latest
+      - name: Pull Vercel Environment Information
+        working-directory: ./flowmazonfrontend
+        run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
+      - name: Build Project Artifacts
+        working-directory: ./flowmazonfrontend
+        run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
+      - name: Deploy Project Artifacts to Vercel
+        working-directory: ./flowmazonfrontend
+        id: deploy-artifacts
+        run: |
+          previewUrl=$(vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }})
+          echo "previewUrl=$previewUrl" >> "$GITHUB_OUTPUT"
