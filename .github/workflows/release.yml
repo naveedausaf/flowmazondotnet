@@ -183,10 +183,10 @@ jobs:
       - name: Set Required Environment Variables for Next.js build
         working-directory: ./flowmazonfrontend
         run: |
-          export NEXT_PUBLIC_BACKEND_URL=${{vars.NEXT_PUBLIC_BACKEND_URL}}
-          export NEXT_PUBLIC_OTEL_ENVIRONMENT=${{vars.NEXT_PUBLIC_OTEL_ENVIRONMENT}}
-          export NEXT_PUBLIC_FARO_URL=${{secrets.NEXT_PUBLIC_FARO_URL }}
-          export NEXT_PUBLIC_FARO_SERVICE_NAME=${{secrets.NEXT_PUBLIC_FARO_SERVICE_NAME }}
+          export NEXT_PUBLIC_BACKEND_URL="${{vars.NEXT_PUBLIC_BACKEND_URL}}"
+          export NEXT_PUBLIC_OTEL_ENVIRONMENT="${{vars.NEXT_PUBLIC_OTEL_ENVIRONMENT}}"
+          export NEXT_PUBLIC_FARO_URL="${{secrets.NEXT_PUBLIC_FARO_URL }}"
+          export NEXT_PUBLIC_FARO_SERVICE_NAME="${{secrets.NEXT_PUBLIC_FARO_SERVICE_NAME }}"
 
       - name: Pull Vercel Environment Information
         working-directory: ./flowmazonfrontend
