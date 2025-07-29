@@ -132,12 +132,17 @@ jobs:
       #
       # As terraform apply runs on HCP Terraform's clean runner machine,
       # we don't need to create a separate job to run terraform apply.
-      - name: Run terraform apply on prod-api workspace
+      - name: Setup Terraform CLI
         uses: hashicorp/setup-terraform@v3
         with:
           # cli_config_credentials_hostname parameter default
           # to app.terraform.io which is what we want
           cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
+
+      - name: Run terraform apply on prod-api workspace
+        run: |
+          cd .iac/environments/prod-api
+          terraform init
   # deploy:
   #   name: Deploy to Vercel
   #   runs-on: ubuntu-24.04
