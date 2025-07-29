@@ -85,7 +85,7 @@ jobs:
       name: Production
     needs: create-release
     if: ${{ needs.create-release.outputs.released == 1}}
-    name: Build Container and Push to ACR
+    name: Build and Push Container and Deploy to ACA app
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -166,6 +166,11 @@ jobs:
       #
       # Therefore I name the secret VERCEL_TEAM_ID also
       VERCEL_ORG_ID: ${{ secrets.VERCEL_TEAM_ID }}
+      # VERCEL_PORJECT_ID is the other required environment
+      # variable for Vercel CLI operations in this job. This
+      # will be loaded dynamically from Terraform workspace
+      # that creates the project and outputs its id in an
+      # output variable.
     needs: create-release
     if: ${{ needs.create-release.outputs.released == 1}}
     steps:
@@ -180,19 +185,18 @@ jobs:
         working-directory: ./flowmazonfrontend
         run: npm install --global vercel@latest
 
-      - name: Get Vercel Project ID from Terraform Cloud API
-        id: get_project_id
+      - name: Get Vercel Project ID from Terraform Cloud Workspace
         run: |
-          # Get the workspace ID for the 'prod' workspace
+          # Get the workspace ID for the specified workspace
           WORKSPACE_RESPONSE=$(curl -s \
             --header "Authorization: Bearer ${{ secrets.TF_API_TOKEN }}" \
             --header "Content-Type: application/vnd.api+json" \
-            "https://app.terraform.io/api/v2/organizations/${{ vars.TF_ORG_NAME }}/workspaces/prod")
+            "https://app.terraform.io/api/v2/organizations/${{ vars.TF_ORG_NAME }}/workspaces/${{ vars.TF_WORKSPACE_NAME_FOR_VERCEL_PROJECT_ID }}")
 
           WORKSPACE_ID=$(echo "$WORKSPACE_RESPONSE" | jq -r '.data.id')
 
           if [ "$WORKSPACE_ID" == "null" ] || [ -z "$WORKSPACE_ID" ]; then
-            echo "::error::Could not find workspace 'prod' in organization '${{ vars.TF_ORG_NAME }}'."
+            echo "::error::Could not find workspace '${{ vars.TF_WORKSPACE_NAME_FOR_VERCEL_PROJECT_ID }}' in organization '${{ vars.TF_ORG_NAME }}'."
             echo "API Response: $WORKSPACE_RESPONSE"
             exit 1
           fi
@@ -206,7 +210,7 @@ jobs:
           PROJECT_ID=$(echo "$OUTPUTS_RESPONSE" | jq -r '.included[] | select(.attributes.name == "vercel_project_id") | .attributes.value')
 
           if [ "$PROJECT_ID" == "null" ] || [ -z "$PROJECT_ID" ]; then
-            echo "::error::Could not find output 'vercel_project_id' in workspace 'prod'."
+            echo "::error::Could not find output 'vercel_project_id' in workspace '${{ vars.TF_WORKSPACE_NAME_FOR_VERCEL_PROJECT_ID }}' in organization '${{ vars.TF_ORG_NAME }}'."
             echo "API Response: $OUTPUTS_RESPONSE"
             exit 1
           fi
