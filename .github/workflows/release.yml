@@ -184,44 +184,37 @@ jobs:
         id: get-terraform-output
         env:
           TF_API_TOKEN: ${{ secrets.TF_API_TOKEN }}
-          TF_ORG_NAME: ${{ vars.TF_ORG_NAME }}
-          TF_WORKSPACE_NAME: ${{ vars.TF_WORKSPACE_NAME_FOR_VERCEL_PROJECT_ID }} # Fixed variable name
+          TF_ORG_NAME: "Flowmazon" # Hardcoded since we know it
+          TF_WORKSPACE_NAME: "prod" # Hardcoded since we know it
         run: |
-          # Fetch the workspace ID (with error handling)
-          echo "Fetching workspace ID for: $TF_ORG_NAME/$TF_WORKSPACE_NAME"
-          WORKSPACE_RESPONSE=$(curl -s \
-            --header "Authorization: Bearer $TF_API_TOKEN" \
-            --header "Content-Type: application/vnd.api+json" \
-            "https://app.terraform.io/api/v2/organizations/$TF_ORG_NAME/workspaces/$TF_WORKSPACE_NAME")
+          # 1. Get Workspace ID (already working)
+          WORKSPACE_ID="ws-4nC22c2buxZWrkYg"  # From your logs (or use dynamic lookup if needed)
 
-          # Debug: Log raw response (mask sensitive data)
-          echo "::add-mask::$WORKSPACE_RESPONSE"
-          echo "Workspace API response: $WORKSPACE_RESPONSE"
-
-          # Extract workspace ID (updated jq query)
-          WORKSPACE_ID=$(echo "$WORKSPACE_RESPONSE" | jq -r '.data.id // empty')
-          if [ -z "$WORKSPACE_ID" ]; then
-            echo "::error::Failed to extract workspace ID. Check org/workspace names or API permissions."
-            exit 1
-          fi
-          echo "Workspace ID: $WORKSPACE_ID"
-
-          # Fetch the vercel_project_id output
+          # 2. Get Outputs - NEW VERSION (handles API pagination)
           OUTPUTS_RESPONSE=$(curl -s \
             --header "Authorization: Bearer $TF_API_TOKEN" \
             --header "Content-Type: application/vnd.api+json" \
-            "https://app.terraform.io/api/v2/workspaces/$WORKSPACE_ID/outputs")
+            "https://app.terraform.io/api/v2/workspaces/$WORKSPACE_ID/outputs?page[size]=100")
 
-          # Extract the sensitive output
-          VERCEL_PROJECT_ID=$(echo "$OUTPUTS_RESPONSE" | jq -r '.data[] | select(.attributes.name == "vercel_project_id") | .attributes.value // empty')
+          # 3. Debug: Check raw response
+          echo "::add-mask::$OUTPUTS_RESPONSE"
+          echo "API Response Length: ${#OUTPUTS_RESPONSE} chars"
+
+          # 4. Extract value with IMPROVED JQ FILTER
+          VERCEL_PROJECT_ID=$(echo "$OUTPUTS_RESPONSE" | \
+            jq -r '.data[] | select(.attributes.name == "vercel_project_id").attributes.value')
+
+          # 5. Validate
           if [ -z "$VERCEL_PROJECT_ID" ]; then
-            echo "::error::vercel_project_id not found in workspace outputs."
+            echo "::error::Vercel Project ID not found. Available outputs:"
+            echo "$OUTPUTS_RESPONSE" | jq '.data[].attributes.name'
             exit 1
           fi
 
-          # Mask and export the value
+          # 6. Success
           echo "::add-mask::$VERCEL_PROJECT_ID"
           echo "VERCEL_PROJECT_ID=$VERCEL_PROJECT_ID" >> $GITHUB_ENV
+          echo "Successfully retrieved vercel_project_id (value masked)"
       - name: Pull Vercel Environment Information
         working-directory: ./flowmazonfrontend
         run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_API_TOKEN }}
