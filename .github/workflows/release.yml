@@ -59,7 +59,7 @@ jobs:
           fi
 
           # Run commitlint with computed arguments
-          # npx -- commitlint --verbose $clargs
+          npx -- commitlint --verbose $clargs
       - name: Create GitHub release
         id: semanticrelease
         env:
@@ -80,37 +80,71 @@ jobs:
       #   if: ${{ env.RELEASED == 1 }}
 
   # OTHER JOBS HERE...
-  deploy:
-    name: Deploy to Vercel
-    runs-on: ubuntu-24.04
+  build-container-and-push-to-acr:
     environment:
       name: Production
-      url: ${{ steps.deploy-artifacts.outputs.previewUrl }}
-    env:
-      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
     needs: create-release
     if: ${{ needs.create-release.outputs.released == 1}}
+    name: Build Container and Push to ACR
+    runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - name: Print version to console
-        run: |
-          echo "New Version Number is: ${{ needs.create-release.outputs.newVersion }}"
-      - name: Update Version Number in package.json
-        working-directory: ./flowmazonfrontend
-        run: npm --no-git-tag-version version ${{ needs.create-release.outputs.newVersion }}
-      - name: Install Vercel CLI
-        working-directory: ./flowmazonfrontend
-        run: npm install --global vercel@latest
-      - name: Pull Vercel Environment Information
-        working-directory: ./flowmazonfrontend
-        run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
-      - name: Build Project Artifacts
-        working-directory: ./flowmazonfrontend
-        run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
-      - name: Deploy Project Artifacts to Vercel
-        working-directory: ./flowmazonfrontend
-        id: deploy-artifacts
-        run: |
-          previewUrl=$(vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }})
-          echo "previewUrl=$previewUrl" >> "$GITHUB_OUTPUT"
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Login to Azure
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }} # JSON with client id, client secret, tenant id, subscription id of the service principal
+
+
+      # - name: Login to ACR
+      #   run: |
+      #     az acr login --name ${{ env.ACR_NAME }} --username ${{ env.SERVICE_PRINCIPAL }} --password ${{ env.SERVICE_PRINCIPAL_SECRET }}
+
+      # - name: Build Docker image
+      #   run: |
+      #     docker build -t ${{ env.ACR_NAME }}.azurecr.io/${{ env.APP_NAME }}:${{ steps.extract-version.outputs.version }} .
+
+      # - name: Push Docker image
+      #   run: |
+      #     docker push ${{ env.ACR_NAME }}.azurecr.io/${{ env.APP_NAME }}:${{ steps.extract-version.outputs.version }}
+
+      #     # Optionally tag as 'latest' as well
+      #     docker tag ${{ env.ACR_NAME }}.azurecr.io/${{ env.APP_NAME }}:${{ steps.extract-version.outputs.version }} \
+      #                ${{ env.ACR_NAME }}.azurecr.io/${{ env.APP_NAME }}:latest
+      #     docker push ${{ env.ACR_NAME }}.azurecr.io/${{ env.APP_NAME }}:latest
+
+  # deploy:
+  #   name: Deploy to Vercel
+  #   runs-on: ubuntu-24.04
+  #   environment:
+  #     name: Production
+  #     url: ${{ steps.deploy-artifacts.outputs.previewUrl }}
+  #   env:
+  #     VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+  #     VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+  #   needs: create-release
+  #   if: ${{ needs.create-release.outputs.released == 1}}
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - name: Print version to console
+  #       run: |
+  #         echo "New Version Number is: ${{ needs.create-release.outputs.newVersion }}"
+  #     - name: Update Version Number in package.json
+  #       working-directory: ./flowmazonfrontend
+  #       run: npm --no-git-tag-version version ${{ needs.create-release.outputs.newVersion }}
+  #     - name: Install Vercel CLI
+  #       working-directory: ./flowmazonfrontend
+  #       run: npm install --global vercel@latest
+  #     - name: Pull Vercel Environment Information
+  #       working-directory: ./flowmazonfrontend
+  #       run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
+  #     - name: Build Project Artifacts
+  #       working-directory: ./flowmazonfrontend
+  #       run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
+  #     - name: Deploy Project Artifacts to Vercel
+  #       working-directory: ./flowmazonfrontend
+  #       id: deploy-artifacts
+  #       run: |
+  #         previewUrl=$(vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }})
+  #         echo "previewUrl=$previewUrl" >> "$GITHUB_OUTPUT"
