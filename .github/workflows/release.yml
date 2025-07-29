@@ -123,6 +123,21 @@ jobs:
         run: |
           docker push ${{ vars.ACR_NAME }}.azurecr.io/${{ vars.IMAGE_REPOSITORY }}:${{ needs.create-release.outputs.newVersion }}
 
+      # We need to run terraform apply on prod-api workspace
+      # because Terraform resource for ACA app must deploy a container
+      # also (otherwise the whole wrorkspace would faile to apply).
+      #
+      # Therefore we use the workspace to deploy the latest version
+      # and later would be doing Blue-Green with it.
+      #
+      # As terraform apply runs on HCP Terraform's clean runner machine,
+      # we don't need to create a separate job to run terraform apply.
+      - name: Run terraform apply on prod-api workspace
+        uses: hashicorp/setup-terraform@v3
+        with:
+          # cli_config_credentials_hostname parameter default
+          # to app.terraform.io which is what we want
+          cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
   # deploy:
   #   name: Deploy to Vercel
   #   runs-on: ubuntu-24.04
