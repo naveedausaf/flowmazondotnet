@@ -70,7 +70,7 @@ locals {
 # Create the domain name with a UUID subdomain to which
 # CNAME record in Cloudflare from provided custom domain
 # (in variable vercel_app_domain_name) would map
-resource "vercel_project_domain" "app" {
+resource "vercel_project_domain" "internal_app_domain" {
 
   project_id = vercel_project.app.id
   domain     = local.vercel_internal_domain_name
@@ -85,7 +85,7 @@ resource "vercel_project_domain" "app" {
 # you would get a 404 Not Found with message
 # "Code: DEPLOYMENT_NOT_FOUND"
 # when you navigate to vercel_app_domaon_name in the browser.
-resource "vercel_project_domain" "app" {
+resource "vercel_project_domain" "custom_app_domain" {
 
   project_id = vercel_project.app.id
   domain     = var.vercel_app_domain_name
