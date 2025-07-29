@@ -158,8 +158,12 @@ jobs:
       name: Production
       url: ${{ steps.deploy-artifacts.outputs.previewUrl }}
     env:
-      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-      VERCEL_PROJECT_NAME: ${{ secrets.VERCEL_PROJECT_ID }}
+      # VERCEL_ORG_ID is the vercel_team_id variable that
+      # we supply to Terraform prod workspace that creates
+      # the project whose project is in VERCEL_PROJECT_ID.
+      # Therefore I name the secret VERCEL_TEAM_ID also
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_TEAM_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
     needs: create-release
     if: ${{ needs.create-release.outputs.released == 1}}
     steps:
