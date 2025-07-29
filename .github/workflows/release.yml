@@ -115,17 +115,13 @@ jobs:
           az acr login --name ${{ vars.ACR_NAME }}
 
       - name: Build Docker image
-        working-directory: ./flowmazonbackend
-        run: docker build -t ${{ vars.ACR_NAME }}.azurecr.io/${{ vars.IMAGE_REPOSITORY }}:${{ needs.create-release.outputs.newVersion }} .
+        run: |
+          cd ./flowmazonbackend
+          docker build -t ${{ vars.ACR_NAME }}.azurecr.io/${{ vars.IMAGE_REPOSITORY }}:${{ needs.create-release.outputs.newVersion }} .
 
-      # - name: Push Docker image
-      #   run: |
-      #     docker push ${{ env.ACR_NAME }}.azurecr.io/${{ env.APP_NAME }}:${{ steps.extract-version.outputs.version }}
-
-      #     # Optionally tag as 'latest' as well
-      #     docker tag ${{ env.ACR_NAME }}.azurecr.io/${{ env.APP_NAME }}:${{ steps.extract-version.outputs.version }} \
-      #                ${{ env.ACR_NAME }}.azurecr.io/${{ env.APP_NAME }}:latest
-      #     docker push ${{ env.ACR_NAME }}.azurecr.io/${{ env.APP_NAME }}:latest
+      - name: Push Docker image
+        run: |
+          docker push ${{ vars.ACR_NAME }}.azurecr.io/${{ vars.IMAGE_REPOSITORY }}:${{ needs.create-release.outputs.newVersion }}
 
   # deploy:
   #   name: Deploy to Vercel
