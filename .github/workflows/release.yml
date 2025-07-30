@@ -95,19 +95,46 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y postgresql-client
+      - name: Get psql Connection String from Terraform Cloud Workspace
+        run: |
+          # Get the workspace ID for the specified workspace
+          WORKSPACE_RESPONSE=$(curl -s \
+            --header "Authorization: Bearer ${{ secrets.TF_API_TOKEN }}" \
+            --header "Content-Type: application/vnd.api+json" \
+            "https://app.terraform.io/api/v2/organizations/${{ vars.TF_ORG_NAME }}/workspaces/${{ vars.TF_WORKSPACE_NAME_FOR_VERCEL_PROJECT_ID }}")
 
+          WORKSPACE_ID=$(echo "$WORKSPACE_RESPONSE" | jq -r '.data.id')
+
+          if [ "$WORKSPACE_ID" == "null" ] || [ -z "$WORKSPACE_ID" ]; then
+            echo "::error::Could not find workspace '${{ vars.TF_WORKSPACE_NAME_FOR_VERCEL_PROJECT_ID }}' in organization '${{ vars.TF_ORG_NAME }}'."
+            echo "API Response: $WORKSPACE_RESPONSE"
+            exit 1
+          fi
+
+          # Get the outputs from the current state version of the workspace
+          OUTPUTS_RESPONSE=$(curl -s \
+            --header "Authorization: Bearer ${{ secrets.TF_API_TOKEN }}" \
+            --header "Content-Type: application/vnd.api+json" \
+            "https://app.terraform.io/api/v2/workspaces/${WORKSPACE_ID}/current-state-version?include=outputs")
+
+          PSQL_CONNECTION_STRING=$(echo "$OUTPUTS_RESPONSE" | jq -r '.included[] | select(.attributes.name == "owner_connectionstring_for_psql") | .attributes.value')
+
+          if [ "$PSQL_CONNECTION_STRING" == "null" ] || [ -z "$PSQL_CONNECTION_STRING" ]; then
+            echo "::error::Could not find output 'owner_connectionstring_for_psql' in workspace '${{ vars.TF_WORKSPACE_NAME_FOR_VERCEL_PROJECT_ID }}' in organization '${{ vars.TF_ORG_NAME }}'."
+            echo "API Response: $OUTPUTS_RESPONSE"
+            exit 1
+          fi
+
+          echo "::add-mask::$PSQL_CONNECTION_STRING"
+          echo "PSQL_CONNECTION_STRING=$PSQL_CONNECTION_STRING" >> $GITHUB_ENV
       - name: Run migrations
         env:
-          POSTGRES_USER: ${{ secrets.NEON_USER }}
-          POSTGRES_DB: ${{ secrets.NEON_DB }}
           MIGRATIONS_DIR: ./flowmazonbackend/flowmazonapi/MigrationScripts
-          PGHOST: ${{ secrets.NEON_HOST }}
-          PGPASSWORD: ${{ secrets.NEON_PASSWORD }}
         run: |
           for f in "$MIGRATIONS_DIR"/*.sql; do
             filename=$(basename "$f")
             echo "Applying migration $filename"
-            psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -h "$PGHOST" -f "$f"
+            psql "$PSQL_CONNECTION_STRING" -f "$f"
           done
   deploy-backend:
     environment:
