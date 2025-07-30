@@ -80,10 +80,39 @@ jobs:
       #   if: ${{ env.RELEASED == 1 }}
 
   # OTHER JOBS HERE...
-  deploy-backend:
+  migrate-db:
     environment:
       name: Production
     needs: create-release
+    if: ${{ needs.create-release.outputs.released == 1}}
+    name: Build and Push Container and Deploy to ACA app
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install psql client
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client
+
+      - name: Run migrations
+        env:
+          POSTGRES_USER: ${{ secrets.NEON_USER }}
+          POSTGRES_DB: ${{ secrets.NEON_DB }}
+          MIGRATIONS_DIR: ./flowmazonbackend/flowmazonapi/MigrationScripts
+          PGHOST: ${{ secrets.NEON_HOST }}
+          PGPASSWORD: ${{ secrets.NEON_PASSWORD }}
+        run: |
+          for f in "$MIGRATIONS_DIR"/*.sql; do
+            filename=$(basename "$f")
+            echo "Applying migration $filename"
+            psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -h "$PGHOST" -f "$f"
+          done
+  deploy-backend:
+    environment:
+      name: Production
+    needs: [create-release, migrate-db]
     if: ${{ needs.create-release.outputs.released == 1}}
     name: Build and Push Container and Deploy to ACA app
     runs-on: ubuntu-latest
@@ -172,7 +201,7 @@ jobs:
       # will be loaded dynamically from Terraform workspace
       # that creates the project and outputs its id in an
       # output variable.
-    needs: create-release
+    needs: [create-release, deploy-backend]
     if: ${{ needs.create-release.outputs.released == 1}}
     steps:
       - uses: actions/checkout@v4
