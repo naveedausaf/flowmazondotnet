@@ -85,7 +85,7 @@ jobs:
       name: Production
     needs: create-release
     if: ${{ needs.create-release.outputs.released == 1}}
-    name: Build and Push Container and Deploy to ACA app
+    name: Migrate Database
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -141,7 +141,7 @@ jobs:
       name: Production
     needs: [create-release, migrate-db]
     if: ${{ needs.create-release.outputs.released == 1}}
-    name: Build and Push Container and Deploy to ACA app
+    name: Deploy API to Azure
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -208,7 +208,7 @@ jobs:
   # this job is based on this Vercel sample:
   # https://github.com/vercel/examples/tree/main/ci-cd/github-actions
   deploy-frontend-to-vercel:
-    name: Deploy to Vercel
+    name: Deploy Next.js frontend to Vercel
     runs-on: ubuntu-24.04
     environment:
       name: Production
