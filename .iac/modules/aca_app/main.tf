@@ -37,7 +37,7 @@ data "azurerm_key_vault_secret" "connstr_for_api" {
 }
 
 locals {
-  login_server    = var.acr_name != null ? data.azurerm_container_registry.app.login_server : var.image_server
+  login_server    = var.acr_name != null ? data.azurerm_container_registry.app[0].login_server : var.image_server
   full_image_name = "${local.login_server}/${var.image_repository}:${var.image_tag}"
 }
 
