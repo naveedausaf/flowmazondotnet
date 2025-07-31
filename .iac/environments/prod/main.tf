@@ -14,8 +14,6 @@ module "id_vault" {
   id_and_vault_resource_group_location    = var.id_and_vault_resource_group_location
   assign_permission_on_container_registry = true
   container_registry_id                   = module.registry.registry_id
-
-
 }
 
 module "db" {

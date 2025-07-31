@@ -21,7 +21,6 @@ variable "id_and_vault_resource_group_location" {
 variable "assign_permission_on_container_registry" {
   description = "Wether or not to assign AcrPull permission to the specified managed identity on a specified Azure Container Registry. If true, then a non-null value must be provided for `container_registry_id` argument."
   type        = bool
-  default     = false
 }
 
 variable "container_registry_id" {

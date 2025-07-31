@@ -23,7 +23,7 @@ data "azurerm_user_assigned_identity" "managed_identity" {
 data "azurerm_container_registry" "app" {
   count               = var.acr_name != null ? 1 : 0
   name                = var.acr_name
-  resource_group_name = data.azurerm_resource_group.registry.name
+  resource_group_name = data.azurerm_resource_group.registry[0].name
 }
 
 data "azurerm_key_vault" "vault" {
@@ -37,7 +37,7 @@ data "azurerm_key_vault_secret" "connstr_for_api" {
 }
 
 locals {
-  login_server    = var.acr_name != null ? data.azurerm_container_registry.app.login_server : var.image_server
+  login_server    = var.acr_name != null ? data.azurerm_container_registry.app[0].login_server : var.image_server
   full_image_name = "${local.login_server}/${var.image_repository}:${var.image_tag}"
 }
 
@@ -118,7 +118,7 @@ resource "azurerm_container_app" "app" {
     dynamic {
       for_each = var.acr_name != null ? [1] : []
       content {
-        server   = data.azurerm_container_registry.app.login_server
+        server   = data.azurerm_container_registry.app[0].login_server
         identity = data.azurerm_user_assigned_identity.managed_identity.id
       }
     }
