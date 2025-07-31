@@ -37,7 +37,7 @@ data "azurerm_key_vault_secret" "connstr_for_api" {
 }
 
 locals {
-  login_server    = var.acr_name != null ? data.azurerm_container_registry.app[0].login_server : var.image_server
+  login_server    = var.acr_name != null ? data.azurerm_container_registry.app.login_server : var.image_server
   full_image_name = "${local.login_server}/${var.image_repository}:${var.image_tag}"
 }
 
@@ -114,14 +114,14 @@ resource "azurerm_container_app" "app" {
     # try to deleted it. So we're ok.
   }
 
-  registry {
-    dynamic {
-      for_each = var.acr_name != null ? [1] : []
-      content {
-        server   = data.azurerm_container_registry.app[0].login_server
-        identity = data.azurerm_user_assigned_identity.managed_identity.id
-      }
+  dynamic "registry" {
+
+    for_each = var.acr_name != null ? [1] : []
+    content {
+      server   = data.azurerm_container_registry.app[0].login_server
+      identity = data.azurerm_user_assigned_identity.managed_identity.id
     }
+
   }
 
   secret {
@@ -367,7 +367,7 @@ resource "cloudflare_dns_record" "app_txt" {
 # terraform apply of the config - we need to go through
 # the following steps:
 #
-# 1. Wait for the chagnes to propagate.
+# 1. Wait for the changes to propagate.
 # 2. Set 'proxied=off' on the CNAME record. Otherwise
 #   managed cert creation and almost certinly the 
 #   custom domain binding creation and update would fail.
