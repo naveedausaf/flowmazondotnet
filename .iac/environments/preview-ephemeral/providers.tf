@@ -12,27 +12,37 @@ terraform {
       source  = "hashicorp/azurerm"
       version = "4.34.0" # Pinned to an exact version for repeatabilityneeded
     }
+
     cloudflare = {
       source  = "cloudflare/cloudflare"
       version = "5.6.0" # pinned to exact version for repeatability
     }
-    azapi = {
-      source  = "azure/azapi"
-      version = "2.4.0" # pinned to exact version for repeatability
-    }
-    time = {
-      source  = "hashicorp/time"
-      version = "0.13.1" # pinned version for repeatability
-    }
-    # restapi = {
-    #   source  = "Mastercard/restapi"
-    #   version = "2.0.1" # version pinned for repeatability
-    # }
-    restful = {
-      source  = "magodo/restful"
-      version = "0.22.0" # version pinned for repeatability
+
+    random = {
+      source  = "hashicorp/random"
+      version = "3.7.2"
     }
 
+    vercel = {
+
+      source  = "vercel/vercel"
+      version = "3.7.0" # version pinned for repeatability
+    }
+
+    neon = {
+      source  = "kislerdm/neon"
+      version = "0.9.0" # Pinned for repeatability
+    }
+    # adding this provider as neon provider
+    # only provisions a user in neon_superuser role.
+    # To add other types of users - which we need to -
+    # we need to use this provider
+    # https://neon.com/docs/manage/roles
+    postgresql = {
+      # Using cyrilgdn/postgresql provider
+      source  = "cyrilgdn/postgresql"
+      version = "1.25.0" # Pinned to specific version
+    }
   }
 }
 
@@ -43,7 +53,7 @@ provider "azurerm" {
     }
     key_vault {
 
-      # In Production, we configure soft delete and purge-protection
+      # In Production, we configure soft delete and purge-protectioon
       # to enabled on key vaults, as per the best practices:
       # https://learn.microsoft.com/en-us/azure/key-vault/general/best-practices
       #      
@@ -103,43 +113,35 @@ provider "azurerm" {
   }
 }
 
-provider "azapi" {
-  # this needs to the same four environment 
-  # variables to be provided that we are setting
-  # for the azurerm provider above
+provider "random" {
+  # Configuration options
+}
+
+provider "vercel" {
+
+  # TODO: Document this in environment documentation:
+
+  # To use this provider:
+  #
+  # 1. Log in to Vercel and click your avatar in top right hand side 
+  # of the page. Select "Account Settings". Then click "Tokens"
+  # in men on the left hand side. There, create a Token.
+  # Provide value of the generated token in an envirnment variable named 
+  # VERCEL_API_TOKEN when running this Terraform configuartion.
+  #
+  # 2. Copy your team id from the Settings page of a Team in your
+  # account and provide it as value of Terraform variable named
+  # `vercel_team_id` (again, yo ucan provide it as environment variable
+  # named TF_VAR_vercel_team_id).
+
+  team = var.vercel_team_id
 
 }
 
-
+provider "neon" {
+  # API key to be provided via env variable NEON_API_KEY
+}
 
 provider "cloudflare" {
   api_token = var.cloudflare_api_token
-}
-
-provider "time" {
-
-}
-
-# # aliasing the provider as you could have multiple
-# # of these for different APIs/targets
-# provider "restapi" {
-#   alias = "cloudflare"
-#   # Configuration options
-#   uri                  = "https://api.cloudflare.com/client/v4"
-#   write_returns_object = true
-#   headers = {
-#     Content-Type  = "application/json"
-#     Authorization = "Bearer ${var.cloudflare_api_token}"
-#   }
-# }
-
-provider "restful" {
-  alias = "cloudflare"
-  # Configuration options
-  base_url = "https://api.cloudflare.com/client/v4"
-
-  header = {
-    Content-Type  = "application/json"
-    Authorization = "Bearer ${var.cloudflare_api_token}"
-  }
 }

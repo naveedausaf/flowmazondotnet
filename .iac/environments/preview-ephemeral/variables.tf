@@ -107,3 +107,55 @@ variable "cloudflare_rate_limiting_rule_name" {
   default     = "default"
 
 }
+
+variable "vercel_team_id" {
+  description = "Team ID displayed on you Setting page of a Team in your Vercel account. We need this to create a project, and the project would be created in in the team with the given Team ID."
+  type        = string
+  sensitive   = true
+}
+
+# vars for flowmazonfrontend module
+#
+# We already have (above) the remaining variabls requried by
+# the flowmazonfrontend module:
+#
+# cloudflare_api_token
+# cloudflare_zone_id
+
+variable "vercel_project_name" {
+  description = "Name of the project that would be created."
+  type        = string
+  sensitive   = true
+
+}
+
+variable "vercel_app_domain_name" {
+  description = "Desired domain name for the Vercel project. This will be mapped to the project's own domain name in vercel through a CNAME record with external DNS provider like Cloudflare."
+  type        = string
+}
+
+variable "vercel_region_for_server_side_execution" {
+  description = "see flowmazonfrontend module's documentation"
+  type        = string
+}
+
+variable "env_NEXT_PUBLIC_OTEL_ENVIRONMENT" {
+  description = "Name of the Otel environment. This would be reported as value of semantic convention 'deployment.environment.name' to the observability backend. This variable would be set as an environment variable on the created Vercel app."
+  type        = string
+}
+
+variable "env_OTEL_EXPORTER_OTLP_ENDPOINT" {
+  description = "OTLP endpoint of the observability backend. This variable would be set as an environment variable on the created Vercel app."
+  type        = string
+}
+
+variable "env_OTEL_EXPORTER_OTLP_PROTOCOL" {
+  description = "The transport, e.g. grpc or http/protobuf, that would be used to write telemetry to the OTLP endpoint. This variable would be set as an environment variable on the created Vercel app."
+  type        = string
+}
+
+variable "env_OTEL_EXPORTER_OTLP_HEADERS" {
+  description = "Authorization header that would be provided when writing telemetry to the observability backend using OpenTelemetry protocol. Grafana Cloud would show this if you press Details button on your Stack, then generate a new token; base-64 encoded value of this token would be included in the generated Authorization header that would be shown. This variable would be set as an environment variable on the created Vercel app and marked as SENSITIVE."
+  type        = string
+  sensitive   = true
+}

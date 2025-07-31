@@ -23,8 +23,8 @@ jobs:
         run: |
           npm ci
           npm audit signatures
-  deploy-to-vercel-preview-env:
-    name: Deploy to Vercel Preview environment
+  create-update-infrastructure:
+    name: Create or Update Infrastructure using Terraform preview workspace
     runs-on: ubuntu-24.04
     environment:
       name: Preview
@@ -33,18 +33,3 @@ jobs:
       - uses: actions/checkout@v4
       - name: Update Version Number in package.json
         run: npm --no-git-tag-version version 0.0.0-pr${{ github.event.number }}
-      - name: Install Vercel CLI
-        working-directory: ./flowmazonfrontend
-        run: npm install --global vercel@latest
-      - name: Pull Vercel Environment Information
-        working-directory: ./flowmazonfrontend
-        run: vercel pull --yes --environment=preview --token=${{ secrets.VERCEL_TOKEN }}
-      - name: Build Project Artifacts
-        working-directory: ./flowmazonfrontend
-        run: vercel build --token=${{ secrets.VERCEL_TOKEN }}
-      - name: Deploy Project Artifacts to Vercel
-        working-directory: ./flowmazonfrontend
-        id: deploy-artifacts
-        run: |
-          previewUrl=$(vercel deploy --prebuilt --token=${{ secrets.VERCEL_TOKEN }})
-          echo "previewUrl=$previewUrl" >> "$GITHUB_OUTPUT"
