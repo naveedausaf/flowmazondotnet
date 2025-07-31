@@ -7,12 +7,13 @@ module "registry" {
 }
 
 module "id_vault" {
-  source                               = "../../modules/id_vault"
-  key_vault_name                       = var.key_vault_name
-  managed_identity_name                = var.managed_identity_name
-  id_and_vault_resource_group_name     = var.id_and_vault_resource_group_name
-  id_and_vault_resource_group_location = var.id_and_vault_resource_group_location
-  container_registry_id                = module.registry.registry_id
+  source                                  = "../../modules/id_vault"
+  key_vault_name                          = var.key_vault_name
+  managed_identity_name                   = var.managed_identity_name
+  id_and_vault_resource_group_name        = var.id_and_vault_resource_group_name
+  id_and_vault_resource_group_location    = var.id_and_vault_resource_group_location
+  assign_permission_on_container_registry = true
+  container_registry_id                   = module.registry.registry_id
 
 
 }
