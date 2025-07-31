@@ -46,3 +46,11 @@ module "flowmazonfrontend" {
   env_OTEL_EXPORTER_OTLP_HEADERS          = var.env_OTEL_EXPORTER_OTLP_HEADERS
 
 }
+
+module "cloudflare_rate_limiting_rule" {
+  source                         = "../../modules/cloudflare_rate_limiting_rule"
+  cloudflare_api_token           = var.cloudflare_api_token
+  cloudflare_zone_id             = var.cloudflare_zone_id
+  rate_limit_requests_per_period = 30
+
+}

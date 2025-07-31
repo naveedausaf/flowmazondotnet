@@ -38,9 +38,10 @@ module "aca_app" {
 
   vault_secretname_connectionstring_for_api = var.vault_secretname_for_connectionstring
 
-  allowed_cors_origins_for_api = var.allowed_cors_origins_for_api
-  cloudflare_api_token         = var.cloudflare_api_token
-  cloudflare_zone_id           = var.cloudflare_zone_id
+  allowed_cors_origins_for_api   = var.allowed_cors_origins_for_api
+  cloudflare_api_token           = var.cloudflare_api_token
+  cloudflare_zone_id             = var.cloudflare_zone_id
+  rate_limit_requests_per_period = var.rate_limit_requests_per_period
 
   providers = {
     restful.cloudflare = restful.cloudflare

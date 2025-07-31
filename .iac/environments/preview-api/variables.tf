@@ -146,6 +146,18 @@ variable "cloudflare_zone_id" {
   sensitive   = true
 }
 
+variable "rate_limit_requests_per_period" {
+  description = "number of request that, if received in the configured `period` (fixed to 10 seconds in free plan), would lead to the sending IP being blocked for the configured `mitigation_timeout` (also fixed to 10 seconds in free plan)"
+  type        = number
+}
+
+variable "cloudflare_rate_limiting_rule_name" {
+  description = "Name of the rate limiting rule. This has several nuances, including why it is creaed at the Zone level rather than hostname level and why it defaults to value \"default\". See README for details."
+  type        = string
+  default     = "default"
+
+}
+
 # Otel Endpoint details
 variable "env_OTEL_RESOURCE_ATTRIBUTES" {
   description = "Used to pass value of environment variable OTEL_RESOURCE_ATTRIBUTES that the API expects. See README of flowmazonbackend for details."

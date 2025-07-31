@@ -51,6 +51,7 @@ resource "azurerm_key_vault" "vault" {
 # support Azure ABAC whereby we can constrain permissions
 # to pull a specific image only.
 resource "azurerm_role_assignment" "container_registry_reader" {
+  count                = var.container_registry_id != null ? 1 : 0
   scope                = var.container_registry_id
   role_definition_name = "AcrPull"
   principal_id         = azurerm_user_assigned_identity.identity.principal_id

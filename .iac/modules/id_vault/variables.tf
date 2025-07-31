@@ -21,6 +21,8 @@ variable "id_and_vault_resource_group_location" {
 variable "container_registry_id" {
   description = "ID of the Azure Container Registry instance on which the created User-assigned Managed Identity would be assigned image pull permission."
   type        = string
+  # nullable    = true # nullable is tru by default
+  default = null
 }
 
 

@@ -112,6 +112,19 @@ variable "cloudflare_zone_id" {
   sensitive   = true
 }
 
+# vars needed by cloudflare_rate_limiting_rule module
+variable "rate_limit_requests_per_period" {
+  description = "number of request that, if received in the configured `period` (fixed to 10 seconds in free plan), would lead to the sending IP being blocked for the configured `mitigation_timeout` (also fixed to 10 seconds in free plan)"
+  type        = number
+}
+
+variable "cloudflare_rate_limiting_rule_name" {
+  description = "Name of the rate limiting rule. This has several nuances, including why it is creaed at the Zone level rather than hostname level and why it defaults to value \"default\". See README for details."
+  type        = string
+  default     = "default"
+
+}
+
 variable "vercel_team_id" {
   description = "Team ID displayed on you Setting page of a Team in your Vercel account. We need this to create a project, and the project would be created in in the team with the given Team ID."
   type        = string
