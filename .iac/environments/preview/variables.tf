@@ -79,7 +79,20 @@ variable "neon_owner_role" {
 
 }
 
+variable "secretname_for_psql_owner_connectionstring" {
+  description = "Name of the GitHub Environment secret in which to store psql connection String that includes credentials of db owner account that would be used to connect to and execute queries (including DDL) on the database from psql."
+  type        = string
+}
 
+variable "environmentname_for_secrets_and_variables" {
+  description = "Name of GitHub repo Environment in which to store secrets or variables."
+  type        = string
+}
+
+variable "repository_for_secrets_and_variables" {
+  description = "Name of GitHub repo in an an Environment of which (specified by `environmentname_for_secrets_and_variables` argument) secretes or variables would be stored by this workspace. This should just be the repo's name, and NOT prefixed by account name or organisation name and NOT a fully qualified repo name either. Otherwise the repo may not be found. For example I would provide `flowmazondotnet` as the repo name instead of `EnableHub/flowmazondotnet` or `https://github.com/EnableHub/flowmazondotnet`."
+  type        = string
+}
 
 # vars needed for vercel provider used by flowmazonfrontend module
 variable "cloudflare_api_token" {

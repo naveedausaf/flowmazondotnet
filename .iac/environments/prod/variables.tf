@@ -41,15 +41,9 @@ variable "id_and_vault_resource_group_location" {
   type        = string
 }
 
-# variables for db module
-
-# We already have values for the followin vars for this module:
-
-# vault_resource_group_name
-# vault_name
-# managed_identity_for_secret
-# managed_identity_for_secret_resource_group_name
-
+# variables relating to storing secrets and/or variables
+# in GitHub repo's Environment; used by db and flowmazonfrontend 
+# modules
 variable "secretname_for_psql_owner_connectionstring" {
   description = "Name of the secret in which to store psql connection String that includes credentials of db owner account that would be used to connect to and execute queries (including DDL) on the database from psql."
   type        = string
@@ -69,6 +63,17 @@ variable "repository_for_secrets_and_variables" {
   description = "Name of GitHub repo in an an Environment of which (specified by `environmentname_for_secrets_and_variables` argument) vercel_project_id and psql_owner_connection_string would be stored. This should just be the repo's name, and NOT prefixed by account name or organisation name and NOT a fully qualified repo name either. Otherwise the repo may not be found. For example I would provide `flowmazondotnet` as the repo name instead of `EnableHub/flowmazondotnet` or `https://github.com/EnableHub/flowmazondotnet`."
   type        = string
 }
+
+
+# variables for db module
+
+# We already have values for the followin vars for this module:
+
+# vault_resource_group_name
+# vault_name
+# managed_identity_for_secret
+# managed_identity_for_secret_resource_group_name
+
 
 variable "vault_secretname_for_connectionstring" {
   description = "name of the secret whose value is the connection string to be used by the API to connect to the database"
