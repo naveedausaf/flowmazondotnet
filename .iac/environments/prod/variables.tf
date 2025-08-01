@@ -55,13 +55,18 @@ variable "secretname_for_psql_owner_connectionstring" {
   type        = string
 }
 
-variable "environmentname_for_psql_owner_connectionstring" {
-  description = "Name of GitHub repo Environment in which to store psql connection String with credentials of db owner account. In this environment the connection string would be stored as a secret with name specified by `secretname_for_psql_owner_connectionstring` argument."
+variable "secretname_for_vercel_project_id" {
+  description = "Name of the secret in which to store project_id of the created vercel_project."
   type        = string
 }
 
-variable "repository_for_psql_owner_connectionstring" {
-  description = "Name of GitHub repo in an an Environment of which (specified by `environmentname_for_psql_owner_connectionstring` argument) the psql connection String with credentials of db owner account would be stored."
+variable "environmentname_for_secrets_and_variables" {
+  description = "Name of GitHub repo Environment in which to store vercel_project_id and psql_owner_connection_string."
+  type        = string
+}
+
+variable "repository_for_secrets_and_variables" {
+  description = "Name of GitHub repo in an an Environment of which (specified by `environmentname_for_secrets_and_variables` argument) vercel_project_id and psql_owner_connection_string would be stored. This should just be the repo's name, and NOT prefixed by account name or organisation name and NOT a fully qualified repo name either. Otherwise the repo may not be found. For example I would provide `flowmazondotnet` as the repo name instead of `EnableHub/flowmazondotnet` or `https://github.com/EnableHub/flowmazondotnet`."
   type        = string
 }
 

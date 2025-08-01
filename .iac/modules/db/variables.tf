@@ -25,7 +25,7 @@ variable "environmentname_for_psql_owner_connectionstring" {
 }
 
 variable "repository_for_psql_owner_connectionstring" {
-  description = "Name of GitHub repo in an an Environment of which (specified by `environmentname_for_psql_owner_connectionstring` argument) the psql connection String with credentials of db owner account would be stored."
+  description = "Name of GitHub repo in an an Environment of which (specified by `environmentname_for_psql_owner_connectionstring` argument) the psql connection String with credentials of db owner account would be stored. This should just be the repos name, NOT prefixed by account name or organisation name and NOT a fully qualified repo name either. Otherwise the repo may not be found. For example I would provide `flowmazondotnet` as the repo name instead of `EnableHub/flowmazondotnet` or `https://github.com/EnableHub/flowmazondotnet`."
   type        = string
 }
 

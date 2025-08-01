@@ -22,8 +22,8 @@ module "db" {
   key_vault_id                                    = module.id_vault.key_vault_id
   vault_secretname_for_connectionstring           = var.vault_secretname_for_connectionstring
   secretname_for_psql_owner_connectionstring      = var.secretname_for_psql_owner_connectionstring
-  environmentname_for_psql_owner_connectionstring = var.environmentname_for_psql_owner_connectionstring
-  repository_for_psql_owner_connectionstring      = var.repository_for_psql_owner_connectionstring
+  environmentname_for_psql_owner_connectionstring = var.environmentname_for_secrets_and_variables
+  repository_for_psql_owner_connectionstring      = var.repository_for_secrets_and_variables
   neon_org_id                                     = var.neon_org_id
   neon_project_name                               = var.neon_project_name
   neon_branch_name                                = var.neon_branch_name
@@ -46,6 +46,9 @@ module "flowmazonfrontend" {
   env_OTEL_EXPORTER_OTLP_ENDPOINT         = var.env_OTEL_EXPORTER_OTLP_ENDPOINT
   env_OTEL_EXPORTER_OTLP_PROTOCOL         = var.env_OTEL_EXPORTER_OTLP_PROTOCOL
   env_OTEL_EXPORTER_OTLP_HEADERS          = var.env_OTEL_EXPORTER_OTLP_HEADERS
+  secretname_for_vercel_project_id        = var.secretname_for_vercel_project_id
+  environmentname_for_vercel_project_id   = var.environmentname_for_secrets_and_variables
+  repository_for_vercel_project_id        = var.repository_for_secrets_and_variables
 
 }
 

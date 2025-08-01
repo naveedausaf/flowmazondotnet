@@ -59,6 +59,12 @@ resource "vercel_project" "app" {
   #   }
 }
 
+resource "github_actions_environment_secret" "vercel_project_id" {
+  repository      = var.repository_for_vercel_project_id
+  environment     = var.environmentname_for_vercel_project_id
+  secret_name     = var.secretname_for_vercel_project_id
+  plaintext_value = vercel_project.app.id
+}
 
 resource "random_uuid" "vercel_internal_domain_prefix" {
 }
