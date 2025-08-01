@@ -184,6 +184,7 @@ jobs:
       #url: ${{ steps.deploy-artifacts.outputs.previewUrl }}
       url: https://www.efast.uk
     env:
+      VERCEL_API_TOKEN: ${{ secrets.VERCEL_API_TOKEN }}
       # VERCEL_ORG_ID is the vercel_team_id variable that
       # we supply to Terraform prod workspace that creates
       # the project whose project is in VERCEL_PROJECT_ID,
@@ -197,6 +198,7 @@ jobs:
       # will be loaded dynamically from Terraform workspace
       # that creates the project and outputs its id in an
       # output variable.
+      VERCEL_PROJECT_ID: ${{ secrets.TF_MANAGED_VERCEL_PROJECT_ID }}
     needs: [create-release, deploy-backend]
     if: ${{ needs.create-release.outputs.released == 1}}
     steps:
@@ -212,11 +214,6 @@ jobs:
         run: npm install --global vercel@latest
 
       - name: Pull Vercel Environment Information
-        env:
-          # vercel CLI commands (like vercel pull)
-          # need these environment variables
-          VERCEL_PROJECT_ID: ${{ secrets.TF_MANAGED_VERCEL_PROJECT_ID }}
-          VERCEL_API_TOKEN: ${{ secrets.VERCEL_API_TOKEN }}
         working-directory: ./flowmazonfrontend
         run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_API_TOKEN }}
         # USing --prod with vercel build below
