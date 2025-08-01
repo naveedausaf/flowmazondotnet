@@ -50,6 +50,21 @@ variable "id_and_vault_resource_group_location" {
 # managed_identity_for_secret
 # managed_identity_for_secret_resource_group_name
 
+variable "secretname_for_psql_owner_connectionstring" {
+  description = "Name of the secret in which to store psql connection String that includes credentials of db owner account that would be used to connect to and execute queries (including DDL) on the database from psql."
+  type        = string
+}
+
+variable "environmentname_for_psql_owner_connectionstring" {
+  description = "Name of GitHub repo Environment in which to store psql connection String with credentials of db owner account. In this environment the connection string would be stored as a secret with name specified by `secretname_for_psql_owner_connectionstring` argument."
+  type        = string
+}
+
+variable "repository_for_psql_owner_connectionstring" {
+  description = "Name of GitHub repo in an an Environment of which (specified by `environmentname_for_psql_owner_connectionstring` argument) the psql connection String with credentials of db owner account would be stored."
+  type        = string
+}
+
 variable "vault_secretname_for_connectionstring" {
   description = "name of the secret whose value is the connection string to be used by the API to connect to the database"
   type        = string
@@ -125,12 +140,6 @@ variable "cloudflare_rate_limiting_rule_name" {
 
 }
 
-variable "vercel_team_id" {
-  description = "Team ID displayed on you Setting page of a Team in your Vercel account. We need this to create a project, and the project would be created in in the team with the given Team ID."
-  type        = string
-  sensitive   = true
-}
-
 # vars for flowmazonfrontend module
 #
 # We already have (above) the remaining variabls requried by
@@ -138,6 +147,12 @@ variable "vercel_team_id" {
 #
 # cloudflare_api_token
 # cloudflare_zone_id
+
+variable "vercel_team_id" {
+  description = "Team ID displayed on you Setting page of a Team in your Vercel account. We need this to create a project, and the project would be created in in the team with the given Team ID."
+  type        = string
+  sensitive   = true
+}
 
 variable "vercel_project_name" {
   description = "Name of the project that would be created."

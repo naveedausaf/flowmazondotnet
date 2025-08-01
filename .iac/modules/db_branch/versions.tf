@@ -5,12 +5,6 @@
 # an error during terraform plan
 terraform {
   required_providers {
-    github = {
-      # Requires GITHUB_TOKEN environment variable to be set
-
-      source  = "integrations/github"
-      version = "6.6.0" # version pinned for repeatability
-    }
     azurerm = {
       source  = "hashicorp/azurerm"
       version = "4.34.0"
@@ -23,7 +17,6 @@ terraform {
       source  = "cyrilgdn/postgresql"
       version = "1.25.0"
     }
-
   }
 }
 

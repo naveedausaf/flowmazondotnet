@@ -18,6 +18,23 @@ terraform {
       version = "5.6.0" # pinned to exact version for repeatability
     }
 
+    azapi = {
+      source  = "azure/azapi"
+      version = "2.4.0" # pinned to exact version for repeatability
+    }
+    time = {
+      source  = "hashicorp/time"
+      version = "0.13.1" # pinned version for repeatability
+    }
+    # restapi = {
+    #   source  = "Mastercard/restapi"
+    #   version = "2.0.1" # version pinned for repeatability
+    # }
+    restful = {
+      source  = "magodo/restful"
+      version = "0.22.0" # version pinned for repeatability
+    }
+
     random = {
       source  = "hashicorp/random"
       version = "3.7.2"
@@ -144,4 +161,39 @@ provider "neon" {
 
 provider "cloudflare" {
   api_token = var.cloudflare_api_token
+}
+
+provider "azapi" {
+  # this needs to the same four environment 
+  # variables to be provided that we are setting
+  # for the azurerm provider above
+
+}
+
+provider "time" {
+
+}
+
+# # aliasing the provider as you could have multiple
+# # of these for different APIs/targets
+# provider "restapi" {
+#   alias = "cloudflare"
+#   # Configuration options
+#   uri                  = "https://api.cloudflare.com/client/v4"
+#   write_returns_object = true
+#   headers = {
+#     Content-Type  = "application/json"
+#     Authorization = "Bearer ${var.cloudflare_api_token}"
+#   }
+# }
+
+provider "restful" {
+  alias = "cloudflare"
+  # Configuration options
+  base_url = "https://api.cloudflare.com/client/v4"
+
+  header = {
+    Content-Type  = "application/json"
+    Authorization = "Bearer ${var.cloudflare_api_token}"
+  }
 }

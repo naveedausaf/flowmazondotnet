@@ -1,5 +1,11 @@
 terraform {
   required_providers {
+    github = {
+      # Requires GITHUB_TOKEN environment variable to be set
+
+      source  = "integrations/github"
+      version = "6.6.0" # version pinned for repeatability
+    }
     azurerm = {
       # Following environment variables must be provided for this provider:
       # ARM_SUBSCRIPTION_ID, ARM_CLIENT_ID, ARM_TENANT_ID, ARM_CLIENT_SECRET
@@ -45,6 +51,8 @@ terraform {
     }
   }
 }
+
+provider "github" {}
 
 provider "azurerm" {
   features {

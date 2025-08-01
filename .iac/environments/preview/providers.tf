@@ -23,12 +23,6 @@ terraform {
       version = "3.7.2"
     }
 
-    vercel = {
-
-      source  = "vercel/vercel"
-      version = "3.7.0" # version pinned for repeatability
-    }
-
     neon = {
       source  = "kislerdm/neon"
       version = "0.9.0" # Pinned for repeatability

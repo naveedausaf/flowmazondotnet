@@ -14,21 +14,6 @@ variable "vault_secretname_for_connectionstring" {
   type        = string
 }
 
-variable "secretname_for_psql_owner_connectionstring" {
-  description = "Name of the secret in which to store psql connection String that includes credentials of db owner account that would be used to connect to and execute queries (including DDL) on the database from psql."
-  type        = string
-}
-
-variable "environmentname_for_psql_owner_connectionstring" {
-  description = "Name of GitHub repo Environment in which to store psql connection String with credentials of db owner account. In this environment the connection string would be stored as a secret with name specified by `secretname_for_psql_owner_connectionstring` argument."
-  type        = string
-}
-
-variable "repository_for_psql_owner_connectionstring" {
-  description = "Name of GitHub repo in an an Environment of which (specified by `environmentname_for_psql_owner_connectionstring` argument) the psql connection String with credentials of db owner account would be stored."
-  type        = string
-}
-
 # Neon DB variables
 
 # This can be found on Settings page in the Neon DB UI
@@ -39,9 +24,17 @@ variable "neon_org_id" {
 }
 
 
-variable "neon_project_name" {
-  description = "The name for the Neon project that would be created."
+variable "neon_project_id" {
+  description = "project_id of the Neon DB Project that contains the source branch off of which a new branch will be created."
   type        = string
+}
+
+variable "neon_source_branch_id" {
+
+}
+
+variable "neon_new_branch_name" {
+
 }
 
 variable "neon_branch_name" {
@@ -68,4 +61,3 @@ variable "neon_owner_role" {
   type        = string
   sensitive   = true
 }
-

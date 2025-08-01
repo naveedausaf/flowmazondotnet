@@ -1,31 +1,49 @@
-# To save on the cost of an Azure Container Registry instance,
-# this workspace wll not create an ACR instance. 
-# Instead, the GitHUb Actions CI workflow would deploy API image
-# to GitHub Pacakges of rht repo. The latest of these would be
-# deployed by preview-api workspace to the ACA app for the API.
-
-module "id_vault" {
-  source                                  = "../../modules/id_vault"
-  key_vault_name                          = var.key_vault_name
-  managed_identity_name                   = var.managed_identity_name
-  id_and_vault_resource_group_name        = var.id_and_vault_resource_group_name
-  id_and_vault_resource_group_location    = var.id_and_vault_resource_group_location
-  assign_permission_on_container_registry = false
-}
-
-module "db" {
-  source                                   = "../../modules/db"
-  managed_identity_for_secret_principal_id = module.id_vault.managed_identity_principal_id
-  key_vault_id                             = module.id_vault.key_vault_id
-  vault_secretname_for_connectionstring    = var.vault_secretname_for_connectionstring
-  neon_org_id                              = var.neon_org_id
-  neon_project_name                        = var.neon_project_name
-  neon_branch_name                         = var.neon_branch_name
-  neon_database_name                       = var.neon_database_name
-  neon_app_role                            = var.neon_app_role
-  neon_owner_role                          = var.neon_owner_role
 
 
+module "aca_app" {
+  source                        = "git::https://github.com/EnableHub/flowmazondotnet.git//.iac/modules/aca_app?ref=main"
+  app_resource_group_name       = var.app_resource_group_name
+  app_resource_group_location   = var.app_resource_group_location
+  app_name                      = var.app_name
+  app_environment_name          = var.app_environment_name
+  app_domain_name               = var.app_domain_name
+  app_container_name            = var.app_container_name
+  app_container_port            = var.app_container_port
+  app_container_liveness_probe  = "/health/live"
+  app_container_readiness_probe = "/health/ready"
+
+  # Given the definition of liveness probe in the 
+  # ASP.NET Core API, it is stronger than def of livenvess
+  # probe for an ACA app and meets the definition of startup
+  # probe of an ACA app. 
+  # Hence why we have used it in both places.
+  app_container_startup_probe = "/health/live"
+
+  env_OTEL_EXPORTER_OTLP_ENDPOINT = var.env_OTEL_EXPORTER_OTLP_ENDPOINT
+  env_OTEL_EXPORTER_OTLP_HEADERS  = var.env_OTEL_EXPORTER_OTLP_HEADERS
+  env_OTEL_RESOURCE_ATTRIBUTES    = var.env_OTEL_RESOURCE_ATTRIBUTES
+  env_OTEL_EXPORTER_OTLP_PROTOCOL = var.env_OTEL_EXPORTER_OTLP_PROTOCOL
+
+  image_server                         = "ghcr.io/${var.github_organisation_or_account}"
+  image_repository                     = var.image_repository
+  image_tag                            = var.image_tag
+  app_revision_mode                    = "Multiple"
+  managed_identity_name                = var.managed_identity_name
+  managed_identity_resource_group_name = var.id_and_vault_resource_group_name
+
+  vault_name = var.key_vault_name
+
+  vault_resource_group_name = var.id_and_vault_resource_group_name
+
+  vault_secretname_connectionstring_for_api = var.vault_secretname_for_connectionstring
+
+  allowed_cors_origins_for_api = var.allowed_cors_origins_for_api
+  cloudflare_api_token         = var.cloudflare_api_token
+  cloudflare_zone_id           = var.cloudflare_zone_id
+
+  providers = {
+    restful.cloudflare = restful.cloudflare
+  }
 }
 
 module "flowmazonfrontend" {
@@ -40,13 +58,5 @@ module "flowmazonfrontend" {
   env_OTEL_EXPORTER_OTLP_ENDPOINT         = var.env_OTEL_EXPORTER_OTLP_ENDPOINT
   env_OTEL_EXPORTER_OTLP_PROTOCOL         = var.env_OTEL_EXPORTER_OTLP_PROTOCOL
   env_OTEL_EXPORTER_OTLP_HEADERS          = var.env_OTEL_EXPORTER_OTLP_HEADERS
-
-}
-
-module "cloudflare_rate_limiting_rule" {
-  source                         = "../../modules/cloudflare_rate_limiting_rule"
-  cloudflare_api_token           = var.cloudflare_api_token
-  cloudflare_zone_id             = var.cloudflare_zone_id
-  rate_limit_requests_per_period = 30
 
 }
