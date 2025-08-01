@@ -95,38 +95,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y postgresql-client
-      - name: Get psql Connection String from Terraform Cloud Workspace
-        run: |
-          # Get the workspace ID for the specified workspace
-          WORKSPACE_RESPONSE=$(curl -s \
-            --header "Authorization: Bearer ${{ secrets.TF_API_TOKEN }}" \
-            --header "Content-Type: application/vnd.api+json" \
-            "https://app.terraform.io/api/v2/organizations/${{ vars.TF_ORG_NAME }}/workspaces/${{ vars.TF_WORKSPACE_NAME_FOR_VERCEL_PROJECT_ID }}")
 
-          WORKSPACE_ID=$(echo "$WORKSPACE_RESPONSE" | jq -r '.data.id')
-
-          if [ "$WORKSPACE_ID" == "null" ] || [ -z "$WORKSPACE_ID" ]; then
-            echo "::error::Could not find workspace '${{ vars.TF_WORKSPACE_NAME_FOR_VERCEL_PROJECT_ID }}' in organization '${{ vars.TF_ORG_NAME }}'."
-            echo "API Response: $WORKSPACE_RESPONSE"
-            exit 1
-          fi
-
-          # Get the outputs from the current state version of the workspace
-          OUTPUTS_RESPONSE=$(curl -s \
-            --header "Authorization: Bearer ${{ secrets.TF_API_TOKEN }}" \
-            --header "Content-Type: application/vnd.api+json" \
-            "https://app.terraform.io/api/v2/workspaces/${WORKSPACE_ID}/current-state-version?include=outputs")
-
-          PSQL_CONNECTION_STRING=$(echo "$OUTPUTS_RESPONSE" | jq -r '.included[] | select(.attributes.name == "owner_connectionstring_for_psql") | .attributes.value')
-
-          if [ "$PSQL_CONNECTION_STRING" == "null" ] || [ -z "$PSQL_CONNECTION_STRING" ]; then
-            echo "::error::Could not find output 'owner_connectionstring_for_psql' in workspace '${{ vars.TF_WORKSPACE_NAME_FOR_VERCEL_PROJECT_ID }}' in organization '${{ vars.TF_ORG_NAME }}'."
-            echo "API Response: $OUTPUTS_RESPONSE"
-            exit 1
-          fi
-
-          echo "::add-mask::$PSQL_CONNECTION_STRING"
-          echo "PSQL_CONNECTION_STRING=$PSQL_CONNECTION_STRING" >> $GITHUB_ENV
       - name: Run migrations
         env:
           MIGRATIONS_DIR: ./flowmazonbackend/flowmazonapi/MigrationScripts
@@ -134,7 +103,7 @@ jobs:
           for f in "$MIGRATIONS_DIR"/*.sql; do
             filename=$(basename "$f")
             echo "Applying migration $filename"
-            psql "$PSQL_CONNECTION_STRING" -f "$f"
+            psql "${{secrets.TF_MANAGED_PSQL_OWNER_CONNECTIONSTRING}}" -f "$f"
           done
   deploy-backend:
     environment:
@@ -242,39 +211,12 @@ jobs:
         working-directory: ./flowmazonfrontend
         run: npm install --global vercel@latest
 
-      - name: Get Vercel Project ID from Terraform Cloud Workspace
-        run: |
-          # Get the workspace ID for the specified workspace
-          WORKSPACE_RESPONSE=$(curl -s \
-            --header "Authorization: Bearer ${{ secrets.TF_API_TOKEN }}" \
-            --header "Content-Type: application/vnd.api+json" \
-            "https://app.terraform.io/api/v2/organizations/${{ vars.TF_ORG_NAME }}/workspaces/${{ vars.TF_WORKSPACE_NAME_FOR_VERCEL_PROJECT_ID }}")
-
-          WORKSPACE_ID=$(echo "$WORKSPACE_RESPONSE" | jq -r '.data.id')
-
-          if [ "$WORKSPACE_ID" == "null" ] || [ -z "$WORKSPACE_ID" ]; then
-            echo "::error::Could not find workspace '${{ vars.TF_WORKSPACE_NAME_FOR_VERCEL_PROJECT_ID }}' in organization '${{ vars.TF_ORG_NAME }}'."
-            echo "API Response: $WORKSPACE_RESPONSE"
-            exit 1
-          fi
-
-          # Get the outputs from the current state version of the workspace
-          OUTPUTS_RESPONSE=$(curl -s \
-            --header "Authorization: Bearer ${{ secrets.TF_API_TOKEN }}" \
-            --header "Content-Type: application/vnd.api+json" \
-            "https://app.terraform.io/api/v2/workspaces/${WORKSPACE_ID}/current-state-version?include=outputs")
-
-          PROJECT_ID=$(echo "$OUTPUTS_RESPONSE" | jq -r '.included[] | select(.attributes.name == "vercel_project_id") | .attributes.value')
-
-          if [ "$PROJECT_ID" == "null" ] || [ -z "$PROJECT_ID" ]; then
-            echo "::error::Could not find output 'vercel_project_id' in workspace '${{ vars.TF_WORKSPACE_NAME_FOR_VERCEL_PROJECT_ID }}' in organization '${{ vars.TF_ORG_NAME }}'."
-            echo "API Response: $OUTPUTS_RESPONSE"
-            exit 1
-          fi
-
-          echo "::add-mask::$PROJECT_ID"
-          echo "VERCEL_PROJECT_ID=$PROJECT_ID" >> $GITHUB_ENV
       - name: Pull Vercel Environment Information
+        env:
+          # vercel CLI commands (like vercel pull)
+          # need these environment variables
+          VERCEL_PROJECT_ID: ${{ secrets.TF_MANAGED_VERCEL_PROJECT_ID }}
+          VERCEL_API_TOKEN: ${{ secrets.VERCEL_API_TOKEN }}
         working-directory: ./flowmazonfrontend
         run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_API_TOKEN }}
         # USing --prod with vercel build below
