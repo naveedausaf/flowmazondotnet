@@ -45,22 +45,32 @@ variable "id_and_vault_resource_group_location" {
 # in GitHub repo's Environment; used by db and flowmazonfrontend 
 # modules
 variable "secretname_for_psql_owner_connectionstring" {
-  description = "Name of the secret in which to store psql connection String that includes credentials of db owner account that would be used to connect to and execute queries (including DDL) on the database from psql."
+  description = "Name of the GitHub Environment secret in which to store psql connection String that includes credentials of db owner account that would be used to connect to and execute queries (including DDL) on the database from psql."
+  type        = string
+}
+
+variable "secretname_for_neon_project_default_branch_id" {
+  description = "Name of the secret in GitHub Environment in which to store default branch id of the Neon DB project that would be created."
+  type        = string
+}
+
+variable "secretname_for_neon_project_id" {
+  description = "Name of the secret in GitHub Environment in which to store project id of the Neon DB project that would be created."
   type        = string
 }
 
 variable "secretname_for_vercel_project_id" {
-  description = "Name of the secret in which to store project_id of the created vercel_project."
+  description = "Name of the GitHub Environment secret in which to store project_id of the created vercel_project."
   type        = string
 }
 
 variable "environmentname_for_secrets_and_variables" {
-  description = "Name of GitHub repo Environment in which to store vercel_project_id and psql_owner_connection_string."
+  description = "Name of GitHub repo Environment in which to store secrets and variables such as vercel_project_id and psql_owner_connection_string."
   type        = string
 }
 
 variable "repository_for_secrets_and_variables" {
-  description = "Name of GitHub repo in an an Environment of which (specified by `environmentname_for_secrets_and_variables` argument) vercel_project_id and psql_owner_connection_string would be stored. This should just be the repo's name, and NOT prefixed by account name or organisation name and NOT a fully qualified repo name either. Otherwise the repo may not be found. For example I would provide `flowmazondotnet` as the repo name instead of `EnableHub/flowmazondotnet` or `https://github.com/EnableHub/flowmazondotnet`."
+  description = "Name of GitHub repo in an an Environment of which (specified by `environmentname_for_secrets_and_variables` argument) secrets and variables such as vercel_project_id and psql_owner_connection_string would be stored. This should just be the repo's name, and NOT prefixed by account name or organisation name and NOT a fully qualified repo name either. Otherwise the repo may not be found. For example I would provide `flowmazondotnet` as the repo name instead of `EnableHub/flowmazondotnet` or `https://github.com/EnableHub/flowmazondotnet`."
   type        = string
 }
 

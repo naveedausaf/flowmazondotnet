@@ -156,11 +156,28 @@ resource "azurerm_role_assignment" "connection_string" {
 
 }
 
+# Create secrets and variables in Github Environment
+
 resource "github_actions_environment_secret" "psql_owner_connection_sting" {
-  repository      = var.repository_for_psql_owner_connectionstring
-  environment     = var.environmentname_for_psql_owner_connectionstring
+  repository      = var.repository_for_secrets_and_variables
+  environment     = var.environmentname_for_secrets_and_variables
   secret_name     = var.secretname_for_psql_owner_connectionstring
   plaintext_value = "postgresql://${var.neon_owner_role}:${neon_role.owner_role.password}@${neon_project.flowmazon_project.database_host}/${neon_database.flowmazon_db.name}?sslmode=require&channel_binding=require"
 }
+
+resource "github_actions_environment_secret" "neon_project_default_branch_id" {
+  repository      = var.repository_for_secrets_and_variables
+  environment     = var.environmentname_for_secrets_and_variables
+  secret_name     = var.secretname_for_neon_project_default_branch_id
+  plaintext_value = neon_project.flowmazon_project.default_branch_id
+}
+
+resource "github_actions_environment_secret" "neon_project__id" {
+  repository      = var.repository_for_secrets_and_variables
+  environment     = var.environmentname_for_secrets_and_variables
+  secret_name     = var.secretname_for_neon_project_id
+  plaintext_value = neon_project.flowmazon_project.id
+}
+
 
 

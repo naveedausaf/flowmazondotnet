@@ -17,19 +17,21 @@ module "id_vault" {
 }
 
 module "db" {
-  source                                          = "../../modules/db"
-  managed_identity_for_secret_principal_id        = module.id_vault.managed_identity_principal_id
-  key_vault_id                                    = module.id_vault.key_vault_id
-  vault_secretname_for_connectionstring           = var.vault_secretname_for_connectionstring
-  secretname_for_psql_owner_connectionstring      = var.secretname_for_psql_owner_connectionstring
-  environmentname_for_psql_owner_connectionstring = var.environmentname_for_secrets_and_variables
-  repository_for_psql_owner_connectionstring      = var.repository_for_secrets_and_variables
-  neon_org_id                                     = var.neon_org_id
-  neon_project_name                               = var.neon_project_name
-  neon_branch_name                                = var.neon_branch_name
-  neon_database_name                              = var.neon_database_name
-  neon_app_role                                   = var.neon_app_role
-  neon_owner_role                                 = var.neon_owner_role
+  source                                        = "../../modules/db"
+  managed_identity_for_secret_principal_id      = module.id_vault.managed_identity_principal_id
+  key_vault_id                                  = module.id_vault.key_vault_id
+  vault_secretname_for_connectionstring         = var.vault_secretname_for_connectionstring
+  secretname_for_psql_owner_connectionstring    = var.secretname_for_psql_owner_connectionstring
+  secretname_for_neon_project_id                = var.secretname_for_neon_project_id
+  secretname_for_neon_project_default_branch_id = var.secretname_for_neon_project_default_branch_id
+  environmentname_for_secrets_and_variables     = var.environmentname_for_secrets_and_variables
+  repository_for_secrets_and_variables          = var.repository_for_secrets_and_variables
+  neon_org_id                                   = var.neon_org_id
+  neon_project_name                             = var.neon_project_name
+  neon_branch_name                              = var.neon_branch_name
+  neon_database_name                            = var.neon_database_name
+  neon_app_role                                 = var.neon_app_role
+  neon_owner_role                               = var.neon_owner_role
 
 
 }

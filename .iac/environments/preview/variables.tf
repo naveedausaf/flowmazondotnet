@@ -84,6 +84,16 @@ variable "secretname_for_psql_owner_connectionstring" {
   type        = string
 }
 
+variable "secretname_for_neon_project_default_branch_id" {
+  description = "Name of the secret in GitHub Environment in which to store default branch id of the Neon DB project that would be created."
+  type        = string
+}
+
+variable "secretname_for_neon_project_id" {
+  description = "Name of the secret in GitHub Environment in which to store project id of the Neon DB project that would be created."
+  type        = string
+}
+
 variable "environmentname_for_secrets_and_variables" {
   description = "Name of GitHub repo Environment in which to store secrets or variables."
   type        = string

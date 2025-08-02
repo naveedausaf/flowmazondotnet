@@ -4,28 +4,41 @@ variable "key_vault_id" {
   description = "id of the Azure Key Vault into which the connection string of the created database would be stored."
   type        = string
 }
+
 variable "managed_identity_for_secret_principal_id" {
   description = "principal_id of the user-assigned maanged identity that would be assigned permission to read the conenction string that would be stored in the key vault as a secret."
   type        = string
 }
 
 variable "vault_secretname_for_connectionstring" {
-  description = "name of the secret whose value is the connection string to be used by the API to connect to the database"
+  description = "name of the Azure Key Vault secret whose value is the connection string to be used by the API to connect to the database"
   type        = string
 }
 
 variable "secretname_for_psql_owner_connectionstring" {
-  description = "Name of the secret in which to store psql connection String that includes credentials of db owner account that would be used to connect to and execute queries (including DDL) on the database from psql."
+  description = "Name of the GitHub Environment secret in which to store psql connection String that includes credentials of db owner account that would be used to connect to and execute queries (including DDL) on the database from psql."
   type        = string
 }
 
-variable "environmentname_for_psql_owner_connectionstring" {
-  description = "Name of GitHub repo Environment in which to store psql connection String with credentials of db owner account. In this environment the connection string would be stored as a secret with name specified by `secretname_for_psql_owner_connectionstring` argument."
+variable "secretname_for_neon_project_default_branch_id" {
+  description = "Name of the secret in GitHub Environment in which to store default branch id of the Neon DB project that would be created."
   type        = string
 }
 
-variable "repository_for_psql_owner_connectionstring" {
-  description = "Name of GitHub repo in an an Environment of which (specified by `environmentname_for_psql_owner_connectionstring` argument) the psql connection String with credentials of db owner account would be stored. This should just be the repos name, NOT prefixed by account name or organisation name and NOT a fully qualified repo name either. Otherwise the repo may not be found. For example I would provide `flowmazondotnet` as the repo name instead of `EnableHub/flowmazondotnet` or `https://github.com/EnableHub/flowmazondotnet`."
+variable "secretname_for_neon_project_id" {
+  description = "Name of the secret in GitHub Environment in which to store project id of the Neon DB project that would be created."
+  type        = string
+}
+
+
+
+variable "environmentname_for_secrets_and_variables" {
+  description = "Name of GitHub repo Environment in which to store secrets and variables such as psql_owner_connection_string."
+  type        = string
+}
+
+variable "repository_for_secrets_and_variables" {
+  description = "Name of GitHub repo in an an Environment of which (specified by `environmentname_for_secrets_and_variables` argument) secrets and variables such as psql_owner_connection_string would be stored. This should just be the repo's name, and NOT prefixed by account name or organisation name and NOT a fully qualified repo name either. Otherwise the repo may not be found. For example I would provide `flowmazondotnet` as the repo name instead of `EnableHub/flowmazondotnet` or `https://github.com/EnableHub/flowmazondotnet`."
   type        = string
 }
 
