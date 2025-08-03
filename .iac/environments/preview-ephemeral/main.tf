@@ -1,3 +1,21 @@
+module "flowmazonfrontend" {
+  source                                  = "git::https://github.com/EnableHub/flowmazondotnet.git//.iac/modules/flowmazonfrontend?ref=main"
+  vercel_team_id                          = var.vercel_team_id
+  vercel_project_name                     = var.vercel_project_name
+  vercel_app_domain_name                  = var.vercel_app_domain_name
+  vercel_region_for_server_side_execution = var.vercel_region_for_server_side_execution
+  cloudflare_api_token                    = var.cloudflare_api_token
+  cloudflare_zone_id                      = var.cloudflare_zone_id
+  env_NEXT_PUBLIC_OTEL_ENVIRONMENT        = var.env_NEXT_PUBLIC_OTEL_ENVIRONMENT
+  env_OTEL_EXPORTER_OTLP_ENDPOINT         = var.env_OTEL_EXPORTER_OTLP_ENDPOINT
+  env_OTEL_EXPORTER_OTLP_PROTOCOL         = var.env_OTEL_EXPORTER_OTLP_PROTOCOL
+  env_OTEL_EXPORTER_OTLP_HEADERS          = var.env_OTEL_EXPORTER_OTLP_HEADERS
+  secretname_for_vercel_project_id        = var.secretname_for_vercel_project_id
+  environmentname_for_vercel_project_id   = var.environmentname_for_secrets_and_variables
+  repository_for_vercel_project_id        = var.repository_for_secrets_and_variables
+
+}
+
 module "db_branch" {
   source                                     = "git::https://github.com/EnableHub/flowmazondotnet.git//.iac/modules/db_branch?ref=main"
   managed_identity_name                      = var.managed_identity_name
@@ -15,23 +33,5 @@ module "db_branch" {
   neon_database_name    = var.neon_database_name
   neon_app_role         = var.neon_app_role
   neon_owner_role       = var.neon_owner_role
-
-}
-
-module "flowmazonfrontend" {
-  source                                  = "git::https://github.com/EnableHub/flowmazondotnet.git//.iac/modules/flowmazonfrontend?ref=main"
-  vercel_team_id                          = var.vercel_team_id
-  vercel_project_name                     = var.vercel_project_name
-  vercel_app_domain_name                  = var.vercel_app_domain_name
-  vercel_region_for_server_side_execution = var.vercel_region_for_server_side_execution
-  cloudflare_api_token                    = var.cloudflare_api_token
-  cloudflare_zone_id                      = var.cloudflare_zone_id
-  env_NEXT_PUBLIC_OTEL_ENVIRONMENT        = var.env_NEXT_PUBLIC_OTEL_ENVIRONMENT
-  env_OTEL_EXPORTER_OTLP_ENDPOINT         = var.env_OTEL_EXPORTER_OTLP_ENDPOINT
-  env_OTEL_EXPORTER_OTLP_PROTOCOL         = var.env_OTEL_EXPORTER_OTLP_PROTOCOL
-  env_OTEL_EXPORTER_OTLP_HEADERS          = var.env_OTEL_EXPORTER_OTLP_HEADERS
-  secretname_for_vercel_project_id        = var.secretname_for_vercel_project_id
-  environmentname_for_vercel_project_id   = var.environmentname_for_secrets_and_variables
-  repository_for_vercel_project_id        = var.repository_for_secrets_and_variables
 
 }
