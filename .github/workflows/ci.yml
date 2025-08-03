@@ -57,7 +57,7 @@ jobs:
               "data": {
                 "attributes": {
                   "name": "'"${WORKSPACE_NAME}"'",
-                  "auto-apply": false,
+                  "auto-apply": false
                   
                 },
                 "type": "workspaces",
