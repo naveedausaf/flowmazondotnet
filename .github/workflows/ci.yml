@@ -58,7 +58,8 @@ jobs:
                       {
                         "type": "tag-bindings",
                         "attributes": {
-                          "key": "preview-ephemeral"
+                          "key": "preview-ephemeral",
+                          "value": ""
                         }
                       }
                     ]
