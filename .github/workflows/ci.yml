@@ -1,4 +1,8 @@
 name: CI
+# This concurrency block definition ensures that
+# only a single instance of this workflow can be
+# be running at any given time for a given
+# source (i.e. head) branch
 concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
@@ -9,9 +13,6 @@ on:
   pull_request:
     branches:
       - main
-env:
-  VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-  VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
 
 jobs:
   audit-signatures:
@@ -23,13 +24,75 @@ jobs:
         run: |
           npm ci
           npm audit signatures
-  create-update-infrastructure:
-    name: Create or Update Infrastructure using Terraform preview workspace
+  create-update-preview-infrastructure:
+    name: Create or Update Infrastructure for PR's Preview environment
     runs-on: ubuntu-24.04
     environment:
       name: Preview
-      url: ${{ steps.deploy-artifacts.outputs.previewUrl }}
     steps:
       - uses: actions/checkout@v4
-      - name: Update Version Number in package.json
-        run: npm --no-git-tag-version version 0.0.0-pr${{ github.event.number }}
+      - name: Create HCP Terraform Workspace for PR
+        if: github.event.action == 'opened'
+        env:
+          HCP_TF_ORG: ${{ secrets.TF_ORG }}
+          HCP_TF_PROJECT: ${{ secrets.TF_PROJECT }}
+          HCP_TF_TOKEN: ${{ secrets.TF_API_TOKEN }}
+          PR_NUMBER: ${{ github.event.number }}
+        run: |
+          WORKSPACE_NAME="preview-pr${PR_NUMBER}"
+          curl -sS \
+            -H "Authorization: Bearer ${HCP_TF_TOKEN}" \
+            -H "Content-Type: application/vnd.api+json" \
+            -X POST \
+            -d '{
+              "data": {
+                "attributes": {
+                  "name": "'"${WORKSPACE_NAME}"'",
+                  "auto-apply": false
+                },
+                "type": "workspaces",
+                "relationships": {
+                  "project": {
+                    "data": {
+                      "id": "'"${HCP_TF_PROJECT}"'",
+                      "type": "projects"
+                    }
+                  }
+                }
+              }
+            }' \
+            "https://app.terraform.io/api/v2/organizations/${HCP_TF_ORG}/workspaces" \
+            | tee response.json
+
+          # If workspace already exists, the API will return an error. Ignore if already exists.
+          if grep -q '"errors"' response.json; then
+            if grep -q 'has already been taken' response.json; then
+              echo "Workspace ${WORKSPACE_NAME} already exists. Continuing."
+            else
+              cat response.json
+              exit 1
+            fi
+          fi
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
+      - name: Terraform Init
+        run: terraform init
+        working-directory: .iac/environments/preview-ephemeral
+      - name: Terraform Apply
+        env:
+          TF_WORKSPACE: preview-pr${{github.event.number}}
+        run: terraform apply -auto-approve
+        working-directory: .iac/environments/preview-ephemeral
+
+# Create infrastructure specific to a Preview environment
+# for this particular Pull Request (except ACAP app for API,
+# which will be created at the same time as deployment due to
+# limitations of ACA app's Terraform resource; see
+# aca_app module's README)
+#
+# As the workspace will run on HCP Terraform's runner, I
+# wouldn't bother with a job to run terraform apply on
+# the workspace preview-ephemeral that is seprate from the
+# code to run db migrations (AT LEAST NOT FOR NOW)

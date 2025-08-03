@@ -21,16 +21,14 @@ variable "secretname_for_psql_owner_connectionstring" {
 }
 
 variable "secretname_for_neon_project_default_branch_id" {
-  description = "Name of the secret in GitHub Environment in which to store default branch id of the Neon DB project that would be created."
+  description = "Name of the secret in GitHub Environment in which to store default branch id of the Neon DB project that would be created. This is not straightforward to retrieve using Neon Terraform provider's data sources, hence it will be stored for later use from GitHub Actions workflows which would pass them to dynamically invoked TF workspaces that requrie it (e.g. to create a branch off of the default branch)."
   type        = string
 }
 
 variable "secretname_for_neon_project_id" {
-  description = "Name of the secret in GitHub Environment in which to store project id of the Neon DB project that would be created."
+  description = "Name of the secret in GitHub Environment in which to store project id of the Neon DB project that would be created. Strictly speaking it is unnecessary to store this. However it is used at the same time as default branch id that we do need to store (see description of argument `secretname_for_neon_project_default_branch_id`) so I am storing this at the as time to avoid the need to read it from a Terraform data source for the Neon project. I MIGHT WANT TO REMOVE THIS LATER."
   type        = string
 }
-
-
 
 variable "environmentname_for_secrets_and_variables" {
   description = "Name of GitHub repo Environment in which to store secrets and variables such as psql_owner_connection_string."

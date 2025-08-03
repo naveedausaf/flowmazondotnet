@@ -6,7 +6,7 @@ module "aca_app" {
   app_environment_name          = var.app_environment_name
   app_domain_name               = var.app_domain_name
   app_container_name            = var.app_container_name
-  app_container_port            = var.
+  app_container_port            = var.app_container_port
   app_container_max_replicas    = var.app_container_max_replicas
   app_container_liveness_probe  = "/health/live"
   app_container_readiness_probe = "/health/ready"
@@ -23,10 +23,7 @@ module "aca_app" {
   env_OTEL_RESOURCE_ATTRIBUTES    = var.env_OTEL_RESOURCE_ATTRIBUTES
   env_OTEL_EXPORTER_OTLP_PROTOCOL = var.env_OTEL_EXPORTER_OTLP_PROTOCOL
 
-
-  acr_name = var.acr_name
-
-  acr_resource_group_name              = var.acr_resource_group_name
+  image_server                         = "ghcr.io/${var.github_organisation_or_account}"
   image_repository                     = var.image_repository
   image_tag                            = var.image_tag
   app_revision_mode                    = "Multiple"

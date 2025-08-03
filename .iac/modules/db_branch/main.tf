@@ -1,3 +1,25 @@
+data "azurerm_resource_group" "vault" {
+  name = var.vault_resource_group_name
+
+}
+
+data "azurerm_key_vault" "vault" {
+  name                = var.vault_name
+  resource_group_name = data.azurerm_resource_group.vault.name
+}
+
+data "azurerm_resource_group" "managed_identity" {
+  name = var.managed_identity_resource_group_name
+
+}
+
+data "azurerm_user_assigned_identity" "managed_identity" {
+  name                = var.managed_identity_name
+  resource_group_name = data.azurerm_resource_group.managed_identity.name
+}
+
+
+
 
 resource "neon_branch" "new_branch" {
   project_id = var.neon_source_branch_id
@@ -148,9 +170,8 @@ resource "postgresql_default_privileges" "app_sequences_usage_select_future" {
 resource "azurerm_key_vault_secret" "connstr_for_api" {
   name = var.vault_secretname_for_connectionstring
 
-  key_vault_id = var.key_vault_id
-
-  value = "Server=${neon_endpoint.new_branch.host};Port=5432;Database=${neon_database.flowmazon_db.name};User Id=${neon_role.app_role.name};Password=${neon_role.app_role.password}"
+  key_vault_id = azurerm_key_vault.vault.id
+  value        = "Server=${neon_endpoint.new_branch.host};Port=5432;Database=${var.neon_database_name};User Id=${neon_role.app_role.name};Password=${neon_role.app_role.password}"
 
 }
 
@@ -163,10 +184,18 @@ resource "azurerm_key_vault_secret" "connstr_for_api" {
 # role and scope chosen based on this page and app requirements:
 # https://learn.microsoft.com/en-us/azure/key-vault/general/rbac-guide?tabs=azure-cli
 resource "azurerm_role_assignment" "connection_string" {
-  scope                = var.key_vault_id
+  scope = azurrm_key_vault.vault.id
+
   role_definition_name = "Key Vault Secrets User"
-  principal_id         = var.managed_identity_for_secret_principal_id
+  principal_id         = azurerm_user_assigned_identity.managed_identity.principal_id
 
 }
 
+# Create secrets and variables in Github Environment
 
+resource "github_actions_environment_secret" "psql_owner_connection_sting" {
+  repository      = var.repository_for_secrets_and_variables
+  environment     = var.environmentname_for_secrets_and_variables
+  secret_name     = var.secretname_for_psql_owner_connectionstring
+  plaintext_value = "postgresql://${ceon_role.owner_role.name}:${neon_role.owner_role.password}@${neon_endpoint.new_branch.host}/${var.neon_database_name}?sslmode=require&channel_binding=require"
+}
