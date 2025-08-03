@@ -14,8 +14,8 @@ terraform {
     # `workspaces` block, as described at this link:
     # https://developer.hashicorp.com/terraform/language/terraform#tf_workspace
 
-    # workspaces {
-    #   name = "preview-ephemeral"
-    # }
+    workspaces {
+      tags = ["preview-ephemeral"]
+    }
   }
 }
