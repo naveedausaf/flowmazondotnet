@@ -6,7 +6,7 @@ module "aca_app" {
   app_environment_name          = var.app_environment_name
   app_domain_name               = var.app_domain_name
   app_container_name            = var.app_container_name
-  app_container_port            = var.
+  app_container_port            = var.app_container_port
   app_container_max_replicas    = var.app_container_max_replicas
   app_container_liveness_probe  = "/health/live"
   app_container_readiness_probe = "/health/ready"
