@@ -54,7 +54,7 @@ variable "env_OTEL_EXPORTER_OTLP_HEADERS" {
 }
 
 variable "secretname_for_vercel_project_id" {
-  description = "Name of the secret in which to store project_id of the created vercel_project."
+  description = "Name of the secret in which to store project_id of the created vercel_project. The vercel project id isused by GitHub Actions workflows."
   type        = string
 }
 

@@ -172,7 +172,7 @@ resource "github_actions_environment_secret" "neon_project_default_branch_id" {
   plaintext_value = neon_project.flowmazon_project.default_branch_id
 }
 
-resource "github_actions_environment_secret" "neon_project__id" {
+resource "github_actions_environment_secret" "neon_project_id" {
   repository      = var.repository_for_secrets_and_variables
   environment     = var.environmentname_for_secrets_and_variables
   secret_name     = var.secretname_for_neon_project_id

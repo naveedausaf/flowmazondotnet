@@ -11,7 +11,7 @@ module "aca_app" {
   app_container_liveness_probe  = "/health/live"
   app_container_readiness_probe = "/health/ready"
 
-  # Given the definition of liveness probe in the
+  # Given the definition of liveness probe in the 
   # ASP.NET Core API, it is stronger than def of livenvess
   # probe for an ACA app and meets the definition of startup
   # probe of an ACA app. 
@@ -23,10 +23,7 @@ module "aca_app" {
   env_OTEL_RESOURCE_ATTRIBUTES    = var.env_OTEL_RESOURCE_ATTRIBUTES
   env_OTEL_EXPORTER_OTLP_PROTOCOL = var.env_OTEL_EXPORTER_OTLP_PROTOCOL
 
-
-  acr_name = var.acr_name
-
-  acr_resource_group_name              = var.acr_resource_group_name
+  image_server                         = "ghcr.io/${var.github_organisation_or_account}"
   image_repository                     = var.image_repository
   image_tag                            = var.image_tag
   app_revision_mode                    = "Multiple"
