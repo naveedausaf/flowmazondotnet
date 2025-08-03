@@ -10,7 +10,7 @@ module "aca_app" {
   app_container_liveness_probe  = "/health/live"
   app_container_readiness_probe = "/health/ready"
 
-  # Given the definition of liveness probe in
+  # Given the definition of liveness probe in the
   # ASP.NET Core API, it is stronger than def of livenvess
   # probe for an ACA app and meets the definition of startup
   # probe of an ACA app. 
