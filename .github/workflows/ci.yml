@@ -48,7 +48,8 @@ jobs:
               "data": {
                 "attributes": {
                   "name": "'"${WORKSPACE_NAME}"'",
-                  "auto-apply": false
+                  "auto-apply": false,
+                  "tags": ["preview-ephemeral"]
                 },
                 "type": "workspaces",
                 "relationships": {
@@ -85,7 +86,6 @@ jobs:
           TF_WORKSPACE: preview-pr${{github.event.number}}
         run: terraform apply -auto-approve
         working-directory: .iac/environments/preview-ephemeral
-
 # Create infrastructure specific to a Preview environment
 # for this particular Pull Request (except ACAP app for API,
 # which will be created at the same time as deployment due to
