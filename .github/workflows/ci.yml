@@ -86,7 +86,7 @@ jobs:
           TF_WORKSPACE: preview-pr${{github.event.number}}
         run: terraform apply -auto-approve
         working-directory: .iac/environments/preview-ephemeral
-# Create infrastructure specific to a Preview environment
+# Create infrastructure specific to a preview environment
 # for this particular Pull Request (except ACAP app for API,
 # which will be created at the same time as deployment due to
 # limitations of ACA app's Terraform resource; see
