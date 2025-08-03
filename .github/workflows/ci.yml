@@ -49,10 +49,20 @@ jobs:
                 "attributes": {
                   "name": "'"${WORKSPACE_NAME}"'",
                   "auto-apply": false,
-                  "tags": ["preview-ephemeral"]
+                  
                 },
                 "type": "workspaces",
                 "relationships": {
+                  "tag-bindings": {
+                    "data": [
+                      {
+                        "type": "tag-bindings",
+                        "attributes": {
+                          "key": "preview-ephemeral"
+                        }
+                      }
+                    ]
+                  },
                   "project": {
                     "data": {
                       "id": "'"${HCP_TF_PROJECT}"'",
