@@ -32,7 +32,16 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Create HCP Terraform Workspace for PR
-        if: github.event.action == 'opened'
+        # We don't care if the worksapce already exists as
+        # in that case this HCP API Would return an error
+        # that we ignore so the step would do nothing.
+        # This behaviour is useful if for whatever reason
+        # the first time this workflow ran for a PR, the
+        # workspace failed to be created. In that we can
+        # re-run the workflow and it will try to create
+        # the workspace again.
+        # HENCE commenting out the line below:
+        # if: github.event.action == 'opened'
         env:
           HCP_TF_ORG: ${{ secrets.TF_ORG }}
           HCP_TF_PROJECT: ${{ secrets.TF_PROJECT }}
