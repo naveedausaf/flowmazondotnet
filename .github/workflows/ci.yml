@@ -59,7 +59,8 @@ jobs:
               "data": {
                 "attributes": {
                   "name": "'"${WORKSPACE_NAME}"'",
-                  "auto-apply": false
+                  "auto-apply": false,
+                  "execution-mode": "local"
                   
                 },
                 "type": "workspaces",
@@ -100,9 +101,6 @@ jobs:
         uses: hashicorp/setup-terraform@v3
         with:
           cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
-          terraform_version: 1.12.2
-      # - name: Clean Terraform cache
-      #   run: rm -rf .terraform || true
       - name: Terraform Init
         env:
           TF_WORKSPACE: preview-${{env.PR_LABEL}}
