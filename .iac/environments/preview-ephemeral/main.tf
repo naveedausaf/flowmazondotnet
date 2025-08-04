@@ -23,7 +23,8 @@ module "flowmazonfrontend" {
 }
 
 module "db_branch" {
-  source                                     = "../../modules/db_branch"
+  source = "git::https://github.com/EnableHub/flowmazondotnet.git//.iac/modules/db_branch?ref=main"
+
   managed_identity_name                      = var.managed_identity_name
   managed_identity_resource_group_name       = var.id_and_vault_resource_group_name
   vault_name                                 = var.key_vault_name
