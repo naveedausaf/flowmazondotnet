@@ -112,7 +112,7 @@ jobs:
 
         # values of the variables, which are read from secrets and
         # environment variables of Preview environment in the GitHub
-        # repo, are mostly the same as those decalare in Preview
+        # repo, are mostly the same as those decalared in Preview
         # workspace's Variables in Terraform HCP.
         run: |
           terraform apply -auto-approve \
