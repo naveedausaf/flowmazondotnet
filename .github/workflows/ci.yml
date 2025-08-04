@@ -97,11 +97,11 @@ jobs:
             fi
           fi
       - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v2
+        uses: hashicorp/setup-terraform@v3
         with:
           cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
-      - name: Clean Terraform cache
-        run: rm -rf .terraform || true
+      # - name: Clean Terraform cache
+      #   run: rm -rf .terraform || true
       - name: Terraform Init
         env:
           TF_WORKSPACE: preview-${{env.PR_LABEL}}
