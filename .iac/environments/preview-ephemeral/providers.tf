@@ -1,5 +1,10 @@
+
 terraform {
   required_providers {
+    grafana = {
+      source  = "grafana/grafana"
+      version = "4.1.0"
+    }
     github = {
       # Requires GITHUB_TOKEN environment variable to be set
       # This should have read-write permissions on "Environments"
@@ -54,6 +59,11 @@ terraform {
 
   }
 }
+
+provider "grafana" {
+  frontend_o11y_api_access_token = var.grafanacloud_frontend_o11y_api_access_token
+}
+
 
 provider "github" {}
 

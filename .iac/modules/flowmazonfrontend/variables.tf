@@ -58,12 +58,34 @@ variable "secretname_for_vercel_project_id" {
   type        = string
 }
 
-variable "environmentname_for_vercel_project_id" {
+variable "environmentname_for_secrets_and_variables" {
   description = "Name of GitHub repo Environment in which to store project_id of the created vercel_project. In this environment the project_id would be stored as a secret with name specified by `secretname_for_vercel_project_id` argument."
   type        = string
 }
 
-variable "repository_for_vercel_project_id" {
+variable "repository_for_secrets_and_variables" {
   description = "Name of GitHub repo in an an Environment of which (specified by `environmentname_for_vercel_project_id` argument) the project_id of the created vercel project would be stored. This should just be the repo's name, and NOT prefixed by account name or organisation name and NOT a fully qualified repo name either. Otherwise the repo may not be found. For example I would provide `flowmazondotnet` as the repo name instead of `EnableHub/flowmazondotnet` or `https://github.com/EnableHub/flowmazondotnet`."
+  type        = string
+}
+
+variable "grafanacloud_frontend_o11y_api_access_token" {
+  description = "Access token for Grafana Cloud Frontend Observability API. This is used to create a new Frontend Observability instance in the Grafana Cloud stack. Obtain it as described here: https://registry.terraform.io/providers/grafana/grafana/latest/docs#managing-frontend-observability"
+  type        = string
+  sensitive   = true
+
+}
+
+variable "grafanacloud_stack_slug" {
+  description = "The slug of the Grafana Cloud stack in which to create a new Frontend Observability instance. This is the subdomain of the Grafana Cloud stack URL that is shown on the Stack page in Grafana Cloud. For example, if the URL is https://my-stack.grafana.net, then the slug is 'my-stack'."
+  type        = string
+}
+
+variable "grafanacloud_frontend_o11y_instance_name" {
+  description = "Name of the Frontend Observability instance that would be created in the Grafana Cloud stack."
+  type        = string
+}
+
+variable "secretname_for_grafanacloud_frontend_o11y_instance_url" {
+  description = "Name of the GitHub Environment secret in which to store the URL of the created Grafana Cloud Frontend Observability instance. This is used by GitHub Actions workflows."
   type        = string
 }
