@@ -60,8 +60,8 @@ resource "vercel_project" "app" {
 }
 
 resource "github_actions_environment_secret" "vercel_project_id" {
-  repository      = var.repository_for_vercel_project_id
-  environment     = var.environmentname_for_vercel_project_id
+  repository      = var.repository_for_secrets_and_variables
+  environment     = var.environmentname_for_secrets_and_variables
   secret_name     = var.secretname_for_vercel_project_id
   plaintext_value = vercel_project.app.id
 }
@@ -120,8 +120,69 @@ resource "cloudflare_dns_record" "nextjs_app_cname" {
   proxied = false
 }
 
+# Get details of existing Grafana cloud stack
+# A new Frontend Observability instance will be created
+# in this stack.
+#
+# As I am on grafana cloud free plan, I can only have one 
+# GRafana cloud stack, therefore I shall use the existing 
+# stack in the account and create a new Frontend Observability
+# instance in it. 
+data "grafana_cloud_stack" "grafanacloud" {
+  # This is the subdomain of the Grafana Cloud stack
+  # URL that is shown on the Stack page in Grafana Cloud.
+  # For example, if the URL is https://my-stack.grafana.net,  
+  # then the slug is "my-stack".
+  slug = var.grafanacloud_stack_slug
+}
 
+resource "grafana_frontend_o11y_app" "grafanacloud" {
+  stack_id        = data.grafana_cloud_stack.grafanacloud.id
+  name            = var.grafanacloud_frontend_o11y_instance_name
+  allowed_origins = ["https://${var.vercel_app_domain_name}"]
 
+  extra_log_attributes = {
+    "terraform" : "true"
+  }
 
+  settings = {
+    # This setting means I am choosing NOT to
+    # combine RUM data that is collected by this 
+    # Frontend Observability instance during normal 
+    # user browsing with the data that is collected
+    # by k6 labs (this may include not just k6 stress
+    # tests but probabaly also synthetic monitoring).
+    # Therefore the two types of data will be kept
+    # and viewed separately.
+    "combineLabData" = "0",
 
+    # I want to receive location data so the following
+    # is set to 1
+    "geolocation.enabled" = "1",
 
+    "geolocation.level" = "4", # 1-4, where 4 is the most detailed (network level, 3 being city level and so on)
+
+    # No deny list for any country with regards to 
+    # whether or not to collect geolocation data.
+    # HENCE geolocation data will be collected for all
+    # countries.
+    #
+    #"geolocation.country_denylist" = ""
+  }
+}
+
+# The URL of the frontend observability instance
+# needs to be available at the time the Next.js app
+# is compiled as it is baked into the browser bundle.
+# Since app build would happen at a later time than
+# infrastructure creation (which is happenin here; in
+# this TF configuration we are creating the Vercel
+# project to host the Next.js app), therefore we are
+# storing it as a GitHub Actions secret so that it
+# can be used in the CI workflow which builds the app.
+resource "github_actions_environment_secret" "grafanacloud_frontend_o11y_instance_url" {
+  repository      = var.repository_for_secrets_and_variables
+  environment     = var.environmentname_for_secrets_and_variables
+  secret_name     = var.secretname_for_grafanacloud_frontend_o11y_instance_url
+  plaintext_value = grafana_frontend_o11y_app.grafanacloud.collector_endpoint
+}

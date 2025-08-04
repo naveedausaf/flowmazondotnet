@@ -3,7 +3,10 @@ This Terraform module does the following:
 - Creates a Vercel project for Next.js with the specified name, the serverside logic in which - SSR and api routes - execute in the specified region.
 - Assigns a `*.vercel.app` domain name to the project with a randomly generated subdomain.
 - Create an unproxied CNAME record for the project with the specified domain name which points to the project's Vercel domain name.
+- Creates a Grafana Cloud Frontend Observability instance for the Vercel project. The reason why this pairing makes sense is because a Frontend Observability instance only allows CORS for specified domaii names (FQDNs). As a consequence it is tied to the doman names declared on it at the time of creation as only websites loaded with those doma nnames would be able to write telemetry from the browser to that Frontend Observability instance (otherwise CORS preflight request for telemetry writes to the instance would fail).
+  Since this module assigns a specific domain name to the app at the Vercel project level, and since each environment - whether a long-lived environment such as Prod or Staging or an ephemeral, PR-specific Preview environment - would have its create its own Vercel project, it makes sense to have a dedicated Frontend Observability instance per Vercel project.
 - Stores the project_id of the created Vercel project in a GitHub Environment secret in the specified repo and environment and with the specified secret name.
+- Stores the URL of the created Grafana Cloud Frontend Observability instance i a GitHub Environment secrets in the specified repo and environment and with the specified secret name.
 
 ## Region for Server-Side Logic Execution
 
