@@ -1,5 +1,5 @@
 module "flowmazonfrontend" {
-  source = "../../modules/flowmazonfrontend"
+  source = "git::https://github.com/EnableHub/flowmazondotnet.git//.iac/modules/flowmazonfrontend?ref=main"
 
   vercel_team_id                          = var.vercel_team_id
   vercel_project_name                     = var.vercel_project_name
