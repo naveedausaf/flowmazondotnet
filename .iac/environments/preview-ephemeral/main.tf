@@ -1,5 +1,5 @@
 module "flowmazonfrontend" {
-  source = "github.com/EnableHub/flowmazondotnet//.iac/modules/flowmazonfrontend?ref=e427994"
+  source = "../../modules/flowmazonfrontend"
 
   vercel_team_id                          = var.vercel_team_id
   vercel_project_name                     = var.vercel_project_name
@@ -23,7 +23,7 @@ module "flowmazonfrontend" {
 }
 
 module "db_branch" {
-  source = "github.com/EnableHub/flowmazondotnet//.iac/modules/db_branch?ref=e427994"
+  source = "../../modules/db_branch"
 
   managed_identity_name                      = var.managed_identity_name
   managed_identity_resource_group_name       = var.id_and_vault_resource_group_name
