@@ -155,7 +155,7 @@ jobs:
 # for this particular Pull Request (except ACAP app for API,
 # which will be created at the same time as deployment due to
 # limitations of ACA app's Terraform resource; see
-# aca_app module's README)
+# aca_app module's README).
 #
 # As the workspace will run on HCP Terraform's runner, I
 # wouldn't bother with a job to run terraform apply on
