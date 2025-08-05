@@ -1,5 +1,9 @@
 terraform {
   required_providers {
+    grafana = {
+      source  = "grafana/grafana"
+      version = "4.1.0"
+    }
     github = {
       # Requires GITHUB_TOKEN environment variable to be set
 
@@ -50,6 +54,11 @@ terraform {
       version = "1.25.0" # Pinned to specific version
     }
   }
+}
+
+provider "grafana" {
+  cloud_access_policy_token      = var.grafanacloud_frontend_o11y_api_access_token
+  frontend_o11y_api_access_token = var.grafanacloud_frontend_o11y_api_access_token
 }
 
 provider "github" {}

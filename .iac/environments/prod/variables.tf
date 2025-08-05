@@ -211,3 +211,25 @@ variable "env_OTEL_EXPORTER_OTLP_HEADERS" {
   type        = string
   sensitive   = true
 }
+
+variable "grafanacloud_frontend_o11y_api_access_token" {
+  description = "Access token for Grafana Cloud Frontend Observability API. This is used to create a new Frontend Observability instance in the Grafana Cloud stack. Obtain it as described here: https://registry.terraform.io/providers/grafana/grafana/latest/docs#managing-frontend-observability. I Would also use it as cloud_access_policy_token in the grafana provider block. Therefore it should additionally also have the following scopes: accesspolicies:read|write|delete, stacks:read|write|delete."
+  type        = string
+  sensitive   = true
+
+}
+
+variable "grafanacloud_stack_slug" {
+  description = "The slug of the Grafana Cloud stack in which to create a new Frontend Observability instance. This is the subdomain of the Grafana Cloud stack URL that is shown on the Stack page in Grafana Cloud. For example, if the URL is https://my-stack.grafana.net, then the slug is 'my-stack'."
+  type        = string
+}
+
+variable "grafanacloud_frontend_o11y_instance_name" {
+  description = "Name of the Frontend Observability instance that would be created in the Grafana Cloud stack."
+  type        = string
+}
+
+variable "secretname_for_grafanacloud_frontend_o11y_instance_url" {
+  description = "Name of the GitHub Environment secret in which to store the URL of the created Grafana Cloud Frontend Observability instance. This is used by GitHub Actions workflows."
+  type        = string
+}
