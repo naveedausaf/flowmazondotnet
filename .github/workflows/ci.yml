@@ -184,7 +184,7 @@ jobs:
           NEON_API_KEY: ${{ secrets.NEON_API_KEY }}
           VERCEL_API_TOKEN: ${{ secrets.VERCEL_API_TOKEN }}
 
-        # values of the variables, which are read from secrets and
+        # Values of the variables, which are read from secrets and
         # environment variables of Preview environment in the GitHub
         # repo, are mostly the same as those decalared in Preview
         # workspace's Variables in Terraform HCP.
