@@ -61,6 +61,7 @@ terraform {
 }
 
 provider "grafana" {
+  cloud_access_policy_token      = var.grafanacloud_frontend_o11y_api_access_token
   frontend_o11y_api_access_token = var.grafanacloud_frontend_o11y_api_access_token
 }
 
