@@ -49,6 +49,74 @@ jobs:
           HCP_TF_ORG: ${{ secrets.TF_ORG }}
           HCP_TF_PROJECT: ${{ secrets.TF_PROJECT }}
           HCP_TF_TOKEN: ${{ secrets.TF_API_TOKEN }}
+        # It is CRUCIAL to set "execution-mode": "local"
+        # in the "data" object in the JSON request body
+        # in the cURL to create the TF workspace below.
+        #
+        # This ensures that terraform apply executes
+        # locally even though the state file is maintained
+        # in HCP Terraform.
+        #
+        # Without this, it would run on HCP's runner.
+        # There it would fail on terraform apply (but
+        # not on terraform init) with the message that modules
+        # referenced using `../../modules/<module folder>`
+        # could not be read:
+        #
+        # │ Error: Unreadable module directory
+        # │
+        # │ Unable to evaluate directory symlink: lstat ../../modules: no such file or
+        # │ directory
+        # ╵
+        # ╷
+        # │ Error: Unreadable module directory
+        # │
+        # │ The directory  could not be read for module "flowmazonfrontend" at
+        # │ main.tf:1.
+        # ╵
+        # Operation failed: failed running terraform init (exit 1)
+        # Error: Terraform exited with code 1.
+        #
+        #
+        # You can try to fix that by using git references
+        # for the two modules used by the preview-ephemeral
+        # root module that corresponds to the workspace:
+        #
+        # module "flowmazonfrontend" {
+        #   source = "git::https://github.com/EnableHub/flowmazondotnet.git//.iac/modules/flowmazonfrontend?ref=main"
+        #
+        # and
+        #
+        # module "db_branch" {
+        # source = "git::https://github.com/EnableHub/flowmazondotnet.git//.iac/modules/db_branch?ref=main"
+        #
+        # Then you would get an error if there are more than
+        # one modules being referenced via github references
+        # in the root module (a single module referenced like
+        # this is fine though, which is a bit bafffling):
+        #
+        # ╷
+        # │ Error: Failed to expand subdir globs
+        # │
+        # │ subdir ".iac/modules/flowmazonfrontend" not found
+        #
+        # Basically one of the modules cannot be deferennced.
+        #
+        # I did have the option of copying across the referenced
+        # modules into the dir of the root module, then
+        # modify the root module to change the references
+        # dynamiclly in GitHub Actions workflow. This
+        # would likely have worked and would have required
+        # only local relative path references because the
+        # moule folders would be within the root module's
+        # folder.
+        #
+        # However, I have instead chosen to execute the TF
+        # config locally while keeping the state file on
+        # HCP Terraform. This is acceptable as the
+        # GitHub Actions runner on which terraform apply
+        # runs is also a clean machine and the state is
+        # still persisted and managed by HCP Terraform.
         run: |
           WORKSPACE_NAME="preview-${PR_LABEL}"
           curl -sS \
