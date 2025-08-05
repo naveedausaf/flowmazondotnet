@@ -22,9 +22,10 @@ data "azurerm_user_assigned_identity" "managed_identity" {
 
 
 resource "neon_branch" "new_branch" {
-  project_id = var.neon_source_branch_id
+
+  project_id = var.neon_project_id
   name       = var.neon_new_branch_name
-  parent_id  = var.neon_project_id
+  parent_id  = var.neon_source_branch_id
 }
 
 # We need to create a neon_endpoint for the new branch
