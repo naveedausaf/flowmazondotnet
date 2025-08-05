@@ -184,7 +184,7 @@ resource "azurerm_key_vault_secret" "connstr_for_api" {
 # role and scope chosen based on this page and app requirements:
 # https://learn.microsoft.com/en-us/azure/key-vault/general/rbac-guide?tabs=azure-cli
 resource "azurerm_role_assignment" "connection_string" {
-  scope = data.azurrm_key_vault.vault.id
+  scope = data.azurerm_key_vault.vault.id
 
   role_definition_name = "Key Vault Secrets User"
   principal_id         = data.azurerm_user_assigned_identity.managed_identity.principal_id
