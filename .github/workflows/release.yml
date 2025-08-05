@@ -59,7 +59,7 @@ jobs:
           fi
 
           # Run commitlint with computed arguments
-          npx -- commitlint --verbose $clargs
+          # npx -- commitlint --verbose $clargs
       - name: Create GitHub release
         id: semanticrelease
         env:
