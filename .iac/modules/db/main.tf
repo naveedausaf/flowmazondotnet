@@ -10,7 +10,6 @@ resource "neon_project" "flowmazon_project" {
 
 }
 
-
 resource "neon_role" "owner_role" {
   project_id = neon_project.flowmazon_project.id
   branch_id  = neon_project.flowmazon_project.default_branch_id
@@ -165,6 +164,29 @@ resource "github_actions_environment_secret" "psql_owner_connection_sting" {
   plaintext_value = "postgresql://${var.neon_owner_role}:${neon_role.owner_role.password}@${neon_project.flowmazon_project.database_host}/${neon_database.flowmazon_db.name}?sslmode=require&channel_binding=require"
 }
 
+# Store owner and app user passwords seprately from 
+# the conenction strings stored above. These are needed
+# by subsequent Terraform workspaces/GitHub Actions workflows
+# to create connection strings for branches.
+# (hence why we stored them in GitHub Environment secrets
+# and not in key vault)
+resource "github_actions_environment_secret" "owner_role_password" {
+  repository      = var.repository_for_secrets_and_variables
+  environment     = var.environmentname_for_secrets_and_variables
+  secret_name     = var.secretname_for_neon_owner_role_password
+  plaintext_value = neon_role.owner_role.password
+}
+
+resource "github_actions_environment_secret" "app_role_password" {
+  repository      = var.repository_for_secrets_and_variables
+  environment     = var.environmentname_for_secrets_and_variables
+  secret_name     = var.secretname_for_neon_app_role_password
+  plaintext_value = neon_role.app_role.password
+}
+
+
+# other secrets to be stored pertaining to the created
+# database and Neon DB project
 resource "github_actions_environment_secret" "neon_project_default_branch_id" {
   repository      = var.repository_for_secrets_and_variables
   environment     = var.environmentname_for_secrets_and_variables

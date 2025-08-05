@@ -84,6 +84,16 @@ variable "secretname_for_psql_owner_connectionstring" {
   type        = string
 }
 
+variable "secretname_for_neon_owner_role_password" {
+  description = "Name of the GitHub Environment secret in which to store password of db owner Neon role (whose name is passed into input variable `neon_owner_role` in this module). This can be used to construct psql connection strings (for running migrations etc.) for Neon project branches created by any Terraform configuration that runs later."
+  type        = string
+}
+
+variable "secretname_for_neon_app_role_password" {
+  description = "Name of the GitHub Environment secret in which to store password of Neon role for app user (whose name is passed into input variable `neon_app_role` in this module). This can be used to construct connection strings to be used by client apps for Neon project branches created by any Terraform configuration that runs later."
+  type        = string
+}
+
 variable "secretname_for_neon_project_default_branch_id" {
   description = "Name of the secret in GitHub Environment in which to store default branch id of the Neon DB project that would be created."
   type        = string
