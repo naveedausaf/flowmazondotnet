@@ -135,8 +135,10 @@ variable "secretname_for_vercel_project_id" {
   type        = string
 }
 
+
+
 variable "grafanacloud_frontend_o11y_api_access_token" {
-  description = "Access token for Grafana Cloud Frontend Observability API. This is used to create a new Frontend Observability instance in the Grafana Cloud stack. Obtain it as described here: https://registry.terraform.io/providers/grafana/grafana/latest/docs#managing-frontend-observability"
+  description = "Access token for Grafana Cloud Frontend Observability API. This is used to create a new Frontend Observability instance in the Grafana Cloud stack. Obtain it as described here: https://registry.terraform.io/providers/grafana/grafana/latest/docs#managing-frontend-observability. I Would also use it as cloud_access_policy_token in the grafana provider block. Therefore it should additionally also have the following scopes: accesspolicies:read|write|delete, stacks:read|write|delete."
   type        = string
   sensitive   = true
 
