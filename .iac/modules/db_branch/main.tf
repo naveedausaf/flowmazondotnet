@@ -56,6 +56,10 @@ resource "neon_endpoint" "new_branch" {
 
 # 
 resource "neon_role" "owner_role" {
+  # if we do not have the dependenvy below,
+  # invocation of this module fails with error:
+  #  Error: [HTTP Code: 404][Error Code: ] no read-write endpoint for branch
+  depends_on = [neon_endpoint.new_branch]
   project_id = var.neon_project_id
   branch_id  = neon_branch.new_branch.id
   name       = var.neon_owner_role
@@ -63,6 +67,10 @@ resource "neon_role" "owner_role" {
 }
 
 resource "neon_role" "app_role" {
+  # if we do not have the dependenvy below,
+  # invocation of this module fails with error:
+  #  Error: [HTTP Code: 404][Error Code: ] no read-write endpoint for branch
+  depends_on = [neon_endpoint.new_branch]
   project_id = var.neon_project_id
   branch_id  = neon_branch.new_branch.id
   name       = var.neon_app_role
