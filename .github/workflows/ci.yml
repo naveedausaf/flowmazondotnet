@@ -133,8 +133,8 @@ jobs:
           -var="neon_source_branch_id=${{ secrets.TF_MANAGED_NEON_SOURCE_BRANCH_ID }}" \
           -var="neon_new_branch_name=${{ vars.NEON_NEW_BRANCH_NAME_PREFIX }}${{env.PR_LABEL}}" \
           -var="neon_database_name=${{ vars.NEON_DATABASE_NAME }}" \
-          -var="neon_app_role=${{ secrets.NEON_APP_ROLE_PREFIX }}${{env.PR_LABEL}}" \
-          -var="neon_owner_role=${{ secrets.NEON_OWNER_ROLE_PREFIX }}${{env.PR_LABEL}}" \
+          -var="neon_app_role=${{ vars.NEON_APP_ROLE_PREFIX }}${{env.PR_LABEL}}" \
+          -var="neon_owner_role=${{ vars.NEON_OWNER_ROLE_PREFIX }}${{env.PR_LABEL}}" \
           -var="vercel_team_id=${{ secrets.VERCEL_TEAM_ID }}" \
           -var="vercel_project_name=${{ secrets.VERCEL_PROJECT_NAME_PREFIX }}${{env.PR_LABEL}}" \
           -var="vercel_app_domain_name=${{env.PR_LABEL}}.${{ vars.VERCEL_APP_APEX_DOMAIN_NAME }}" \

@@ -22,9 +22,10 @@ data "azurerm_user_assigned_identity" "managed_identity" {
 
 
 resource "neon_branch" "new_branch" {
-  project_id = var.neon_source_branch_id
+
+  project_id = var.neon_project_id
   name       = var.neon_new_branch_name
-  parent_id  = var.neon_project_id
+  parent_id  = var.neon_source_branch_id
 }
 
 # We need to create a neon_endpoint for the new branch
@@ -55,6 +56,10 @@ resource "neon_endpoint" "new_branch" {
 
 # 
 resource "neon_role" "owner_role" {
+  # if we do not have the dependenvy below,
+  # invocation of this module fails with error:
+  #  Error: [HTTP Code: 404][Error Code: ] no read-write endpoint for branch
+  depends_on = [neon_endpoint.new_branch]
   project_id = var.neon_project_id
   branch_id  = neon_branch.new_branch.id
   name       = var.neon_owner_role
@@ -62,6 +67,10 @@ resource "neon_role" "owner_role" {
 }
 
 resource "neon_role" "app_role" {
+  # if we do not have the dependenvy below,
+  # invocation of this module fails with error:
+  #  Error: [HTTP Code: 404][Error Code: ] no read-write endpoint for branch
+  depends_on = [neon_endpoint.new_branch]
   project_id = var.neon_project_id
   branch_id  = neon_branch.new_branch.id
   name       = var.neon_app_role
