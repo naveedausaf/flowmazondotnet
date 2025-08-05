@@ -170,7 +170,7 @@ resource "postgresql_default_privileges" "app_sequences_usage_select_future" {
 resource "azurerm_key_vault_secret" "connstr_for_api" {
   name = var.vault_secretname_for_connectionstring
 
-  key_vault_id = azurerm_key_vault.vault.id
+  key_vault_id = data.azurerm_key_vault.vault.id
   value        = "Server=${neon_endpoint.new_branch.host};Port=5432;Database=${var.neon_database_name};User Id=${neon_role.app_role.name};Password=${neon_role.app_role.password}"
 
 }
@@ -184,10 +184,10 @@ resource "azurerm_key_vault_secret" "connstr_for_api" {
 # role and scope chosen based on this page and app requirements:
 # https://learn.microsoft.com/en-us/azure/key-vault/general/rbac-guide?tabs=azure-cli
 resource "azurerm_role_assignment" "connection_string" {
-  scope = azurrm_key_vault.vault.id
+  scope = data.azurrm_key_vault.vault.id
 
   role_definition_name = "Key Vault Secrets User"
-  principal_id         = azurerm_user_assigned_identity.managed_identity.principal_id
+  principal_id         = data.azurerm_user_assigned_identity.managed_identity.principal_id
 
 }
 
@@ -197,5 +197,5 @@ resource "github_actions_environment_secret" "psql_owner_connection_sting" {
   repository      = var.repository_for_secrets_and_variables
   environment     = var.environmentname_for_secrets_and_variables
   secret_name     = var.secretname_for_psql_owner_connectionstring
-  plaintext_value = "postgresql://${ceon_role.owner_role.name}:${neon_role.owner_role.password}@${neon_endpoint.new_branch.host}/${var.neon_database_name}?sslmode=require&channel_binding=require"
+  plaintext_value = "postgresql://${neon_role.owner_role.name}:${neon_role.owner_role.password}@${neon_endpoint.new_branch.host}/${var.neon_database_name}?sslmode=require&channel_binding=require"
 }
