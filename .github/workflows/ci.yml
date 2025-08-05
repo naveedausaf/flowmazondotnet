@@ -116,7 +116,7 @@ jobs:
         # HCP Terraform. This is acceptable as the
         # GitHub Actions runner on which terraform apply
         # runs is also a clean machine and the state is
-        # still persisted and managed by HCP Terraform.
+        # still persisted in and managed by HCP Terraform.
         run: |
           WORKSPACE_NAME="preview-${PR_LABEL}"
           curl -sS \
