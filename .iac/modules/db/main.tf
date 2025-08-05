@@ -157,7 +157,7 @@ resource "azurerm_role_assignment" "connection_string" {
 
 # Create secrets and variables in Github Environment
 
-resource "github_actions_environment_secret" "psql_owner_connection_sting" {
+resource "github_actions_environment_secret" "psql_owner_connection_string" {
   repository      = var.repository_for_secrets_and_variables
   environment     = var.environmentname_for_secrets_and_variables
   secret_name     = var.secretname_for_psql_owner_connectionstring
