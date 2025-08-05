@@ -220,14 +220,14 @@ jobs:
         # means the build would use environment variables
         # from Production environment in Vercel project
         # which is what we want. Otherwise it would have
-        # used Preview environment variables.
+        # used Preview environment variables
       - name: Build Project Artifacts
         working-directory: ./flowmazonfrontend
         run: vercel build --prod --token=${{ secrets.VERCEL_API_TOKEN }}
         env:
           NEXT_PUBLIC_BACKEND_URL: ${{vars.NEXT_PUBLIC_BACKEND_URL}}
           NEXT_PUBLIC_OTEL_ENVIRONMENT: ${{vars.NEXT_PUBLIC_OTEL_ENVIRONMENT}}
-          NEXT_PUBLIC_FARO_URL: ${{secrets.NEXT_PUBLIC_FARO_URL}}
+          NEXT_PUBLIC_FARO_URL: ${{secrets.TF_MANAGED_FARO_URL}}
           NEXT_PUBLIC_FARO_SERVICE_NAME: ${{secrets.NEXT_PUBLIC_FARO_SERVICE_NAME}}
       - name: Deploy Project Artifacts to Vercel
         working-directory: ./flowmazonfrontend
