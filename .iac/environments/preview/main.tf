@@ -25,6 +25,8 @@ module "db" {
   neon_app_role                                 = var.neon_app_role
   neon_owner_role                               = var.neon_owner_role
   secretname_for_psql_owner_connectionstring    = var.secretname_for_psql_owner_connectionstring
+  secretname_for_neon_app_role_password         = var.secretname_for_neon_app_role_password
+  secretname_for_neon_owner_role_password       = var.secretname_for_neon_owner_role_password
   secretname_for_neon_project_id                = var.secretname_for_neon_project_id
   secretname_for_neon_project_default_branch_id = var.secretname_for_neon_project_default_branch_id
   environmentname_for_secrets_and_variables     = var.environmentname_for_secrets_and_variables

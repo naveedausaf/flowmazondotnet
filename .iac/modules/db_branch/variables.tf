@@ -1,15 +1,5 @@
 # Azure variables
 
-variable "managed_identity_name" {
-  description = "Name of the user-assigned managed identity to which read permissions would be assigned to the key vault secret that this module would create."
-  type        = string
-}
-
-variable "managed_identity_resource_group_name" {
-  description = "Name of the resource group in which the user-assigned managed identity exists."
-  type        = string
-}
-
 variable "vault_name" {
   description = "The name of the key vault into which the key vault secrets crated by this module would be stored."
   type        = string
@@ -28,6 +18,20 @@ variable "vault_secretname_for_connectionstring" {
 variable "secretname_for_psql_owner_connectionstring" {
   description = "Name of the GitHub Environment secret in which to store psql connection String that includes credentials of db owner account that would be used to connect to and execute queries (including DDL) on the database from psql."
   type        = string
+}
+
+variable "neon_app_role_password" {
+  description = "Password of the existing Neon role for app user (whose name is passed into input variable `neon_app_role` in this module). This module will use it to construct connection string for client apps of the database on the Neon project branch that will be created, and store it in a secret whose name is passed in input variable `vault_secretname_for_connectionstring`."
+  type        = string
+  sensitive   = true
+
+}
+
+variable "neon_owner_role_password" {
+  description = "Password of the existing database owner role (whose name is passed into input variable `neon_owner_role` in this module). This module will use it to construct psql connection string (which can be used for migrating the database on the new database branch created by this module), and store it in a secret whose name is passed in input variable `secretname_for_psql_owner_connectionstring`."
+  type        = string
+  sensitive   = true
+
 }
 
 variable "environmentname_for_secrets_and_variables" {
