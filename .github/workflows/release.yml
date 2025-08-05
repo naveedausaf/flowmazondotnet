@@ -152,7 +152,7 @@ jobs:
 
       # We need to run terraform apply on prod-api workspace
       # because Terraform resource for ACA app must deploy a container
-      # also (otherwise the whole wrorkspace would faile to apply).
+      # also (otherwise the whole wrorkspace would fail to apply).
       #
       # Therefore we use the workspace to deploy the latest version
       # and later would be doing Blue-Green with it. The ACA resource
