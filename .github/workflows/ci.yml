@@ -13,7 +13,8 @@ on:
   pull_request:
     branches:
       - main
-
+env:
+  PR_LABEL: pr${{ github.event.number }}
 jobs:
   audit-signatures:
     name: Audit signatures of NPM dependencies
@@ -24,17 +25,57 @@ jobs:
         run: |
           npm ci
           npm audit signatures
-  create-update-preview-infrastructure:
-    name: Create or Update Infrastructure for PR's Preview environment
+  create-update-preview-ephemeral-tf-workspace:
+    name: Create or Update Infrastructure for PR's Preview and compute common variables for workflow
     runs-on: ubuntu-24.04
     environment:
       name: Preview
     steps:
       - uses: actions/checkout@v4
-      - name: Create PR Identifier
-        id: pr_id
-        run: echo "PR_LABEL=pr${{ github.event.number }}" >> $GITHUB_ENV
-      - name: Create HCP Terraform Workspace for PR
+      - name: Compute common variables for this and later jobs
+          id: compute-vars
+          run: |
+            TF_WORKFPSACE_NAME="preview-${PR_LABEL}" 
+            echo "workspace_name=${TF_WORKFPSACE_NAME}" >> $GITHUB_OUTPUT
+            echo "TF_WORKFPSACE_NAME=${TF_WORKFPSACE_NAME}" >> $GITHUB_ENV
+
+            VAULT_SECRET_CONN_NAME="${{ vars.VAULT_SECRETNAME_FOR_CONNECTIONSTRING_PREFIX }}${PR_LABEL}"
+            echo "vault_secret_conn_name=${VAULT_SECRET_CONN_NAME}" >> $GITHUB_OUTPUT
+            echo "VAULT_SECRET_CONN_NAME=${VAULT_SECRET_CONN_NAME}" >> $GITHUB_ENV
+
+            PSQL_OWNER_CONN_NAME="${{ vars.SECRETNAME_FOR_PSQL_OWNER_CONNECTIONSTRING_PREFIX }}${PR_LABEL}"
+            echo "psql_owner_conn_name=${PSQL_OWNER_CONN_NAME}" >> $GITHUB_OUTPUT
+            echo "PSQL_OWNER_CONN_NAME=${PSQL_OWNER_CONN_NAME}" >> $GITHUB_ENV
+
+            NEON_BRANCH_NAME="${{ vars.NEON_NEW_BRANCH_NAME_PREFIX }}${PR_LABEL}"
+            echo "neon_branch_name=${NEON_BRANCH_NAME}" >> $GITHUB_OUTPUT
+            echo "NEON_BRANCH_NAME=${NEON_BRANCH_NAME}" >> $GITHUB_ENV
+
+            VERCEL_PROJECT_NAME="${{ secrets.VERCEL_PROJECT_NAME_PREFIX }}${PR_LABEL}"
+            echo "vercel_project_name=${VERCEL_PROJECT_NAME}" >> $GITHUB_OUTPUT
+            echo "VERCEL_PROJECT_NAME=${VERCEL_PROJECT_NAME}" >> $GITHUB_ENV
+
+            VERCEL_APP_DOMAIN="${PR_LABEL}.${{ vars.VERCEL_APP_APEX_DOMAIN_NAME }}"
+            echo "vercel_app_domain=${VERCEL_APP_DOMAIN}" >> $GITHUB_OUTPUT
+            echo "VERCEL_APP_DOMAIN=${VERCEL_APP_DOMAIN}" >> $GITHUB_ENV
+
+            GRAFANA_INSTANCE_NAME="${{ vars.NEXT_PUBLIC_FARO_SERVICE_NAME_PREFIX }}${PR_LABEL}"
+            echo "grafana_instance_name=${GRAFANA_INSTANCE_NAME}" >> $GITHUB_OUTPUT
+            echo "GRAFANA_INSTANCE_NAME=${GRAFANA_INSTANCE_NAME}" >> $GITHUB_ENV
+
+            GRAFANA_INSTANCE_URL_SECRET="${{ vars.SECRETNAME_FOR_GRAFANACLOUD_FRONTEND_O11Y_INSTANCE_URL_PREFIX }}${PR_LABEL}"
+            echo "grafana_instance_url_secret=${GRAFANA_INSTANCE_URL_SECRET}" >> $GITHUB_OUTPUT
+            echo "GRAFANA_INSTANCE_URL_SECRET=${GRAFANA_INSTANCE_URL_SECRET}" >> $GITHUB_ENV
+
+            OTEL_ENV="${{ vars.OTEL_ENVIRONMENT_PREFIX }}${PR_LABEL}"
+            echo "otel_env=${OTEL_ENV}" >> $GITHUB_OUTPUT
+            echo "OTEL_ENV=${OTEL_ENV}" >> $GITHUB_ENV
+
+            VERCEL_PROJECT_ID_SECRET="${{ vars.SECRETNAME_FOR_VERCEL_PROJECT_ID_PREFIX }}${PR_LABEL}"
+            echo "vercel_project_id_secret=${VERCEL_PROJECT_ID_SECRET}" >> $GITHUB_OUTPUT
+            echo "VERCEL_PROJECT_ID_SECRET=${VERCEL_PROJECT_ID_SECRET}" >> $GITHUB_ENV
+
+      - name: Create or update preview-ephemeral HCP workspace
         # We don't care if the worksapce already exists as
         # in that case this HCP API Would return an error
         # that we ignore so the step would do nothing.
@@ -118,7 +159,7 @@ jobs:
         # runs is also a clean machine and the state is
         # still persisted in and managed by HCP Terraform.
         run: |
-          WORKSPACE_NAME="preview-${PR_LABEL}"
+          TF_WORKFPSACE_NAME="preview-${PR_LABEL}"
           curl -sS \
             -H "Authorization: Bearer ${HCP_TF_TOKEN}" \
             -H "Content-Type: application/vnd.api+json" \
@@ -126,7 +167,7 @@ jobs:
             -d '{
               "data": {
                 "attributes": {
-                  "name": "'"${WORKSPACE_NAME}"'",
+                  "name": "'"${TF_WORKFPSACE_NAME}"'",
                   "auto-apply": false,
                   "execution-mode": "local"
                   
@@ -159,7 +200,7 @@ jobs:
           # If workspace already exists, the API will return an error. Ignore if already exists.
           if grep -q '"errors"' response.json; then
             if grep -q 'has already been taken' response.json; then
-              echo "Workspace ${WORKSPACE_NAME} already exists. Continuing."
+              echo "Workspace ${TF_WORKFPSACE_NAME} already exists (thath's great!). Continuing to next step..."
             else
               cat response.json
               exit 1
@@ -193,35 +234,62 @@ jobs:
           terraform apply -auto-approve \
           -var="vault_name=${{ vars.VAULT_NAME }}" \
           -var="vault_resource_group_name=${{ vars.ID_AND_VAULT_RESOURCE_GROUP_NAME }}" \
-          -var="vault_secretname_for_connectionstring=${{ vars.VAULT_SECRETNAME_FOR_CONNECTIONSTRING_PREFIX }}${{env.PR_LABEL}}" \
-          -var="secretname_for_psql_owner_connectionstring=${{ vars.SECRETNAME_FOR_PSQL_OWNER_CONNECTIONSTRING_PREFIX }}${{env.PR_LABEL}}" \
+          -var="vault_secretname_for_connectionstring=${{ env.VAULT_SECRET_CONN_NAME }}" \
+          -var="secretname_for_psql_owner_connectionstring=${{ env.PSQL_OWNER_CONN_NAME }}" \
           -var="environmentname_for_secrets_and_variables=Preview" \
           -var="repository_for_secrets_and_variables=flowmazondotnet" \
           -var="neon_project_id=${{ secrets.TF_MANAGED_NEON_PROJECT_ID }}" \
           -var="neon_source_branch_id=${{ secrets.TF_MANAGED_NEON_SOURCE_BRANCH_ID }}" \
-          -var="neon_new_branch_name=${{ vars.NEON_NEW_BRANCH_NAME_PREFIX }}${{env.PR_LABEL}}" \
+          -var="neon_new_branch_name=${{ env.NEON_BRANCH_NAME }}" \
           -var="neon_database_name=${{ vars.NEON_DATABASE_NAME }}" \
           -var="neon_app_role=${{ vars.NEON_APP_ROLE_PREFIX }}" \
           -var="neon_owner_role=${{ vars.NEON_OWNER_ROLE_PREFIX }}" \
           -var="neon_app_role_password=${{ secrets.TF_MANAGED_NEON_APP_ROLE_PASSWORD }}" \
           -var="neon_owner_role_password=${{ secrets.TF_MANAGED_NEON_OWNER_ROLE_PASSWORD }}" \
           -var="vercel_team_id=${{ secrets.VERCEL_TEAM_ID }}" \
-          -var="vercel_project_name=${{ secrets.VERCEL_PROJECT_NAME_PREFIX }}${{env.PR_LABEL}}" \
-          -var="vercel_app_domain_name=${{env.PR_LABEL}}.${{ vars.VERCEL_APP_APEX_DOMAIN_NAME }}" \
+          -var="vercel_project_name=${{ env.VERCEL_PROJECT_NAME }}" \
+          -var="vercel_app_domain_name=${{ env.VERCEL_APP_DOMAIN }}" \
           -var="vercel_region_for_server_side_execution=${{ vars.VERCEL_REGION_FOR_SERVER_SIDE_EXECUTION }}" \
           -var="cloudflare_api_token=${{ secrets.CLOUDFLARE_API_TOKEN }}" \
           -var="cloudflare_zone_id=${{ secrets.CLOUDFLARE_ZONE_ID }}" \
           -var="grafanacloud_stack_slug=${{ vars.GRAFANA_STACK_SLUG }}" \
           -var="grafanacloud_frontend_o11y_api_access_token=${{ secrets.GRAFANA_FRONTEND_O11Y_API_ACCESS_TOKEN }}" \
-          -var="grafanacloud_frontend_o11y_instance_name=${{ vars.NEXT_PUBLIC_FARO_SERVICE_NAME_PREFIX }}${{env.PR_LABEL}}" \
-          -var="secretname_for_grafanacloud_frontend_o11y_instance_url=${{ vars.SECRETNAME_FOR_GRAFANACLOUD_FRONTEND_O11Y_INSTANCE_URL_PREFIX }}${{env.PR_LABEL}}" \
-          -var="env_NEXT_PUBLIC_OTEL_ENVIRONMENT=${{ vars.OTEL_ENVIRONMENT_PREFIX }}${{env.PR_LABEL}}" \
+          -var="grafanacloud_frontend_o11y_instance_name=${{ env.GRAFANA_INSTANCE_NAME }}" \
+          -var="secretname_for_grafanacloud_frontend_o11y_instance_url=${{ env.GRAFANA_INSTANCE_URL_SECRET }}" \
+          -var="env_NEXT_PUBLIC_OTEL_ENVIRONMENT=${{ env.OTEL_ENV }}" \
           -var="env_OTEL_EXPORTER_OTLP_ENDPOINT=${{ vars.ENV_OTEL_EXPORTER_OTLP_ENDPOINT }}" \
           -var="env_OTEL_EXPORTER_OTLP_PROTOCOL=${{ vars.ENV_OTEL_EXPORTER_OTLP_PROTOCOL }}" \
           -var="env_OTEL_EXPORTER_OTLP_HEADERS=${{ secrets.ENV_OTEL_EXPORTER_OTLP_HEADERS }}" \
-          -var="secretname_for_vercel_project_id=${{ vars.SECRETNAME_FOR_VERCEL_PROJECT_ID_PREFIX }}${{env.PR_LABEL}}"
+          -var="secretname_for_vercel_project_id=${{ env.VERCEL_PROJECT_ID_SECRET }}"
         working-directory: .iac/environments/preview-ephemeral
-# Create infrastructure specific to a preview environment
+
+  migrate-db:
+    environment:
+      name: Production
+    needs: create-update-preview-ephemeral-tf-workspace
+    #if: ${{ needs.create-release.outputs.released == 1}}
+    name: Migrate Database
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install psql client
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client
+
+      - name: Run migrations
+        env:
+          MIGRATIONS_DIR: ./flowmazonbackend/flowmazonapi/MigrationScripts
+        run: |
+          for f in "$MIGRATIONS_DIR"/*.sql; do
+            filename=$(basename "$f")
+            echo "Applying migration $filename"
+            psql "${{secrets.TF_MANAGED_PSQL_OWNER_CONNECTIONSTRING}}" -f "$f"
+          done
+        # Create infrastructure specific to a preview environment
+
 # for this particular Pull Request (except ACAP app for API,
 # which will be created at the same time as deployment due to
 # limitations of ACA app's Terraform resource; see
