@@ -25,7 +25,7 @@ jobs:
         run: |
           npm ci
           npm audit signatures
-  create-update-preview-ephemeral-tf-workspace:
+  create-update-preview-ephemeral-hcp-workspace:
     name: Create or Update Infrastructure for PR's Preview and compute common variables for workflow
     runs-on: ubuntu-24.04
     environment:
@@ -266,7 +266,7 @@ jobs:
   migrate-db:
     environment:
       name: Production
-    needs: create-update-preview-ephemeral-tf-workspace
+    needs: create-update-preview-ephemeral-hcp-workspace
     #if: ${{ needs.create-release.outputs.released == 1}}
     name: Migrate Database
     runs-on: ubuntu-latest
@@ -286,7 +286,7 @@ jobs:
           for f in "$MIGRATIONS_DIR"/*.sql; do
             filename=$(basename "$f")
             echo "Applying migration $filename"
-            psql "${{secrets.TF_MANAGED_PSQL_OWNER_CONNECTIONSTRING}}" -f "$f"
+            psql "${{ secrets[needs.create-update-preview-ephemeral-hcp-workspace.outputs.psql_owner_conn_name] }}" -f "$f"
           done
         # Create infrastructure specific to a preview environment
 
