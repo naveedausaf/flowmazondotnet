@@ -284,6 +284,7 @@ jobs:
           MIGRATIONS_DIR: ./flowmazonbackend/flowmazonapi/MigrationScripts
           TEST_SECRET: ${{ secrets[needs.create-update-preview-ephemeral-hcp-workspace.outputs.psql_owner_conn_name] }}
         run: |
+          echo name of secret is ${{needs.create-update-preview-ephemeral-hcp-workspace.outputs.psql_owner_conn_name}}
           echo the connection string is: $TEST_SECRET
           for f in "$MIGRATIONS_DIR"/*.sql; do
             filename=$(basename "$f")
