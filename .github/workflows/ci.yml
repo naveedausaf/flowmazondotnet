@@ -355,8 +355,8 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }} # Auto-generated, no setup needed!
       - name: Set lowercase repo owner
         run: |
-          echo "REPO_LOWER=$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
-          echo "FULL_IMAGE_NAME=ghcr.io/${REPO_LOWER}/${{ vars.IMAGE_REPOSITORY }}:${{ env.NEW_VERSION }}" >> $GITHUB_ENV
+          REPO_LOWER=$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')
+          echo "FULL_IMAGE_NAME=ghcr.io/$REPO_LOWER/${{ vars.IMAGE_REPOSITORY }}:${{ env.NEW_VERSION }}" >> $GITHUB_ENV
 
       - name: Build and Push Docker image
         run: |
