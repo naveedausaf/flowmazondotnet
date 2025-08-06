@@ -253,8 +253,8 @@ jobs:
           -var="neon_source_branch_id=${{ secrets.TF_MANAGED_NEON_SOURCE_BRANCH_ID }}" \
           -var="neon_new_branch_name=${{ env.NEON_BRANCH_NAME }}" \
           -var="neon_database_name=${{ vars.NEON_DATABASE_NAME }}" \
-          -var="neon_app_role=${{ vars.NEON_APP_ROLE_PREFIX }}" \
-          -var="neon_owner_role=${{ vars.NEON_OWNER_ROLE_PREFIX }}" \
+          -var="neon_app_role=${{ vars.NEON_APP_ROLE }}" \
+          -var="neon_owner_role=${{ vars.NEON_OWNER_ROLE }}" \
           -var="neon_app_role_password=${{ secrets.TF_MANAGED_NEON_APP_ROLE_PASSWORD }}" \
           -var="neon_owner_role_password=${{ secrets.TF_MANAGED_NEON_OWNER_ROLE_PASSWORD }}" \
           -var="vercel_team_id=${{ secrets.VERCEL_TEAM_ID }}" \
@@ -293,10 +293,7 @@ jobs:
       - name: Run migrations
         env:
           MIGRATIONS_DIR: ./flowmazonbackend/flowmazonapi/MigrationScripts
-          # TEST_SECRET: ${{ secrets[needs.create-update-preview-ephemeral-hcp-workspace.outputs.psql_owner_conn_name] }}
         run: |
-          # echo name of secret is ${{needs.create-update-preview-ephemeral-hcp-workspace.outputs.psql_owner_conn_name}}
-          # echo the connection string is: $TEST_SECRET
           for f in "$MIGRATIONS_DIR"/*.sql; do
             filename=$(basename "$f")
             echo "Applying migration $filename"
