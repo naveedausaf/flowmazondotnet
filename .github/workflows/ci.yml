@@ -15,7 +15,7 @@ on:
       - main
 env:
   PR_LABEL: pr${{ github.event.number }}
-  NEW_VERSION: 0.0.0-${{ env.PR_LABEL }}
+  NEW_VERSION: 0.0.0-$PR_LABEL
 jobs:
   audit-signatures:
     name: Audit signatures of NPM dependencies
