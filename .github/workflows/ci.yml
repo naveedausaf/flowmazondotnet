@@ -326,27 +326,25 @@ jobs:
       - name: Print version to console
         run: |
           echo "Version number of the code artifacts produced for ths pull request-specific Preview environment would be: ${{ env.NEW_VERSION }}"
-      # - name: Login to Azure
-      #   uses: azure/login@v1
-      #   with:
-      #     # The referenced secret AZURE_CREDENTIALS contains
-      #     # JSON with client id, client secret, tenant id and
-      #     # subscription id of the service principal which
-      #     # has AcrPush permission on the subscrpition or at least
-      #     # on the ACR instance to which it will push in this job
-      #     # within the subscription whose subscription id is provided.
-      #     #
-      #     # Format of the JSON is:
-      #     # {
-      #     #     "clientId": "<visible on service principal when you create it in portal>",
-      #     #     "clientSecret": "<in portal you have to create it after creating the service principal>",
-      #     #     "subscriptionId": "<subscription id of the subscription on which you have given AcrPush permission to the service principal>",
-      #     #     "tenantId": "<visible on service principal when you create it in portal>"
-      #     # }
-      #     creds: ${{ secrets.AZURE_CREDENTIALS }}
+      - name: Login to Azure
+        uses: azure/login@v1
+        with:
+          # The referenced secret AZURE_CREDENTIALS contains
+          # JSON with client id, client secret, tenant id and
+          # subscription id of the service principal which
+          # has AcrPush permission on the subscrpition or at least
+          # on the ACR instance to which it will push in this job
+          # within the subscription whose subscription id is provided.
+          #
+          # Format of the JSON is:
+          # {
+          #     "clientId": "<visible on service principal when you create it in portal>",
+          #     "clientSecret": "<in portal you have to create it after creating the service principal>",
+          #     "subscriptionId": "<subscription id of the subscription on which you have given AcrPush permission to the service principal>",
+          #     "tenantId": "<visible on service principal when you create it in portal>"
+          # }
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      # TODO: Create AZURE_CREDENTIALS secret and uncomment above step
-      #
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v2
         with:
