@@ -15,6 +15,7 @@ on:
       - main
 env:
   PR_LABEL: pr${{ github.event.number }}
+  NEW_VERSION: 0.0.0-${{ env.PR_LABEL }}
 jobs:
   audit-signatures:
     name: Audit signatures of NPM dependencies
@@ -278,7 +279,6 @@ jobs:
     environment:
       name: Preview
     needs: create-update-preview-ephemeral-hcp-workspace
-    #if: ${{ needs.create-release.outputs.released == 1}}
     name: Migrate Database
     runs-on: ubuntu-latest
     steps:
@@ -301,12 +301,81 @@ jobs:
           done
         # Create infrastructure specific to a preview environment
 
-# for this particular Pull Request (except ACAP app for API,
-# which will be created at the same time as deployment due to
-# limitations of ACA app's Terraform resource; see
-# aca_app module's README)
-#
-# As the workspace will run on HCP Terraform's runner, I
-# wouldn't bother with a job to run terraform apply on
-# the workspace preview-ephemeral that is seprate from the
-# code to run db migrations (AT LEAST NOT FOR NOW)
+  deploy-backend:
+    environment:
+      name: Preview
+    needs: [create-update-preview-ephemeral-hcp-workspace, migrate-db]
+    name: Deploy API to Azure
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Print version to console
+        run: |
+          echo "New Version Number is: ${{ env.NEW_VERSION }}"
+
+#       - name: Login to Azure
+#         uses: azure/login@v1
+#         with:
+#           # The referenced secret AZURE_CREDENTIALS contains
+#           # JSON with client id, client secret, tenant id and
+#           # subscription id of the service principal which
+#           # has AcrPush permission on the subscrpition or at least
+#           # on the ACR instance to which it will push in this job
+#           # within the subscription whose subscription id is provided.
+#           #
+#           # Format of the JSON is:
+#           # {
+#           #     "clientId": "<visible on service principal when you create it in portal>",
+#           #     "clientSecret": "<in portal you have to create it after creating the service principal>",
+#           #     "subscriptionId": "<subscription id of the subscription on which you have given AcrPush permission to the service principal>",
+#           #     "tenantId": "<visible on service principal when you create it in portal>"
+#           # }
+#           creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+#       - name: Login to ACR
+#         run: |
+#           az acr login --name ${{ vars.ACR_NAME }}
+
+#       - name: Build Docker image
+#         run: |
+#           cd ./flowmazonbackend
+#           docker build -t ${{ vars.ACR_NAME }}.azurecr.io/${{ vars.IMAGE_REPOSITORY }}:${{ needs.create-release.outputs.newVersion }} .
+
+#       - name: Push Docker image
+#         run: |
+#           docker push ${{ vars.ACR_NAME }}.azurecr.io/${{ vars.IMAGE_REPOSITORY }}:${{ needs.create-release.outputs.newVersion }}
+
+#       # We need to run terraform apply on prod-api workspace
+#       # because Terraform resource for ACA app must deploy a container
+#       # also (otherwise the whole wrorkspace would fail to apply).
+#       #
+#       # Therefore we use the workspace to deploy the latest version
+#       # and later would be doing Blue-Green with it. The ACA resource
+#       # in the Terraform workspace would pull the container image with
+#       # the specified version upon terraform apply.
+#       #
+#       # As terraform apply runs on HCP Terraform's clean runner machine,
+#       # we don't need to create a separate job to run terraform apply.
+#       - name: Setup Terraform CLI
+#         uses: hashicorp/setup-terraform@v3
+#         with:
+#           # cli_config_credentials_hostname parameter default
+#           # to app.terraform.io which is what we want
+#           cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
+
+#       - name: Run terraform apply on prod-api workspace
+#         run: |
+#           cd .iac/environments/prod-api
+#           terraform init
+#           terraform apply -auto-approve -var="image_tag=${{ needs.create-release.outputs.newVersion }}"
+
+# # for this particular Pull Request (except ACAP app for API,
+# # which will be created at the same time as deployment due to
+# # limitations of ACA app's Terraform resource; see
+# # aca_app module's README)
+# #
+# # As the workspace will run on HCP Terraform's runner, I
+# # wouldn't bother with a job to run terraform apply on
+# # the workspace preview-ephemeral that is seprate from the
+# # code to run db migrations (AT LEAST NOT FOR NOW)
