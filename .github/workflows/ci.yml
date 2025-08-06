@@ -30,6 +30,17 @@ jobs:
     runs-on: ubuntu-24.04
     environment:
       name: Preview
+    outputs:
+      workspace_name: ${{ steps.compute-vars.outputs.workspace_name }}
+      vault_secret_conn_name: ${{ steps.compute-vars.outputs.vault_secret_conn_name }}
+      psql_owner_conn_name: ${{ steps.compute-vars.outputs.psql_owner_conn_name }}
+      neon_branch_name: ${{ steps.compute-vars.outputs.neon_branch_name }}
+      vercel_project_name: ${{ steps.compute-vars.outputs.vercel_project_name }}
+      vercel_app_domain: ${{ steps.compute-vars.outputs.vercel_app_domain }}
+      grafana_instance_name: ${{ steps.compute-vars.outputs.grafana_instance_name }}
+      grafana_instance_url_secret: ${{ steps.compute-vars.outputs.grafana_instance_url_secret }}
+      otel_env: ${{ steps.compute-vars.outputs.otel_env }}
+      vercel_project_id_secret: ${{ steps.compute-vars.outputs.vercel_project_id_secret }}
     steps:
       - uses: actions/checkout@v4
       - name: Compute common variables for this and later jobs
@@ -282,10 +293,10 @@ jobs:
       - name: Run migrations
         env:
           MIGRATIONS_DIR: ./flowmazonbackend/flowmazonapi/MigrationScripts
-          TEST_SECRET: ${{ secrets[needs.create-update-preview-ephemeral-hcp-workspace.outputs.psql_owner_conn_name] }}
+          # TEST_SECRET: ${{ secrets[needs.create-update-preview-ephemeral-hcp-workspace.outputs.psql_owner_conn_name] }}
         run: |
-          echo name of secret is ${{needs.create-update-preview-ephemeral-hcp-workspace.outputs.psql_owner_conn_name}}
-          echo the connection string is: $TEST_SECRET
+          # echo name of secret is ${{needs.create-update-preview-ephemeral-hcp-workspace.outputs.psql_owner_conn_name}}
+          # echo the connection string is: $TEST_SECRET
           for f in "$MIGRATIONS_DIR"/*.sql; do
             filename=$(basename "$f")
             echo "Applying migration $filename"
