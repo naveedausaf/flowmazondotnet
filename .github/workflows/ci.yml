@@ -276,7 +276,7 @@ jobs:
 
   migrate-db:
     environment:
-      name: Production
+      name: Preview
     needs: create-update-preview-ephemeral-hcp-workspace
     #if: ${{ needs.create-release.outputs.released == 1}}
     name: Migrate Database
