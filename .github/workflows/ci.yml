@@ -33,47 +33,47 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Compute common variables for this and later jobs
-          id: compute-vars
-          run: |
-            TF_WORKFPSACE_NAME="preview-${PR_LABEL}" 
-            echo "workspace_name=${TF_WORKFPSACE_NAME}" >> $GITHUB_OUTPUT
-            echo "TF_WORKFPSACE_NAME=${TF_WORKFPSACE_NAME}" >> $GITHUB_ENV
+        id: compute-vars
+        run: |
+          TF_WORKFPSACE_NAME="preview-${PR_LABEL}" 
+          echo "workspace_name=${TF_WORKFPSACE_NAME}" >> $GITHUB_OUTPUT
+          echo "TF_WORKFPSACE_NAME=${TF_WORKFPSACE_NAME}" >> $GITHUB_ENV
 
-            VAULT_SECRET_CONN_NAME="${{ vars.VAULT_SECRETNAME_FOR_CONNECTIONSTRING_PREFIX }}${PR_LABEL}"
-            echo "vault_secret_conn_name=${VAULT_SECRET_CONN_NAME}" >> $GITHUB_OUTPUT
-            echo "VAULT_SECRET_CONN_NAME=${VAULT_SECRET_CONN_NAME}" >> $GITHUB_ENV
+          VAULT_SECRET_CONN_NAME="${{ vars.VAULT_SECRETNAME_FOR_CONNECTIONSTRING_PREFIX }}${PR_LABEL}"
+          echo "vault_secret_conn_name=${VAULT_SECRET_CONN_NAME}" >> $GITHUB_OUTPUT
+          echo "VAULT_SECRET_CONN_NAME=${VAULT_SECRET_CONN_NAME}" >> $GITHUB_ENV
 
-            PSQL_OWNER_CONN_NAME="${{ vars.SECRETNAME_FOR_PSQL_OWNER_CONNECTIONSTRING_PREFIX }}${PR_LABEL}"
-            echo "psql_owner_conn_name=${PSQL_OWNER_CONN_NAME}" >> $GITHUB_OUTPUT
-            echo "PSQL_OWNER_CONN_NAME=${PSQL_OWNER_CONN_NAME}" >> $GITHUB_ENV
+          PSQL_OWNER_CONN_NAME="${{ vars.SECRETNAME_FOR_PSQL_OWNER_CONNECTIONSTRING_PREFIX }}${PR_LABEL}"
+          echo "psql_owner_conn_name=${PSQL_OWNER_CONN_NAME}" >> $GITHUB_OUTPUT
+          echo "PSQL_OWNER_CONN_NAME=${PSQL_OWNER_CONN_NAME}" >> $GITHUB_ENV
 
-            NEON_BRANCH_NAME="${{ vars.NEON_NEW_BRANCH_NAME_PREFIX }}${PR_LABEL}"
-            echo "neon_branch_name=${NEON_BRANCH_NAME}" >> $GITHUB_OUTPUT
-            echo "NEON_BRANCH_NAME=${NEON_BRANCH_NAME}" >> $GITHUB_ENV
+          NEON_BRANCH_NAME="${{ vars.NEON_NEW_BRANCH_NAME_PREFIX }}${PR_LABEL}"
+          echo "neon_branch_name=${NEON_BRANCH_NAME}" >> $GITHUB_OUTPUT
+          echo "NEON_BRANCH_NAME=${NEON_BRANCH_NAME}" >> $GITHUB_ENV
 
-            VERCEL_PROJECT_NAME="${{ secrets.VERCEL_PROJECT_NAME_PREFIX }}${PR_LABEL}"
-            echo "vercel_project_name=${VERCEL_PROJECT_NAME}" >> $GITHUB_OUTPUT
-            echo "VERCEL_PROJECT_NAME=${VERCEL_PROJECT_NAME}" >> $GITHUB_ENV
+          VERCEL_PROJECT_NAME="${{ secrets.VERCEL_PROJECT_NAME_PREFIX }}${PR_LABEL}"
+          echo "vercel_project_name=${VERCEL_PROJECT_NAME}" >> $GITHUB_OUTPUT
+          echo "VERCEL_PROJECT_NAME=${VERCEL_PROJECT_NAME}" >> $GITHUB_ENV
 
-            VERCEL_APP_DOMAIN="${PR_LABEL}.${{ vars.VERCEL_APP_APEX_DOMAIN_NAME }}"
-            echo "vercel_app_domain=${VERCEL_APP_DOMAIN}" >> $GITHUB_OUTPUT
-            echo "VERCEL_APP_DOMAIN=${VERCEL_APP_DOMAIN}" >> $GITHUB_ENV
+          VERCEL_APP_DOMAIN="${PR_LABEL}.${{ vars.VERCEL_APP_APEX_DOMAIN_NAME }}"
+          echo "vercel_app_domain=${VERCEL_APP_DOMAIN}" >> $GITHUB_OUTPUT
+          echo "VERCEL_APP_DOMAIN=${VERCEL_APP_DOMAIN}" >> $GITHUB_ENV
 
-            GRAFANA_INSTANCE_NAME="${{ vars.NEXT_PUBLIC_FARO_SERVICE_NAME_PREFIX }}${PR_LABEL}"
-            echo "grafana_instance_name=${GRAFANA_INSTANCE_NAME}" >> $GITHUB_OUTPUT
-            echo "GRAFANA_INSTANCE_NAME=${GRAFANA_INSTANCE_NAME}" >> $GITHUB_ENV
+          GRAFANA_INSTANCE_NAME="${{ vars.NEXT_PUBLIC_FARO_SERVICE_NAME_PREFIX }}${PR_LABEL}"
+          echo "grafana_instance_name=${GRAFANA_INSTANCE_NAME}" >> $GITHUB_OUTPUT
+          echo "GRAFANA_INSTANCE_NAME=${GRAFANA_INSTANCE_NAME}" >> $GITHUB_ENV
 
-            GRAFANA_INSTANCE_URL_SECRET="${{ vars.SECRETNAME_FOR_GRAFANACLOUD_FRONTEND_O11Y_INSTANCE_URL_PREFIX }}${PR_LABEL}"
-            echo "grafana_instance_url_secret=${GRAFANA_INSTANCE_URL_SECRET}" >> $GITHUB_OUTPUT
-            echo "GRAFANA_INSTANCE_URL_SECRET=${GRAFANA_INSTANCE_URL_SECRET}" >> $GITHUB_ENV
+          GRAFANA_INSTANCE_URL_SECRET="${{ vars.SECRETNAME_FOR_GRAFANACLOUD_FRONTEND_O11Y_INSTANCE_URL_PREFIX }}${PR_LABEL}"
+          echo "grafana_instance_url_secret=${GRAFANA_INSTANCE_URL_SECRET}" >> $GITHUB_OUTPUT
+          echo "GRAFANA_INSTANCE_URL_SECRET=${GRAFANA_INSTANCE_URL_SECRET}" >> $GITHUB_ENV
 
-            OTEL_ENV="${{ vars.OTEL_ENVIRONMENT_PREFIX }}${PR_LABEL}"
-            echo "otel_env=${OTEL_ENV}" >> $GITHUB_OUTPUT
-            echo "OTEL_ENV=${OTEL_ENV}" >> $GITHUB_ENV
+          OTEL_ENV="${{ vars.OTEL_ENVIRONMENT_PREFIX }}${PR_LABEL}"
+          echo "otel_env=${OTEL_ENV}" >> $GITHUB_OUTPUT
+          echo "OTEL_ENV=${OTEL_ENV}" >> $GITHUB_ENV
 
-            VERCEL_PROJECT_ID_SECRET="${{ vars.SECRETNAME_FOR_VERCEL_PROJECT_ID_PREFIX }}${PR_LABEL}"
-            echo "vercel_project_id_secret=${VERCEL_PROJECT_ID_SECRET}" >> $GITHUB_OUTPUT
-            echo "VERCEL_PROJECT_ID_SECRET=${VERCEL_PROJECT_ID_SECRET}" >> $GITHUB_ENV
+          VERCEL_PROJECT_ID_SECRET="${{ vars.SECRETNAME_FOR_VERCEL_PROJECT_ID_PREFIX }}${PR_LABEL}"
+          echo "vercel_project_id_secret=${VERCEL_PROJECT_ID_SECRET}" >> $GITHUB_OUTPUT
+          echo "VERCEL_PROJECT_ID_SECRET=${VERCEL_PROJECT_ID_SECRET}" >> $GITHUB_ENV
 
       - name: Create or update preview-ephemeral HCP workspace
         # We don't care if the worksapce already exists as
