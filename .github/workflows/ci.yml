@@ -99,7 +99,7 @@ jobs:
 
           echo "neon_branch_name=${{ vars.NEON_NEW_BRANCH_NAME_PREFIX }}${{ env.PR_LABEL }}" >> $GITHUB_OUTPUT
 
-          echo "vercel_project_name=${{ secrets.VERCEL_PROJECT_NAME_PREFIX }}${{ env.PR_LABEL }}" >> $GITHUB_OUTPUT
+          echo "vercel_project_name=${{ env.PR_LABEL }}${{ vars.VERCEL_PROJECT_NAME_SUFFIX }}" >> $GITHUB_OUTPUT
 
           echo "vercel_app_domain=${{ env.PR_LABEL }}.${{ vars.VERCEL_APP_APEX_DOMAIN_NAME }}" >> $GITHUB_OUTPUT
 
