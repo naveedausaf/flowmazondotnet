@@ -407,7 +407,7 @@ jobs:
           HCP_TF_PROJECT: ${{ secrets.TF_PROJECT }}
           HCP_TF_TOKEN: ${{ secrets.TF_API_TOKEN }}
           PR_LABEL: ${{ needs.create-update-preview-ephemeral.outputs.pr_label }}
-          TF_API_WORKSPACE_NAME: ${{ needs.create-update-preview-ephemeral.outputs.tf_api_workspace_name }}
+          # TF_API_WORKSPACE_NAME: ${{ needs.create-update-preview-ephemeral.outputs.tf_api_workspace_name }}
         run: |
           echo "api workspace name is: ${{env.TF_API_WORKSPACE_NAME}}"
           # curl -sS \
