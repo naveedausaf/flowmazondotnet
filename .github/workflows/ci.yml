@@ -409,52 +409,53 @@ jobs:
           PR_LABEL: ${{ needs.create-update-preview-ephemeral.outputs.pr_label }}
           TF_API_WORKSPACE_NAME: ${{ steps.compute-vars.outputs.tf_api_workspace_name }}
         run: |
-          curl -sS \
-            -H "Authorization: Bearer ${{env.HCP_TF_TOKEN}}" \
-            -H "Content-Type: application/vnd.api+json" \
-            -X POST \
-            -d '{
-              "data": {
-                "attributes": {
-                  "name": "'"${{ env.TF_API_WORKSPACE_NAME }}"'",
-                  "auto-apply": false,
-                  "execution-mode": "local"
+          echo "api workspace name is: ${{env.TF_API_WORKSPACE_NAME}}"
+          # curl -sS \
+          #   -H "Authorization: Bearer ${{env.HCP_TF_TOKEN}}" \
+          #   -H "Content-Type: application/vnd.api+json" \
+          #   -X POST \
+          #   -d '{
+          #     "data": {
+          #       "attributes": {
+          #         "name": "'"${{ env.TF_API_WORKSPACE_NAME }}"'",
+          #         "auto-apply": false,
+          #         "execution-mode": "local"
                   
-                },
-                "type": "workspaces",
-                "relationships": {
-                  "tag-bindings": {
-                    "data": [
-                      {
-                        "type": "tag-bindings",
-                        "attributes": {
-                          "key": "preview-ephemeral-api",
-                          "value": ""
-                        }
-                      }
-                    ]
-                  },
-                  "project": {
-                    "data": {
-                      "id": "'"${{ env.HCP_TF_PROJECT }}"'",
-                      "type": "projects"
-                    }
-                  }
-                }
-              }
-            }' \
-            "https://app.terraform.io/api/v2/organizations/${{ env.HCP_TF_ORG }}/workspaces" \
-            | tee response.json
+          #       },
+          #       "type": "workspaces",
+          #       "relationships": {
+          #         "tag-bindings": {
+          #           "data": [
+          #             {
+          #               "type": "tag-bindings",
+          #               "attributes": {
+          #                 "key": "preview-ephemeral-api",
+          #                 "value": ""
+          #               }
+          #             }
+          #           ]
+          #         },
+          #         "project": {
+          #           "data": {
+          #             "id": "'"${{ env.HCP_TF_PROJECT }}"'",
+          #             "type": "projects"
+          #           }
+          #         }
+          #       }
+          #     }
+          #   }' \
+          #   "https://app.terraform.io/api/v2/organizations/${{ env.HCP_TF_ORG }}/workspaces" \
+          #   | tee response.json
 
-          # If workspace already exists, the API will return an error. Ignore if already exists.
-          if grep -q '"errors"' response.json; then
-            if grep -q 'has already been taken' response.json; then
-              echo "Workspace ${{ env.TF_API_WORKSPACE_NAME }} already exists (thath's great!). Continuing to next step..."
-            else
-              cat response.json
-              exit 1
-            fi
-          fi
+          # # If workspace already exists, the API will return an error. Ignore if already exists.
+          # if grep -q '"errors"' response.json; then
+          #   if grep -q 'has already been taken' response.json; then
+          #     echo "Workspace ${{ env.TF_API_WORKSPACE_NAME }} already exists (thath's great!). Continuing to next step..."
+          #   else
+          #     cat response.json
+          #     exit 1
+          #   fi
+          # fi
       - name: Setup Terraform CLI
         uses: hashicorp/setup-terraform@v3
         with:
