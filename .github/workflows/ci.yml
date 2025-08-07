@@ -29,19 +29,23 @@ jobs:
     environment:
       name: Preview
     outputs:
-      pr_label: ${{ steps.compute-vars.outputs.pr_label }}
-      new_version: ${{ steps.compute-vars.outputs.new_version }}
-      tf_workspace_name: ${{ steps.compute-vars.outputs.tf_workspace_name }}
-      tf_api_workspace_name: ${{ steps.compute-vars.outputs.tf_workspace_name }}
-      vault_secret_conn_name: ${{ steps.compute-vars.outputs.vault_secret_conn_name }}
-      psql_owner_conn_name: ${{ steps.compute-vars.outputs.psql_owner_conn_name }}
-      neon_branch_name: ${{ steps.compute-vars.outputs.neon_branch_name }}
-      vercel_project_name: ${{ steps.compute-vars.outputs.vercel_project_name }}
-      vercel_app_domain: ${{ steps.compute-vars.outputs.vercel_app_domain }}
-      grafana_instance_name: ${{ steps.compute-vars.outputs.grafana_instance_name }}
-      grafana_instance_url_secret: ${{ steps.compute-vars.outputs.grafana_instance_url_secret }}
-      otel_env: ${{ steps.compute-vars.outputs.otel_env }}
-      vercel_project_id_secret: ${{ steps.compute-vars.outputs.vercel_project_id_secret }}
+      pr_label: ${{ steps.compute-non-secret-vars.outputs.pr_label }}
+      new_version: ${{ steps.compute-non-secret-vars.outputs.new_version }}
+      tf_workspace_name: ${{ steps.compute-non-secret-vars.outputs.tf_workspace_name }}
+      tf_api_workspace_name: ${{ steps.compute-non-secret-vars.outputs.tf_workspace_name }}
+      vault_secret_conn_name: ${{ steps.compute-non-secret-vars.outputs.vault_secret_conn_name }}
+      psql_owner_conn_name: ${{ steps.compute-non-secret-vars.outputs.psql_owner_conn_name }}
+      neon_branch_name: ${{ steps.compute-non-secret-vars.outputs.neon_branch_name }}
+      vercel_project_name: ${{ steps.compute-non-secret-vars.outputs.vercel_project_name }}
+      vercel_app_domain: ${{ steps.compute-non-secret-vars.outputs.vercel_app_domain }}
+      grafana_instance_name: ${{ steps.compute-non-secret-vars.outputs.grafana_instance_name }}
+      grafana_instance_url_secret: ${{ steps.compute-non-secret-vars.outputs.grafana_instance_url_secret }}
+      otel_env: ${{ steps.compute-non-secret-vars.outputs.otel_env }}
+      vercel_project_id_secret: ${{ steps.compute-non-secret-vars.outputs.vercel_project_id_secret }}
+      api_resource_group_name: ${{ steps.compute-non-secret-vars.outputs.api_resource_group_name }}
+      api_app_name: ${{ steps.compute-non-secret-vars.outputs.api_app_name }}
+      api_app_environment_name: ${{ steps.compute-non-secret-vars.outputs.api_app_environment_name }}
+      api_app_domain_name: ${{ steps.compute-non-secret-vars.outputs.api_app_domain_name }}
     steps:
       - uses: actions/checkout@v4
 
@@ -66,7 +70,7 @@ jobs:
         # therefore be put in `env` block of this job,
         # have been collected here. So these would now
         # need to be referenced as
-        # ${{ steps.compute-vars.outputs.<var_name> }} from
+        # ${{ steps.compute-non-secret-vars.outputs.<var_name> }} from
         # other steps of this job rather than as
         # ${{ env.<var_name> }} in those steps.
         # CRUCIAL: All computed values should be non-secret
@@ -141,7 +145,7 @@ jobs:
           HCP_TF_ORG: ${{ secrets.TF_ORG }}
           HCP_TF_PROJECT: ${{ secrets.TF_PROJECT }}
           HCP_TF_TOKEN: ${{ secrets.TF_API_TOKEN }}
-          TF_WORKSPACE_NAME: ${{ steps.compute-vars.outputs.tf_workspace_name }}
+          TF_WORKSPACE_NAME: ${{ steps.compute-non-secret-vars.outputs.tf_workspace_name }}
         # It is CRUCIAL to set "execution-mode": "local"
         # in the "data" object in the JSON request body
         # in the cURL to create the TF workspace below.
@@ -266,14 +270,14 @@ jobs:
         env:
           # terraform init expects to be given TF_WORKSPACE env var
           # because it is not part of terraorm block in the root module
-          TF_WORKSPACE: ${{steps.compute-vars.outputs.tf_workspace_name}}
+          TF_WORKSPACE: ${{steps.compute-non-secret-vars.outputs.tf_workspace_name}}
         run: terraform init
         working-directory: .iac/environments/preview-ephemeral
       - name: Terraform Apply
         env:
           # terraform init expects to be given TF_WORKSPACE env var
           # because it is not part of terraorm block in the root module
-          TF_WORKSPACE: ${{steps.compute-vars.outputs.tf_workspace_name}}
+          TF_WORKSPACE: ${{steps.compute-non-secret-vars.outputs.tf_workspace_name}}
 
           # these need to be in environment
           # when terraform apply runs and are
@@ -306,33 +310,33 @@ jobs:
           terraform apply -auto-approve \
           -var="vault_name=${{ vars.VAULT_NAME }}" \
           -var="vault_resource_group_name=${{ vars.ID_AND_VAULT_RESOURCE_GROUP_NAME }}" \
-          -var="vault_secretname_for_connectionstring=${{ steps.compute-vars.outputs.vault_secret_conn_name }}" \
-          -var="secretname_for_psql_owner_connectionstring=${{ steps.compute-vars.outputs.psql_owner_conn_name }}" \
+          -var="vault_secretname_for_connectionstring=${{ steps.compute-non-secret-vars.outputs.vault_secret_conn_name }}" \
+          -var="secretname_for_psql_owner_connectionstring=${{ steps.compute-non-secret-vars.outputs.psql_owner_conn_name }}" \
           -var="environmentname_for_secrets_and_variables=Preview" \
           -var="repository_for_secrets_and_variables=flowmazondotnet" \
           -var="neon_project_id=${{ secrets.TF_MANAGED_NEON_PROJECT_ID }}" \
           -var="neon_source_branch_id=${{ secrets.TF_MANAGED_NEON_SOURCE_BRANCH_ID }}" \
-          -var="neon_new_branch_name=${{ steps.compute-vars.outputs.neon_branch_name }}" \
+          -var="neon_new_branch_name=${{ steps.compute-non-secret-vars.outputs.neon_branch_name }}" \
           -var="neon_database_name=${{ vars.NEON_DATABASE_NAME }}" \
           -var="neon_app_role=${{ vars.NEON_APP_ROLE }}" \
           -var="neon_owner_role=${{ vars.NEON_OWNER_ROLE }}" \
           -var="neon_app_role_password=${{ secrets.TF_MANAGED_NEON_APP_ROLE_PASSWORD }}" \
           -var="neon_owner_role_password=${{ secrets.TF_MANAGED_NEON_OWNER_ROLE_PASSWORD }}" \
           -var="vercel_team_id=${{ secrets.VERCEL_TEAM_ID }}" \
-          -var="vercel_project_name=${{ steps.compute-vars.outputs.vercel_project_name }}" \
-          -var="vercel_app_domain_name=${{ steps.compute-vars.outputs.vercel_app_domain }}" \
+          -var="vercel_project_name=${{ steps.compute-non-secret-vars.outputs.vercel_project_name }}" \
+          -var="vercel_app_domain_name=${{ steps.compute-non-secret-vars.outputs.vercel_app_domain }}" \
           -var="vercel_region_for_server_side_execution=${{ vars.VERCEL_REGION_FOR_SERVER_SIDE_EXECUTION }}" \
           -var="cloudflare_api_token=${{ secrets.CLOUDFLARE_API_TOKEN }}" \
           -var="cloudflare_zone_id=${{ secrets.CLOUDFLARE_ZONE_ID }}" \
           -var="grafanacloud_stack_slug=${{ vars.GRAFANA_STACK_SLUG }}" \
           -var="grafanacloud_frontend_o11y_api_access_token=${{ secrets.GRAFANA_FRONTEND_O11Y_API_ACCESS_TOKEN }}" \
-          -var="grafanacloud_frontend_o11y_instance_name=${{ steps.compute-vars.outputs.grafana_instance_name }}" \
-          -var="secretname_for_grafanacloud_frontend_o11y_instance_url=${{ steps.compute-vars.outputs.grafana_instance_url_secret }}" \
-          -var="env_NEXT_PUBLIC_OTEL_ENVIRONMENT=${{ steps.compute-vars.outputs.otel_env }}" \
+          -var="grafanacloud_frontend_o11y_instance_name=${{ steps.compute-non-secret-vars.outputs.grafana_instance_name }}" \
+          -var="secretname_for_grafanacloud_frontend_o11y_instance_url=${{ steps.compute-non-secret-vars.outputs.grafana_instance_url_secret }}" \
+          -var="env_NEXT_PUBLIC_OTEL_ENVIRONMENT=${{ steps.compute-non-secret-vars.outputs.otel_env }}" \
           -var="env_OTEL_EXPORTER_OTLP_ENDPOINT=${{ vars.ENV_OTEL_EXPORTER_OTLP_ENDPOINT }}" \
           -var="env_OTEL_EXPORTER_OTLP_PROTOCOL=${{ vars.ENV_OTEL_EXPORTER_OTLP_PROTOCOL }}" \
           -var="env_OTEL_EXPORTER_OTLP_HEADERS=${{ secrets.ENV_OTEL_EXPORTER_OTLP_HEADERS }}" \
-          -var="secretname_for_vercel_project_id=${{ steps.compute-vars.outputs.vercel_project_id_secret }}"
+          -var="secretname_for_vercel_project_id=${{ steps.compute-non-secret-vars.outputs.vercel_project_id_secret }}"
         working-directory: .iac/environments/preview-ephemeral
 
   migrate-db:
