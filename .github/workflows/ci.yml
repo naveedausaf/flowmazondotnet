@@ -604,7 +604,7 @@ jobs:
         # repo, are mostly the same as those decalared in Preview
         # workspace's Variables in Terraform HCP
         run: |
-          terraform apply -auto-approve \
+          terraform plan \
           -var="cloudflare_api_token=${{ secrets.CLOUDFLARE_API_TOKEN }}" \
           -var="cloudflare_zone_id=${{ secrets.CLOUDFLARE_ZONE_ID }}" \
           -var="app_resource_group_name=${{ needs.compute-non-secret-vars.outputs.api_resource_group_name }}" \
