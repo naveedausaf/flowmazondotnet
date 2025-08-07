@@ -70,7 +70,10 @@ jobs:
         # ${{ env.<var_name> }} in those steps.
         env:
           # putting this in env block so I can access it in step
-          # using safer ${{ env.PR_LABEL }} rather than ${ PR_LABEL}
+          # using ${{ env.PR_LABEL }} rather than ${ PR_LABEL}.
+          # Using env context enabled me to check if env var
+          # values are as they should be if I turn on
+          # debug logging.
           PR_LABEL: pr${{ github.event.number }}
         run: |
           echo "pr_label=${{ env.PR_LABEL }}" >> $GITHUB_OUTPUT
@@ -409,53 +412,52 @@ jobs:
           PR_LABEL: ${{ needs.create-update-preview-ephemeral.outputs.pr_label }}
           # TF_API_WORKSPACE_NAME: ${{ needs.create-update-preview-ephemeral.outputs.tf_api_workspace_name }}
         run: |
-          echo "api workspace name is: ${{env.TF_API_WORKSPACE_NAME}}"
-          # curl -sS \
-          #   -H "Authorization: Bearer ${{env.HCP_TF_TOKEN}}" \
-          #   -H "Content-Type: application/vnd.api+json" \
-          #   -X POST \
-          #   -d '{
-          #     "data": {
-          #       "attributes": {
-          #         "name": "'"${{ env.TF_API_WORKSPACE_NAME }}"'",
-          #         "auto-apply": false,
-          #         "execution-mode": "local"
+          curl -sS \
+            -H "Authorization: Bearer ${{env.HCP_TF_TOKEN}}" \
+            -H "Content-Type: application/vnd.api+json" \
+            -X POST \
+            -d '{
+              "data": {
+                "attributes": {
+                  "name": "'"${{ env.TF_API_WORKSPACE_NAME }}"'",
+                  "auto-apply": false,
+                  "execution-mode": "local"
                   
-          #       },
-          #       "type": "workspaces",
-          #       "relationships": {
-          #         "tag-bindings": {
-          #           "data": [
-          #             {
-          #               "type": "tag-bindings",
-          #               "attributes": {
-          #                 "key": "preview-ephemeral-api",
-          #                 "value": ""
-          #               }
-          #             }
-          #           ]
-          #         },
-          #         "project": {
-          #           "data": {
-          #             "id": "'"${{ env.HCP_TF_PROJECT }}"'",
-          #             "type": "projects"
-          #           }
-          #         }
-          #       }
-          #     }
-          #   }' \
-          #   "https://app.terraform.io/api/v2/organizations/${{ env.HCP_TF_ORG }}/workspaces" \
-          #   | tee response.json
+                },
+                "type": "workspaces",
+                "relationships": {
+                  "tag-bindings": {
+                    "data": [
+                      {
+                        "type": "tag-bindings",
+                        "attributes": {
+                          "key": "preview-ephemeral-api",
+                          "value": ""
+                        }
+                      }
+                    ]
+                  },
+                  "project": {
+                    "data": {
+                      "id": "'"${{ env.HCP_TF_PROJECT }}"'",
+                      "type": "projects"
+                    }
+                  }
+                }
+              }
+            }' \
+            "https://app.terraform.io/api/v2/organizations/${{ env.HCP_TF_ORG }}/workspaces" \
+            | tee response.json
 
-          # # If workspace already exists, the API will return an error. Ignore if already exists.
-          # if grep -q '"errors"' response.json; then
-          #   if grep -q 'has already been taken' response.json; then
-          #     echo "Workspace ${{ env.TF_API_WORKSPACE_NAME }} already exists (thath's great!). Continuing to next step..."
-          #   else
-          #     cat response.json
-          #     exit 1
-          #   fi
-          # fi
+          # If workspace already exists, the API will return an error. Ignore if already exists.
+          if grep -q '"errors"' response.json; then
+            if grep -q 'has already been taken' response.json; then
+              echo "Workspace ${{ env.TF_API_WORKSPACE_NAME }} already exists (thath's great!). Continuing to next step..."
+            else
+              cat response.json
+              exit 1
+            fi
+          fi
       - name: Setup Terraform CLI
         uses: hashicorp/setup-terraform@v3
         with:
