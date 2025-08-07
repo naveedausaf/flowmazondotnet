@@ -17,6 +17,8 @@ jobs:
   compute-non-secret-vars:
     name: Compute non-secret variables for later jobs
     runs-on: ubuntu-24.04
+    environment:
+      name: Preview
     outputs:
       pr_label: ${{ steps.compute-non-secret-vars.outputs.pr_label }}
       new_version: ${{ steps.compute-non-secret-vars.outputs.new_version }}
@@ -74,7 +76,7 @@ jobs:
         run: |
           echo "pr_label=${{ env.PR_LABEL }}" >> $GITHUB_OUTPUT
 
-          # we don;t know what the version number would be when,
+          # we don't know what the version number would be when,
           # and if, this pull request is merged to main.
           # so best to use the place holder 0.0.0 that we also
           # use in package.json in NPM packages (which says
