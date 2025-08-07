@@ -616,16 +616,16 @@ jobs:
           -var="app_container_port=${{ vars.API_CONTAINER_PORT }}" \
           -var="github_organisation_or_account=${{ steps.compute-full-image-name.outputs.REPO_LOWER }}" \
           -var="image_repository=${{ vars.IMAGE_REPOSITORY }}" \
-          -var="image_tag=${{ needs.compute-non-secret-vars.outputs.new_version }}"
+          -var="image_tag=${{ needs.compute-non-secret-vars.outputs.new_version }}" \
           -var="managed_identity_name=${{ vars.MANAGED_IDENTITY_NAME }}" \
           -var="id_and_vault_resource_group_name=${{ vars.ID_AND_VAULT_RESOURCE_GROUP_NAME }}" \
           -var="key_vault_name=${{ vars.VAULT_NAME }}" \
           -var="vault_secretname_for_connectionstring=${{ needs.compute-non-secret-vars.outputs.vault_secret_conn_name }}" \
           -var="allowed_cors_origins_for_api=https://${{ needs.compute-non-secret-vars.outputs.vercel_app_domain }}" \
-          -var="env_OTEL_RESOURCE_ATTRIBUTES=deployment.environment.name=${{ needs.compute-non-secret-vars.outputs.otel_env }}"
+          -var="env_OTEL_RESOURCE_ATTRIBUTES=deployment.environment.name=${{ needs.compute-non-secret-vars.outputs.otel_env }}" \
           -var="env_OTEL_EXPORTER_OTLP_ENDPOINT=${{ vars.ENV_OTEL_EXPORTER_OTLP_ENDPOINT }}" \
           -var="env_OTEL_EXPORTER_OTLP_PROTOCOL=${{ vars.ENV_OTEL_EXPORTER_OTLP_PROTOCOL }}" \
-          -var="env_OTEL_EXPORTER_OTLP_HEADERS=${{ secrets.ENV_OTEL_EXPORTER_OTLP_HEADERS }}" \
+          -var="env_OTEL_EXPORTER_OTLP_HEADERS=${{ secrets.ENV_OTEL_EXPORTER_OTLP_HEADERS }}"
 
         working-directory: .iac/environments/preview-ephemeral-api
 
