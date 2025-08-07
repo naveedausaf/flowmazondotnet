@@ -13,19 +13,6 @@ on:
   pull_request:
     branches:
       - main
-env:
-  PR_LABEL: pr${{ github.event.number }}
-  # we don;t know what the version number would be when,
-  # and if, this pull request is merged to main.
-  # so best to use the place holder 0.0.0 that we also
-  # use in package.json in NPM packages (which says
-  # 0.0.0-semanticrelease in its "version" field;
-  # I do the same in .NET csproj file's <version>
-  # element also).
-  # Of course we want to suffix 0.0.0 with the PR
-  # label for the artifacts produced by this workflow
-  # which runs on the source branch of a pull request.
-  NEW_VERSION: 0.0.0-$PR_LABEL
 jobs:
   audit-signatures:
     name: Audit signatures of NPM dependencies
@@ -36,13 +23,16 @@ jobs:
         run: |
           npm ci
           npm audit signatures
-  create-update-preview-ephemeral-hcp-workspace:
+  create-update-preview-ephemeral:
     name: Create or Update Infrastructure for PR's Preview and compute common variables for workflow
     runs-on: ubuntu-24.04
     environment:
       name: Preview
     outputs:
-      workspace_name: ${{ steps.compute-vars.outputs.workspace_name }}
+      pr_label: ${{ steps.compute-vars.outputs.pr_label }}
+      new_version: ${{ steps.compute-vars.outputs.new_version }}
+      tf_workspace_name: ${{ steps.compute-vars.outputs.tf_workspace_name }}
+      tf_api_workspace_name: ${{ steps.compute-vars.outputs.tf_workspace_name }}
       vault_secret_conn_name: ${{ steps.compute-vars.outputs.vault_secret_conn_name }}
       psql_owner_conn_name: ${{ steps.compute-vars.outputs.psql_owner_conn_name }}
       neon_branch_name: ${{ steps.compute-vars.outputs.neon_branch_name }}
@@ -56,46 +46,69 @@ jobs:
       - uses: actions/checkout@v4
       - name: Compute common variables for this and later jobs
         id: compute-vars
+        # This step writes out those vars that need to be available
+        # later in this job or in other jobs in the workflow.
+        #
+        # Many of these would be put in env block
+        # at the top (outside of all jobs) but since some
+        # of them require github context to compute the value,
+        # I needed to put them within a job (in this job, as it's
+        # the first one on the chaon of build and deploy jobs)
+        # and output to $GITHUB_OUTPUT, then further output those
+        # from outputs block from the job. This ensures the
+        # computed values are available to other jobs.
+        #
+        # Since I am collecting such vars/computed values
+        # here in this step, even the ones that don't need to
+        # be output for other jobs and only need to be used
+        # by other steps of this very job, and which could
+        # therefore be put in `env` block of this job,
+        # have been collected here. So these would now
+        # need to be referenced as
+        # ${{ steps.compute-vars.outputs.<var_name> }} from
+        # other steps of this job rather than as
+        # ${{ env.<var_name> }} in those steps.
+        env:
+          # putting this in env block so I can access it in step
+          # using safer ${{ env.PR_LABEL }} rather than ${ PR_LABEL}
+          PR_LABEL: pr${{ github.event.number }}
         run: |
-          TF_WORKFPSACE_NAME="preview-${PR_LABEL}" 
-          echo "workspace_name=${TF_WORKFPSACE_NAME}" >> $GITHUB_OUTPUT
-          echo "TF_WORKFPSACE_NAME=${TF_WORKFPSACE_NAME}" >> $GITHUB_ENV
+          echo "pr_label=${{ env.PR_LABEL }}" >> $GITHUB_OUTPUT
 
-          VAULT_SECRET_CONN_NAME="${{ vars.VAULT_SECRETNAME_FOR_CONNECTIONSTRING_PREFIX }}${PR_LABEL}"
-          echo "vault_secret_conn_name=${VAULT_SECRET_CONN_NAME}" >> $GITHUB_OUTPUT
-          echo "VAULT_SECRET_CONN_NAME=${VAULT_SECRET_CONN_NAME}" >> $GITHUB_ENV
+          # we don;t know what the version number would be when,
+          # and if, this pull request is merged to main.
+          # so best to use the place holder 0.0.0 that we also
+          # use in package.json in NPM packages (which says
+          # 0.0.0-semanticrelease in its "version" field;
+          # I do the same in .NET csproj file's <version>
+          # element also).
+          # Of course we want to suffix 0.0.0 with the PR
+          # label for the artifacts produced by this workflow
+          # which runs on the source branch of a pull request.
+          # NEW_VERSION: 
+          echo "new_version=0.0.0-${{ env.PR_LABEL }}" >> $GITHUB_OUTPUT
 
-          PSQL_OWNER_CONN_NAME="${{ vars.SECRETNAME_FOR_PSQL_OWNER_CONNECTIONSTRING_PREFIX }}${PR_LABEL}"
-          echo "psql_owner_conn_name=${PSQL_OWNER_CONN_NAME}" >> $GITHUB_OUTPUT
-          echo "PSQL_OWNER_CONN_NAME=${PSQL_OWNER_CONN_NAME}" >> $GITHUB_ENV
+          echo "tf_workspace_name=preview-${{ env.PR_LABEL }}" >> $GITHUB_OUTPUT
 
-          NEON_BRANCH_NAME="${{ vars.NEON_NEW_BRANCH_NAME_PREFIX }}${PR_LABEL}"
-          echo "neon_branch_name=${NEON_BRANCH_NAME}" >> $GITHUB_OUTPUT
-          echo "NEON_BRANCH_NAME=${NEON_BRANCH_NAME}" >> $GITHUB_ENV
+          echo "tf_api_workspace_name=preview-api-${{ env.PR_LABEL }}" >> $GITHUB_OUTPUT
 
-          VERCEL_PROJECT_NAME="${{ secrets.VERCEL_PROJECT_NAME_PREFIX }}${PR_LABEL}"
-          echo "vercel_project_name=${VERCEL_PROJECT_NAME}" >> $GITHUB_OUTPUT
-          echo "VERCEL_PROJECT_NAME=${VERCEL_PROJECT_NAME}" >> $GITHUB_ENV
+          echo "vault_secret_conn_name=${{ vars.VAULT_SECRETNAME_FOR_CONNECTIONSTRING_PREFIX }}${{ env.PR_LABEL }}" >> $GITHUB_OUTPUT
 
-          VERCEL_APP_DOMAIN="${PR_LABEL}.${{ vars.VERCEL_APP_APEX_DOMAIN_NAME }}"
-          echo "vercel_app_domain=${VERCEL_APP_DOMAIN}" >> $GITHUB_OUTPUT
-          echo "VERCEL_APP_DOMAIN=${VERCEL_APP_DOMAIN}" >> $GITHUB_ENV
+          echo "psql_owner_conn_name=${{ vars.SECRETNAME_FOR_PSQL_OWNER_CONNECTIONSTRING_PREFIX }}${{ env.PR_LABEL }}" >> $GITHUB_OUTPUT
 
-          GRAFANA_INSTANCE_NAME="${{ vars.NEXT_PUBLIC_FARO_SERVICE_NAME_PREFIX }}${PR_LABEL}"
-          echo "grafana_instance_name=${GRAFANA_INSTANCE_NAME}" >> $GITHUB_OUTPUT
-          echo "GRAFANA_INSTANCE_NAME=${GRAFANA_INSTANCE_NAME}" >> $GITHUB_ENV
+          echo "neon_branch_name=${{ vars.NEON_NEW_BRANCH_NAME_PREFIX }}${{ env.PR_LABEL }}" >> $GITHUB_OUTPUT
 
-          GRAFANA_INSTANCE_URL_SECRET="${{ vars.SECRETNAME_FOR_GRAFANACLOUD_FRONTEND_O11Y_INSTANCE_URL_PREFIX }}${PR_LABEL}"
-          echo "grafana_instance_url_secret=${GRAFANA_INSTANCE_URL_SECRET}" >> $GITHUB_OUTPUT
-          echo "GRAFANA_INSTANCE_URL_SECRET=${GRAFANA_INSTANCE_URL_SECRET}" >> $GITHUB_ENV
+          echo "vercel_project_name=${{ secrets.VERCEL_PROJECT_NAME_PREFIX }}${{ env.PR_LABEL }}" >> $GITHUB_OUTPUT
 
-          OTEL_ENV="${{ vars.OTEL_ENVIRONMENT_PREFIX }}${PR_LABEL}"
-          echo "otel_env=${OTEL_ENV}" >> $GITHUB_OUTPUT
-          echo "OTEL_ENV=${OTEL_ENV}" >> $GITHUB_ENV
+          echo "vercel_app_domain=${{ env.PR_LABEL }}.${{ vars.VERCEL_APP_APEX_DOMAIN_NAME }}" >> $GITHUB_OUTPUT
 
-          VERCEL_PROJECT_ID_SECRET="${{ vars.SECRETNAME_FOR_VERCEL_PROJECT_ID_PREFIX }}${PR_LABEL}"
-          echo "vercel_project_id_secret=${VERCEL_PROJECT_ID_SECRET}" >> $GITHUB_OUTPUT
-          echo "VERCEL_PROJECT_ID_SECRET=${VERCEL_PROJECT_ID_SECRET}" >> $GITHUB_ENV
+          echo "grafana_instance_name=${{ vars.NEXT_PUBLIC_FARO_SERVICE_NAME_PREFIX }}${{ env.PR_LABEL }}" >> $GITHUB_OUTPUT
+
+          echo "grafana_instance_url_secret=${{ vars.SECRETNAME_FOR_GRAFANACLOUD_FRONTEND_O11Y_INSTANCE_URL_PREFIX }}${{ env.PR_LABEL }}" >> $GITHUB_OUTPUT
+
+          echo "otel_env=${{ vars.OTEL_ENVIRONMENT_PREFIX }}${{ env.PR_LABEL }}" >> $GITHUB_OUTPUT
+
+          echo "vercel_project_id_secret=${{ vars.SECRETNAME_FOR_VERCEL_PROJECT_ID_PREFIX }}${{ env.PR_LABEL }}" >> $GITHUB_OUTPUT
 
       - name: Create or update preview-ephemeral HCP workspace
         # We don't care if the worksapce already exists as
@@ -112,6 +125,7 @@ jobs:
           HCP_TF_ORG: ${{ secrets.TF_ORG }}
           HCP_TF_PROJECT: ${{ secrets.TF_PROJECT }}
           HCP_TF_TOKEN: ${{ secrets.TF_API_TOKEN }}
+          TF_WORKSPACE_NAME: ${{ steps.compute-vars.outputs.tf_workspace_name }}
         # It is CRUCIAL to set "execution-mode": "local"
         # in the "data" object in the JSON request body
         # in the cURL to create the TF workspace below.
@@ -180,49 +194,49 @@ jobs:
         # GitHub Actions runner on which terraform apply
         # runs is also a clean machine and the state is
         # still persisted in and managed by HCP Terraform.
+
         run: |
-          TF_WORKFPSACE_NAME="preview-${PR_LABEL}"
           curl -sS \
-            -H "Authorization: Bearer ${HCP_TF_TOKEN}" \
+            -H "Authorization: Bearer ${{ env.HCP_TF_TOKEN }}" \
             -H "Content-Type: application/vnd.api+json" \
             -X POST \
             -d '{
               "data": {
-                "attributes": {
-                  "name": "'"${TF_WORKFPSACE_NAME}"'",
-                  "auto-apply": false,
-                  "execution-mode": "local"
-                  
-                },
-                "type": "workspaces",
-                "relationships": {
-                  "tag-bindings": {
-                    "data": [
-                      {
-                        "type": "tag-bindings",
-                        "attributes": {
-                          "key": "preview-ephemeral",
-                          "value": ""
-                        }
-                      }
-                    ]
-                  },
-                  "project": {
-                    "data": {
-                      "id": "'"${HCP_TF_PROJECT}"'",
-                      "type": "projects"
-                    }
-                  }
+          "attributes": {
+            "name": "'"${{ env.TF_WORKSPACE_NAME }}"'",
+            "auto-apply": false,
+            "execution-mode": "local"
+            
+          },
+          "type": "workspaces",
+          "relationships": {
+            "tag-bindings": {
+              "data": [
+                {
+            "type": "tag-bindings",
+            "attributes": {
+              "key": "preview-ephemeral",
+              "value": ""
+            }
                 }
+              ]
+            },
+            "project": {
+              "data": {
+                "id": "'"${{ env.HCP_TF_PROJECT }}"'",
+                "type": "projects"
+              }
+            }
+          }
               }
             }' \
-            "https://app.terraform.io/api/v2/organizations/${HCP_TF_ORG}/workspaces" \
+            "https://app.terraform.io/api/v2/organizations/${{ env.HCP_TF_ORG }}/workspaces" \
             | tee response.json
 
           # If workspace already exists, the API will return an error. Ignore if already exists.
           if grep -q '"errors"' response.json; then
             if grep -q 'has already been taken' response.json; then
-              echo "Workspace ${TF_WORKFPSACE_NAME} already exists (thath's great!). Continuing to next step..."
+              echo "Workspace ${{ env.TF_WORKSPACE_NAME }} already exists (that's great!). Continuing to next step..."
             else
               cat response.json
               exit 1
@@ -234,12 +248,21 @@ jobs:
           cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
       - name: Terraform Init
         env:
-          TF_WORKSPACE: preview-${{env.PR_LABEL}}
+          TF_WORKSPACE: ${{steps.compute-vars.outputs.tf_workspace_name}}
         run: terraform init
         working-directory: .iac/environments/preview-ephemeral
       - name: Terraform Apply
         env:
-          TF_WORKSPACE: preview-${{env.PR_LABEL}}
+          TF_WORKSPACE: ${{steps.compute-vars.outputs.tf_workspace_name}}
+          VAULT_SECRET_CONN_NAME: ${{ steps.compute-vars.outputs.vault_secret_conn_name }}
+          PSQL_OWNER_CONN_NAME: ${{ steps.compute-vars.outputs.psql_owner_conn_name }}
+          NEON_BRANCH_NAME: ${{ steps.compute-vars.outputs.neon_branch_name }}
+          VERCEL_PROJECT_NAME: ${{ steps.compute-vars.outputs.vercel_project_name }}
+          VERCEL_APP_DOMAIN: ${{ steps.compute-vars.outputs.vercel_app_domain }}
+          GRAFANA_INSTANCE_NAME: ${{ steps.compute-vars.outputs.grafana_instance_name }}
+          GRAFANA_INSTANCE_URL_SECRET: ${{ steps.compute-vars.outputs.grafana_instance_url_secret }}
+          OTEL_ENV: ${{ steps.compute-vars.outputs.otel_env }}
+          VERCEL_PROJECT_ID_SECRET: ${{ steps.compute-vars.outputs.vercel_project_id_secret }}
           ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
           ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
           ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
@@ -288,7 +311,7 @@ jobs:
   migrate-db:
     environment:
       name: Preview
-    needs: create-update-preview-ephemeral-hcp-workspace
+    needs: create-update-preview-ephemeral
     name: Migrate Database
     runs-on: ubuntu-latest
     steps:
@@ -303,11 +326,12 @@ jobs:
       - name: Run migrations
         env:
           MIGRATIONS_DIR: ./flowmazonbackend/flowmazonapi/MigrationScripts
+          PSQL_OWNER_CONN_NAME: ${{ secrets[needs.create-update-preview-ephemeral.outputs.psql_owner_conn_name] }}
         run: |
-          for f in "$MIGRATIONS_DIR"/*.sql; do
-            filename=$(basename "$f")
-            echo "Applying migration $filename"
-            psql "${{ secrets[needs.create-update-preview-ephemeral-hcp-workspace.outputs.psql_owner_conn_name] }}" -f "$f"
+          for f in "${{ env.MIGRATIONS_DIR }}"/*.sql; do
+            filename=$(basename "${f}")
+            echo "Applying migration ${filename}"
+            psql "${{ env.PSQL_OWNER_CONN_NAME }}" -f "${f}"
           done
         # Create infrastructure specific to a preview environment
 
@@ -317,9 +341,12 @@ jobs:
     permissions:
       contents: read # Needed for actions/checkout
       packages: write # Needed to push to GHCR
-    needs: [create-update-preview-ephemeral-hcp-workspace, migrate-db]
+    needs: [create-update-preview-ephemeral, migrate-db]
     name: Deploy API to Azure
     runs-on: ubuntu-latest
+    env:
+      NEW_VERSION: ${{ needs.create-update-preview-ephemeral.outputs.new_version }}
+      PR_LABEL: ${{ needs.create-update-preview-ephemeral.outputs.pr_label }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -351,28 +378,83 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }} # Auto-generated, no setup needed!
-      - name: Set lowercase repo owner
+      - name: Compute Full Image Name
+        id: compute-full-image-name
         run: |
           REPO_LOWER=$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')
-          echo "FULL_IMAGE_NAME=ghcr.io/$REPO_LOWER/${{ vars.IMAGE_REPOSITORY }}:${{ env.NEW_VERSION }}" >> $GITHUB_ENV
+          echo "FULL_IMAGE_NAME=ghcr.io/$REPO_LOWER/${{ vars.IMAGE_REPOSITORY }}:${{ env.NEW_VERSION }}" >> $GITHUB_OUTPUT
 
       - name: Build and Push Docker image
         run: |
           cd ./flowmazonbackend
-          docker build -t ${{ env.FULL_IMAGE_NAME }} .
-          docker push ${{ env.FULL_IMAGE_NAME }}
+          docker build -t ${{ steps.compute-full-image-name.outputs.FULL_IMAGE_NAME }} .
+          docker push ${{ steps.compute-full-image-name.outputs.FULL_IMAGE_NAME }}
 
-      # We need to run terraform apply on prod-api workspace
-      # because Terraform resource for ACA app must deploy a container
-      # also (otherwise the whole wrorkspace would fail to apply).
-      #
-      # Therefore we use the workspace to deploy the latest version
-      # and later would be doing Blue-Green with it. The ACA resource
-      # in the Terraform workspace would pull the container image with
-      # the specified version upon terraform apply.
-      #
-      # As terraform apply runs on HCP Terraform's clean runner machine,
-      # we don't need to create a separate job to run terraform apply.
+      # Like preview-ephemeral workspace created/synced above,
+      # preview-ephemeral-api HCP workspace would be created
+      # dynamically by this workflow, then deployed to using
+      # local execution while the state file is maintained in
+      # HCP.
+      # The choices made for the next two steps are also
+      # very similar to that job so see documentation above
+      # for the create-update-preview-ephemeral job.
+
+      # Hence, to create preview-ephemeral-api workspace,
+      # we proceed as follows:
+      - name: Create or update preview-ephemeral-api HCP workspace
+        env:
+          HCP_TF_ORG: ${{ secrets.TF_ORG }}
+          HCP_TF_PROJECT: ${{ secrets.TF_PROJECT }}
+          HCP_TF_TOKEN: ${{ secrets.TF_API_TOKEN }}
+          PR_LABEL: ${{ needs.create-update-preview-ephemeral.outputs.pr_label }}
+          TF_API_WORKSPACE_NAME: ${{ steps.compute-vars.outputs.tf_api_workspace_name }}
+        run: |
+          curl -sS \
+            -H "Authorization: Bearer ${{env.HCP_TF_TOKEN}}" \
+            -H "Content-Type: application/vnd.api+json" \
+            -X POST \
+            -d '{
+              "data": {
+                "attributes": {
+                  "name": "'"${{ env.TF_API_WORKSPACE_NAME }}"'",
+                  "auto-apply": false,
+                  "execution-mode": "local"
+                  
+                },
+                "type": "workspaces",
+                "relationships": {
+                  "tag-bindings": {
+                    "data": [
+                      {
+                        "type": "tag-bindings",
+                        "attributes": {
+                          "key": "preview-ephemeral-api",
+                          "value": ""
+                        }
+                      }
+                    ]
+                  },
+                  "project": {
+                    "data": {
+                      "id": "'"${{ env.HCP_TF_PROJECT }}"'",
+                      "type": "projects"
+                    }
+                  }
+                }
+              }
+            }' \
+            "https://app.terraform.io/api/v2/organizations/${{ env.HCP_TF_ORG }}/workspaces" \
+            | tee response.json
+
+          # If workspace already exists, the API will return an error. Ignore if already exists.
+          if grep -q '"errors"' response.json; then
+            if grep -q 'has already been taken' response.json; then
+              echo "Workspace ${{ env.TF_API_WORKSPACE_NAME }} already exists (thath's great!). Continuing to next step..."
+            else
+              cat response.json
+              exit 1
+            fi
+          fi
       - name: Setup Terraform CLI
         uses: hashicorp/setup-terraform@v3
         with:
