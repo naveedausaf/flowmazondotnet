@@ -428,7 +428,7 @@ jobs:
   migrate-db:
     environment:
       name: Preview
-    needs: create-update-preview-ephemeral
+    needs: [create-update-preview-ephemeral, compute-non-secret-vars]
     name: Migrate Database
     runs-on: ubuntu-latest
     steps:
