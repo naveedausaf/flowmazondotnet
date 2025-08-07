@@ -625,7 +625,7 @@ jobs:
           -var="env_OTEL_RESOURCE_ATTRIBUTES=deployment.environment.name=${{ needs.compute-non-secret-vars.outputs.otel_env }}"
           -var="env_OTEL_EXPORTER_OTLP_ENDPOINT=${{ vars.ENV_OTEL_EXPORTER_OTLP_ENDPOINT }}" \
           -var="env_OTEL_EXPORTER_OTLP_PROTOCOL=${{ vars.ENV_OTEL_EXPORTER_OTLP_PROTOCOL }}" \
-          -var="env_OTEL_EXPORTER_OTLP_HEADERS=${ secrets.ENV_OTEL_EXPORTER_OTLP_HEADERS }}" \
+          -var="env_OTEL_EXPORTER_OTLP_HEADERS=${{ secrets.ENV_OTEL_EXPORTER_OTLP_HEADERS }}" \
 
         working-directory: .iac/environments/preview-ephemeral-api
 
