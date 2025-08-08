@@ -135,7 +135,7 @@ resource "azurerm_container_app" "app" {
   # We would later set this referenced secret as value
   # of an environmentr variable on the app.
   secret {
-    name     = local.vault_secretname_env_OTEL_EXPORTER_OTLP_HEADERS
+    name     = var.vault_secretname_env_OTEL_EXPORTER_OTLP_HEADERS
     identity = data.azurerm_user_assigned_identity.managed_identity.id
     # key_vault_secret_id is mandatory together with name above (even # though this seems redundant) when using a user-assigned managed 
     # identity to access the key vault as we are doing here.
@@ -215,7 +215,7 @@ resource "azurerm_container_app" "app" {
       }
       env {
         name        = "OTEL_EXPORTER_OTLP_HEADERS"
-        secret_name = local.vault_secretname_env_OTEL_EXPORTER_OTLP_HEADERS
+        secret_name = var.vault_secretname_env_OTEL_EXPORTER_OTLP_HEADERS
       }
 
       dynamic "liveness_probe" {
