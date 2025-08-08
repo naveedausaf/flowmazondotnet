@@ -1,5 +1,5 @@
 module "aca_app" {
-  source                        = "git::https://github.com/EnableHub/flowmazondotnet.git//.iac/modules/aca_app?ref=main"
+  source                        = "../../modules/aca_app"
   app_resource_group_name       = var.app_resource_group_name
   app_resource_group_location   = var.app_resource_group_location
   app_name                      = var.app_name
