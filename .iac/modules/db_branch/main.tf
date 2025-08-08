@@ -61,7 +61,7 @@ resource "azurerm_key_vault_secret" "connstr_for_api" {
 
 # Second, create Github Environment secret for psql 
 # connection string (for owner role)
-resource "github_actions_environment_secret" "psql_owner_connection_sting" {
+resource "github_actions_environment_secret" "psql_owner_connection_string" {
   repository      = var.repository_for_secrets_and_variables
   environment     = var.environmentname_for_secrets_and_variables
   secret_name     = var.secretname_for_psql_owner_connectionstring

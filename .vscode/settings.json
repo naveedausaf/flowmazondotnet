@@ -27,5 +27,6 @@
   },
   "stylelint.validate": ["css", "scss"],
   "editor.formatOnSave": true,
-  "eslint.useFlatConfig": false
+  "eslint.useFlatConfig": false,
+  "github.copilot.advanced": {}
 }

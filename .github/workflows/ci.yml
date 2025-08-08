@@ -13,8 +13,112 @@ on:
   pull_request:
     branches:
       - main
-
 jobs:
+  compute-non-secret-vars:
+    name: Compute non-secret variables for later jobs
+    runs-on: ubuntu-24.04
+    environment:
+      name: Preview
+    outputs:
+      pr_label: ${{ steps.compute-non-secret-vars.outputs.pr_label }}
+      new_version: ${{ steps.compute-non-secret-vars.outputs.new_version }}
+      tf_workspace_name: ${{ steps.compute-non-secret-vars.outputs.tf_workspace_name }}
+      tf_api_workspace_name: ${{ steps.compute-non-secret-vars.outputs.tf_api_workspace_name }}
+      vault_secret_conn_name: ${{ steps.compute-non-secret-vars.outputs.vault_secret_conn_name }}
+      psql_owner_conn_name: ${{ steps.compute-non-secret-vars.outputs.psql_owner_conn_name }}
+      neon_branch_name: ${{ steps.compute-non-secret-vars.outputs.neon_branch_name }}
+      vercel_project_name: ${{ steps.compute-non-secret-vars.outputs.vercel_project_name }}
+      vercel_app_domain: ${{ steps.compute-non-secret-vars.outputs.vercel_app_domain }}
+      grafana_instance_name: ${{ steps.compute-non-secret-vars.outputs.grafana_instance_name }}
+      grafana_instance_url_secret: ${{ steps.compute-non-secret-vars.outputs.grafana_instance_url_secret }}
+      otel_env: ${{ steps.compute-non-secret-vars.outputs.otel_env }}
+      vercel_project_id_secret: ${{ steps.compute-non-secret-vars.outputs.vercel_project_id_secret }}
+      api_resource_group_name: ${{ steps.compute-non-secret-vars.outputs.api_resource_group_name }}
+      api_app_name: ${{ steps.compute-non-secret-vars.outputs.api_app_name }}
+      api_app_environment_name: ${{ steps.compute-non-secret-vars.outputs.api_app_environment_name }}
+      api_app_domain_name: ${{ steps.compute-non-secret-vars.outputs.api_app_domain_name }}
+    steps:
+      - name: Compute non-secret variables for this and later jobs
+        id: compute-non-secret-vars
+        # This step writes out those vars that need to be available
+        # later in this job or in other jobs in the workflow.
+        #
+        # Many of these would be put in env block
+        # at the top (outside of all jobs) but since some
+        # of them require github context to compute the value,
+        # I needed to put them within a job (in this job, as it's
+        # the first one on the chaon of build and deploy jobs)
+        # and output to $GITHUB_OUTPUT, then further output those
+        # from outputs block from the job. This ensures the
+        # computed values are available to other jobs.
+        #
+        # Since I am collecting such vars/computed values
+        # here in this step, even the ones that don't need to
+        # be output for other jobs and only need to be used
+        # by other steps of this very job, and which could
+        # therefore be put in `env` block of this job,
+        # have been collected here. So these would now
+        # need to be referenced as
+        # ${{ steps.compute-non-secret-vars.outputs.<var_name> }} from
+        # other steps of this job rather than as
+        # ${{ env.<var_name> }} in those steps.
+        # CRUCIAL: All computed values should be non-secret
+        # and based on secrets GitHub context. This makes them safe to (relatively) freely
+        # share with any job in the workflow.
+        env:
+          # putting this in env block so I can access it in step
+          # using ${{ env.PR_LABEL }} rather than ${ PR_LABEL}.
+          # Using env context enabled me to check if env var
+          # values are as they should be if I turn on
+          # debug logging (which would show a missing
+          # env var as being `null`).
+          PR_LABEL: pr${{ github.event.number }}
+        run: |
+          echo "pr_label=${{ env.PR_LABEL }}" >> $GITHUB_OUTPUT
+
+          # we don't know what the version number would be when,
+          # and if, this pull request is merged to main.
+          # so best to use the place holder 0.0.0 that we also
+          # use in package.json in NPM packages (which says
+          # 0.0.0-semanticrelease in its "version" field;
+          # I do the same in .NET csproj file's <version>
+          # element also).
+          # Of course we want to suffix 0.0.0 with the PR
+          # label for the artifacts produced by this workflow
+          # which runs on the source branch of a pull request.
+          # NEW_VERSION: 
+          echo "new_version=0.0.0-${{ env.PR_LABEL }}" >> $GITHUB_OUTPUT
+
+          echo "tf_workspace_name=preview-${{ env.PR_LABEL }}" >> $GITHUB_OUTPUT
+
+          echo "tf_api_workspace_name=preview-api-${{ env.PR_LABEL }}" >> $GITHUB_OUTPUT
+
+          echo "vault_secret_conn_name=${{ vars.VAULT_SECRETNAME_FOR_CONNECTIONSTRING_PREFIX }}${{ env.PR_LABEL }}" >> $GITHUB_OUTPUT
+
+          echo "psql_owner_conn_name=${{ vars.SECRETNAME_FOR_PSQL_OWNER_CONNECTIONSTRING_PREFIX }}${{ env.PR_LABEL }}" >> $GITHUB_OUTPUT
+
+          echo "neon_branch_name=${{ vars.NEON_NEW_BRANCH_NAME_PREFIX }}${{ env.PR_LABEL }}" >> $GITHUB_OUTPUT
+
+          echo "vercel_project_name=${{ env.PR_LABEL }}${{ vars.VERCEL_PROJECT_NAME_SUFFIX }}" >> $GITHUB_OUTPUT
+
+          echo "vercel_app_domain=${{ env.PR_LABEL }}.${{ vars.VERCEL_APP_APEX_DOMAIN_NAME }}" >> $GITHUB_OUTPUT
+
+          echo "grafana_instance_name=${{ vars.NEXT_PUBLIC_FARO_SERVICE_NAME_PREFIX }}${{ env.PR_LABEL }}" >> $GITHUB_OUTPUT
+
+          echo "grafana_instance_url_secret=${{ vars.SECRETNAME_FOR_GRAFANACLOUD_FRONTEND_O11Y_INSTANCE_URL_PREFIX }}${{ env.PR_LABEL }}" >> $GITHUB_OUTPUT
+
+          echo "otel_env=${{ vars.OTEL_ENVIRONMENT_PREFIX }}${{ env.PR_LABEL }}" >> $GITHUB_OUTPUT
+
+          echo "vercel_project_id_secret=${{ vars.SECRETNAME_FOR_VERCEL_PROJECT_ID_PREFIX }}${{ env.PR_LABEL }}" >> $GITHUB_OUTPUT
+
+          echo "api_resource_group_name=${{ vars.API_RESOURCE_GROUP_NAME_PREFIX }}${{ env.PR_LABEL }}" >> $GITHUB_OUTPUT
+
+          echo "api_app_name=${{ vars.API_APP_NAME_PREFIX }}${{ env.PR_LABEL }}" >> $GITHUB_OUTPUT
+
+          echo "api_app_environment_name=${{ vars.API_APP_ENVIRONMENT_NAME_PREFIX }}${{ env.PR_LABEL }}" >> $GITHUB_OUTPUT
+
+          echo "api_app_domain_name=api-${{ env.PR_LABEL }}.${{ vars.VERCEL_APP_APEX_DOMAIN_NAME }}" >> $GITHUB_OUTPUT
+
   audit-signatures:
     name: Audit signatures of NPM dependencies
     runs-on: ubuntu-24.04
@@ -24,17 +128,95 @@ jobs:
         run: |
           npm ci
           npm audit signatures
-  create-update-preview-infrastructure:
-    name: Create or Update Infrastructure for PR's Preview environment
+
+  destroy-environment:
+    name: Destroy Infrastructure for PR's Preview
     runs-on: ubuntu-24.04
     environment:
       name: Preview
+    needs: compute-non-secret-vars
+    if: github.event.action == 'closed'
+    steps:
+      - name: Destroy Infrastructure
+        run: |
+          # Destroy API infrastructure first
+          cd .iac/environments/preview-ephemeral-api
+          terraform init
+          terraform destroy -auto-approve \
+            -var="cloudflare_api_token=${{ secrets.CLOUDFLARE_API_TOKEN }}" \
+            -var="cloudflare_zone_id=${{ secrets.CLOUDFLARE_ZONE_ID }}" \
+            -var="app_resource_group_name=${{ needs.compute-non-secret-vars.outputs.api_resource_group_name }}" \
+            -var="app_resource_group_location=${{ vars.API_RESOURCE_GROUP_LOCATION }}" \
+            -var="app_name=${{ needs.compute-non-secret-vars.outputs.api_app_name }}" \
+            -var="app_environment_name=${{ needs.compute-non-secret-vars.outputs.api_app_environment_name }}" \
+            -var="app_domain_name=${{ needs.compute-non-secret-vars.outputs.api_app_domain_name }}" \
+            -var="app_container_name=${{ vars.API_CONTAINER_NAME }}" \
+            -var="app_container_port=${{ vars.API_CONTAINER_PORT }}" \
+            -var="github_organisation_or_account=${{ github.repository_owner }}" \
+            -var="image_repository=${{ vars.IMAGE_REPOSITORY }}" \
+            -var="image_tag=${{ needs.compute-non-secret-vars.outputs.new_version }}" \
+            -var="managed_identity_name=${{ vars.MANAGED_IDENTITY_NAME }}" \
+            -var="id_and_vault_resource_group_name=${{ vars.ID_AND_VAULT_RESOURCE_GROUP_NAME }}" \
+            -var="key_vault_name=${{ vars.VAULT_NAME }}" \
+            -var="vault_secretname_for_connectionstring=${{ needs.compute-non-secret-vars.outputs.vault_secret_conn_name }}" \
+            -var="allowed_cors_origins_for_api=https://${{ needs.compute-non-secret-vars.outputs.vercel_app_domain }}" \
+            -var="env_OTEL_RESOURCE_ATTRIBUTES=deployment.environment.name=${{ needs.compute-non-secret-vars.outputs.otel_env }}" \
+            -var="env_OTEL_EXPORTER_OTLP_ENDPOINT=${{ vars.ENV_OTEL_EXPORTER_OTLP_ENDPOINT }}" \
+            -var="env_OTEL_EXPORTER_OTLP_PROTOCOL=${{ vars.ENV_OTEL_EXPORTER_OTLP_PROTOCOL }}" \
+            -var="env_OTEL_EXPORTER_OTLP_HEADERS=${{ secrets.ENV_OTEL_EXPORTER_OTLP_HEADERS }}"
+
+          # Then destroy main infrastructure
+          cd ../preview-ephemeral
+          terraform init
+          terraform destroy -auto-approve \
+            -var="vault_name=${{ vars.VAULT_NAME }}" \
+            -var="vault_resource_group_name=${{ vars.ID_AND_VAULT_RESOURCE_GROUP_NAME }}" \
+            -var="vault_secretname_for_connectionstring=${{ needs.compute-non-secret-vars.outputs.vault_secret_conn_name }}" \
+            -var="secretname_for_psql_owner_connectionstring=${{ needs.compute-non-secret-vars.outputs.psql_owner_conn_name }}" \
+            -var="environmentname_for_secrets_and_variables=Preview" \
+            -var="repository_for_secrets_and_variables=flowmazondotnet" \
+            -var="neon_project_id=${{ secrets.TF_MANAGED_NEON_PROJECT_ID }}" \
+            -var="neon_source_branch_id=${{ secrets.TF_MANAGED_NEON_SOURCE_BRANCH_ID }}" \
+            -var="neon_new_branch_name=${{ needs.compute-non-secret-vars.outputs.neon_branch_name }}" \
+            -var="neon_database_name=${{ vars.NEON_DATABASE_NAME }}" \
+            -var="neon_app_role=${{ vars.NEON_APP_ROLE }}" \
+            -var="neon_owner_role=${{ vars.NEON_OWNER_ROLE }}" \
+            -var="neon_app_role_password=${{ secrets.TF_MANAGED_NEON_APP_ROLE_PASSWORD }}" \
+            -var="neon_owner_role_password=${{ secrets.TF_MANAGED_NEON_OWNER_ROLE_PASSWORD }}" \
+            -var="vercel_team_id=${{ secrets.VERCEL_TEAM_ID }}" \
+            -var="vercel_project_name=${{ needs.compute-non-secret-vars.outputs.vercel_project_name }}" \
+            -var="vercel_app_domain_name=${{ needs.compute-non-secret-vars.outputs.vercel_app_domain }}" \
+            -var="vercel_region_for_server_side_execution=${{ vars.VERCEL_REGION_FOR_SERVER_SIDE_EXECUTION }}" \
+            -var="cloudflare_api_token=${{ secrets.CLOUDFLARE_API_TOKEN }}" \
+            -var="cloudflare_zone_id=${{ secrets.CLOUDFLARE_ZONE_ID }}" \
+            -var="grafanacloud_stack_slug=${{ vars.GRAFANA_STACK_SLUG }}" \
+            -var="grafanacloud_frontend_o11y_api_access_token=${{ secrets.GRAFANA_FRONTEND_O11Y_API_ACCESS_TOKEN }}" \
+            -var="grafanacloud_frontend_o11y_instance_name=${{ needs.compute-non-secret-vars.outputs.grafana_instance_name }}" \
+            -var="secretname_for_grafanacloud_frontend_o11y_instance_url=${{ needs.compute-non-secret-vars.outputs.grafana_instance_url_secret }}" \
+            -var="env_NEXT_PUBLIC_OTEL_ENVIRONMENT=${{ needs.compute-non-secret-vars.outputs.otel_env }}" \
+            -var="env_OTEL_EXPORTER_OTLP_ENDPOINT=${{ vars.ENV_OTEL_EXPORTER_OTLP_ENDPOINT }}" \
+            -var="env_OTEL_EXPORTER_OTLP_PROTOCOL=${{ vars.ENV_OTEL_EXPORTER_OTLP_PROTOCOL }}" \
+            -var="env_OTEL_EXPORTER_OTLP_HEADERS=${{ secrets.ENV_OTEL_EXPORTER_OTLP_HEADERS }}" \
+            -var="secretname_for_vercel_project_id=${{ needs.compute-non-secret-vars.outputs.vercel_project_id_secret }}"
+        env:
+          TF_WORKSPACE: ${{ needs.compute-non-secret-vars.outputs.tf_workspace_name }}
+          ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
+          ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
+          ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
+          ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
+          NEON_API_KEY: ${{ secrets.NEON_API_KEY }}
+          VERCEL_API_TOKEN: ${{ secrets.VERCEL_API_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+  create-update-preview-ephemeral:
+    name: Create or Update Infrastructure for PR's Preview
+    runs-on: ubuntu-24.04
+    environment:
+      name: Preview
+    needs: compute-non-secret-vars
     steps:
       - uses: actions/checkout@v4
-      - name: Create PR Identifier
-        id: pr_id
-        run: echo "PR_LABEL=pr${{ github.event.number }}" >> $GITHUB_ENV
-      - name: Create HCP Terraform Workspace for PR
+
+      - name: Create or update preview-ephemeral HCP workspace
         # We don't care if the worksapce already exists as
         # in that case this HCP API Would return an error
         # that we ignore so the step would do nothing.
@@ -49,6 +231,7 @@ jobs:
           HCP_TF_ORG: ${{ secrets.TF_ORG }}
           HCP_TF_PROJECT: ${{ secrets.TF_PROJECT }}
           HCP_TF_TOKEN: ${{ secrets.TF_API_TOKEN }}
+          TF_WORKSPACE_NAME: ${{ needs.compute-non-secret-vars.outputs.tf_workspace_name }}
         # It is CRUCIAL to set "execution-mode": "local"
         # in the "data" object in the JSON request body
         # in the cURL to create the TF workspace below.
@@ -117,16 +300,247 @@ jobs:
         # GitHub Actions runner on which terraform apply
         # runs is also a clean machine and the state is
         # still persisted in and managed by HCP Terraform.
+
         run: |
-          WORKSPACE_NAME="preview-${PR_LABEL}"
           curl -sS \
-            -H "Authorization: Bearer ${HCP_TF_TOKEN}" \
+            -H "Authorization: Bearer ${{ env.HCP_TF_TOKEN }}" \
+            -H "Content-Type: application/vnd.api+json" \
+            -X POST \
+            -d '{
+              "data": {
+          "attributes": {
+            "name": "'"${{ env.TF_WORKSPACE_NAME }}"'",
+            "auto-apply": false,
+            "execution-mode": "local"
+            
+          },
+          "type": "workspaces",
+          "relationships": {
+            "tag-bindings": {
+              "data": [
+                {
+            "type": "tag-bindings",
+            "attributes": {
+              "key": "preview-ephemeral",
+              "value": ""
+            }
+                }
+              ]
+            },
+            "project": {
+              "data": {
+                "id": "'"${{ env.HCP_TF_PROJECT }}"'",
+                "type": "projects"
+              }
+            }
+          }
+              }
+            }' \
+            "https://app.terraform.io/api/v2/organizations/${{ env.HCP_TF_ORG }}/workspaces" \
+            | tee response.json
+
+          # If workspace already exists, the API will return an error. Ignore if already exists.
+          if grep -q '"errors"' response.json; then
+            if grep -q 'has already been taken' response.json; then
+              echo "Workspace ${{ env.TF_WORKSPACE_NAME }} already exists (that's great!). Continuing to next step..."
+            else
+              cat response.json
+              exit 1
+            fi
+          fi
+      - name: Setup Terraform CLI
+        uses: hashicorp/setup-terraform@v3
+        with:
+          cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
+      - name: Terraform Init
+        env:
+          # terraform init expects to be given TF_WORKSPACE env var
+          # because it is not part of terraorm block in the root module
+          TF_WORKSPACE: ${{needs.compute-non-secret-vars.outputs.tf_workspace_name}}
+        run: terraform init
+        working-directory: .iac/environments/preview-ephemeral
+      - name: Terraform Apply
+        env:
+          # terraform init expects to be given TF_WORKSPACE env var
+          # because it is not part of terraorm block in the root module
+          TF_WORKSPACE: ${{needs.compute-non-secret-vars.outputs.tf_workspace_name}}
+
+          # these need to be in environment
+          # when terraform apply runs and are
+          # picked up by azurerm provider
+          ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
+          ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
+          ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
+          ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
+
+          # This needs to be in environment when
+          # terraform apply run and is picked up
+          # Neon's Terraform provider
+          NEON_API_KEY: ${{ secrets.NEON_API_KEY }}
+
+          # This needs to be in environment when
+          # terraform apply runs and is picked up
+          # Vercel's Terraform provider
+          VERCEL_API_TOKEN: ${{ secrets.VERCEL_API_TOKEN }}
+
+          # This needs to be in environment when
+          # terraform apply runs and is picked up
+          # by GitHub's Terraform provider
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+
+        # values of the variables, which are read from secrets and
+        # environment variables of Preview environment in the GitHub
+        # repo, are mostly the same as those decalared in Preview
+        # workspace's Variables in Terraform HCP
+        run: |
+          terraform apply -auto-approve \
+          -var="vault_name=${{ vars.VAULT_NAME }}" \
+          -var="vault_resource_group_name=${{ vars.ID_AND_VAULT_RESOURCE_GROUP_NAME }}" \
+          -var="vault_secretname_for_connectionstring=${{ needs.compute-non-secret-vars.outputs.vault_secret_conn_name }}" \
+          -var="secretname_for_psql_owner_connectionstring=${{ needs.compute-non-secret-vars.outputs.psql_owner_conn_name }}" \
+          -var="environmentname_for_secrets_and_variables=Preview" \
+          -var="repository_for_secrets_and_variables=flowmazondotnet" \
+          -var="neon_project_id=${{ secrets.TF_MANAGED_NEON_PROJECT_ID }}" \
+          -var="neon_source_branch_id=${{ secrets.TF_MANAGED_NEON_SOURCE_BRANCH_ID }}" \
+          -var="neon_new_branch_name=${{ needs.compute-non-secret-vars.outputs.neon_branch_name }}" \
+          -var="neon_database_name=${{ vars.NEON_DATABASE_NAME }}" \
+          -var="neon_app_role=${{ vars.NEON_APP_ROLE }}" \
+          -var="neon_owner_role=${{ vars.NEON_OWNER_ROLE }}" \
+          -var="neon_app_role_password=${{ secrets.TF_MANAGED_NEON_APP_ROLE_PASSWORD }}" \
+          -var="neon_owner_role_password=${{ secrets.TF_MANAGED_NEON_OWNER_ROLE_PASSWORD }}" \
+          -var="vercel_team_id=${{ secrets.VERCEL_TEAM_ID }}" \
+          -var="vercel_project_name=${{ needs.compute-non-secret-vars.outputs.vercel_project_name }}" \
+          -var="vercel_app_domain_name=${{ needs.compute-non-secret-vars.outputs.vercel_app_domain }}" \
+          -var="vercel_region_for_server_side_execution=${{ vars.VERCEL_REGION_FOR_SERVER_SIDE_EXECUTION }}" \
+          -var="cloudflare_api_token=${{ secrets.CLOUDFLARE_API_TOKEN }}" \
+          -var="cloudflare_zone_id=${{ secrets.CLOUDFLARE_ZONE_ID }}" \
+          -var="grafanacloud_stack_slug=${{ vars.GRAFANA_STACK_SLUG }}" \
+          -var="grafanacloud_frontend_o11y_api_access_token=${{ secrets.GRAFANA_FRONTEND_O11Y_API_ACCESS_TOKEN }}" \
+          -var="grafanacloud_frontend_o11y_instance_name=${{ needs.compute-non-secret-vars.outputs.grafana_instance_name }}" \
+          -var="secretname_for_grafanacloud_frontend_o11y_instance_url=${{ needs.compute-non-secret-vars.outputs.grafana_instance_url_secret }}" \
+          -var="env_NEXT_PUBLIC_OTEL_ENVIRONMENT=${{ needs.compute-non-secret-vars.outputs.otel_env }}" \
+          -var="env_OTEL_EXPORTER_OTLP_ENDPOINT=${{ vars.ENV_OTEL_EXPORTER_OTLP_ENDPOINT }}" \
+          -var="env_OTEL_EXPORTER_OTLP_PROTOCOL=${{ vars.ENV_OTEL_EXPORTER_OTLP_PROTOCOL }}" \
+          -var="env_OTEL_EXPORTER_OTLP_HEADERS=${{ secrets.ENV_OTEL_EXPORTER_OTLP_HEADERS }}" \
+          -var="secretname_for_vercel_project_id=${{ needs.compute-non-secret-vars.outputs.vercel_project_id_secret }}"
+        working-directory: .iac/environments/preview-ephemeral
+
+  migrate-db:
+    environment:
+      name: Preview
+    needs: [create-update-preview-ephemeral, compute-non-secret-vars]
+    name: Migrate Database
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install psql client
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client
+
+      - name: Run migrations
+        env:
+          MIGRATIONS_DIR: ./flowmazonbackend/flowmazonapi/MigrationScripts
+        run: |
+          for f in "${{ env.MIGRATIONS_DIR }}"/*.sql; do
+            filename=$(basename "${f}")
+            echo "Applying migration ${filename}"
+            psql "${{ secrets[needs.compute-non-secret-vars.outputs.psql_owner_conn_name] }}" -f "${f}"
+          done
+        # Create infrastructure specific to a preview environment
+
+  deploy-backend:
+    environment:
+      name: Preview
+    permissions:
+      contents: read # Needed for actions/checkout
+      packages: write # Needed to push to GHCR
+    needs: [compute-non-secret-vars, migrate-db]
+    name: Deploy API to Azure
+    runs-on: ubuntu-latest
+    env:
+      PR_LABEL: ${{ needs.compute-non-secret-vars.outputs.pr_label }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Print version to console
+        run: |
+          echo "Version number of the code artifacts produced for ths pull request-specific Preview environment would be: ${{ needs.compute-non-secret-vars.outputs.new_version }}"
+      - name: Login to Azure
+        uses: azure/login@v1
+        with:
+          # The referenced secret AZURE_CREDENTIALS contains
+          # JSON with client id, client secret, tenant id and
+          # subscription id of the service principal which
+          # has AcrPush permission on the subscrpition or at least
+          # on the ACR instance to which it will push in this job
+          # within the subscription whose subscription id is provided.
+          #
+          # Format of the JSON is:
+          # {
+          #     "clientId": "<visible on service principal when you create it in portal>",
+          #     "clientSecret": "<in portal you have to create it after creating the service principal>",
+          #     "subscriptionId": "<subscription id of the subscription on which you have given AcrPush permission to the service principal>",
+          #     "tenantId": "<visible on service principal when you create it in portal>"
+          # }
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }} # Auto-generated, no setup needed!
+      - name: Compute Full Image Name
+        id: compute-full-image-name
+        run: |
+          REPO_LOWER=$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')
+          echo "REPO_LOWER=${REPO_LOWER}" >> $GITHUB_OUTPUT
+          echo "FULL_IMAGE_NAME=ghcr.io/${REPO_LOWER}/${{ vars.IMAGE_REPOSITORY }}:${{ needs.compute-non-secret-vars.outputs.new_version }}" >> $GITHUB_OUTPUT
+
+      - name: Build and Push Docker image
+        run: |
+          cd ./flowmazonbackend
+          docker build -t ${{ steps.compute-full-image-name.outputs.FULL_IMAGE_NAME }} .
+          docker push ${{ steps.compute-full-image-name.outputs.FULL_IMAGE_NAME }}
+
+      - name: Make package public
+        run: |
+          curl -X PATCH \
+            -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Accept: application/vnd.github.v3+json" \
+            "https://api.github.com/user/packages/container/${{ steps.compute-full-image-name.outputs.FULL_IMAGE_NAME }}/visibility" \
+            -d '{"visibility":"public"}'
+
+      # Like preview-ephemeral workspace created/synced above,
+      # preview-ephemeral-api HCP workspace would be created
+      # dynamically by this workflow, then deployed to using
+      # local execution while the state file is maintained in
+      # HCP.
+      # The choices made for the next two steps are also
+      # very similar to that job so see documentation above
+      # for the create-update-preview-ephemeral job.
+
+      # Hence, to create preview-ephemeral-api workspace,
+      # we proceed as follows:
+      - name: Create or update preview-ephemeral-api HCP workspace
+        env:
+          HCP_TF_ORG: ${{ secrets.TF_ORG }}
+          HCP_TF_PROJECT: ${{ secrets.TF_PROJECT }}
+          HCP_TF_TOKEN: ${{ secrets.TF_API_TOKEN }}
+          PR_LABEL: ${{ needs.compute-non-secret-vars.outputs.pr_label }}
+          TF_API_WORKSPACE_NAME: ${{ needs.compute-non-secret-vars.outputs.tf_api_workspace_name }}
+        run: |
+          curl -sS \
+            -H "Authorization: Bearer ${{env.HCP_TF_TOKEN}}" \
             -H "Content-Type: application/vnd.api+json" \
             -X POST \
             -d '{
               "data": {
                 "attributes": {
-                  "name": "'"${WORKSPACE_NAME}"'",
+                  "name": "'"${{ env.TF_API_WORKSPACE_NAME }}"'",
                   "auto-apply": false,
                   "execution-mode": "local"
                   
@@ -138,7 +552,7 @@ jobs:
                       {
                         "type": "tag-bindings",
                         "attributes": {
-                          "key": "preview-ephemeral",
+                          "key": "preview-ephemeral-api",
                           "value": ""
                         }
                       }
@@ -146,82 +560,84 @@ jobs:
                   },
                   "project": {
                     "data": {
-                      "id": "'"${HCP_TF_PROJECT}"'",
+                      "id": "'"${{ env.HCP_TF_PROJECT }}"'",
                       "type": "projects"
                     }
                   }
                 }
               }
             }' \
-            "https://app.terraform.io/api/v2/organizations/${HCP_TF_ORG}/workspaces" \
+            "https://app.terraform.io/api/v2/organizations/${{ env.HCP_TF_ORG }}/workspaces" \
             | tee response.json
 
           # If workspace already exists, the API will return an error. Ignore if already exists.
           if grep -q '"errors"' response.json; then
             if grep -q 'has already been taken' response.json; then
-              echo "Workspace ${WORKSPACE_NAME} already exists. Continuing."
+              echo "Workspace ${{ env.TF_API_WORKSPACE_NAME }} already exists (thath's great!). Continuing to next step..."
             else
               cat response.json
               exit 1
             fi
           fi
-      - name: Setup Terraform
+      - name: Setup Terraform CLI
         uses: hashicorp/setup-terraform@v3
         with:
+          # cli_config_credentials_hostname parameter default
+          # to app.terraform.io which is what we want
           cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
       - name: Terraform Init
         env:
-          TF_WORKSPACE: preview-${{env.PR_LABEL}}
+          # terraform init expects to be given TF_WORKSPACE env var
+          # because it is not part of terraorm block in the root module
+          TF_WORKSPACE: ${{ needs.compute-non-secret-vars.outputs.tf_api_workspace_name }}
         run: terraform init
-        working-directory: .iac/environments/preview-ephemeral
+        working-directory: .iac/environments/preview-ephemeral-api
+
       - name: Terraform Apply
         env:
-          TF_WORKSPACE: preview-${{env.PR_LABEL}}
+          # terraform init expects to be given TF_WORKSPACE env var
+          # because it is not part of terraorm block in the root module
+          TF_WORKSPACE: ${{ needs.compute-non-secret-vars.outputs.tf_api_workspace_name }}
+
+          # these need to be in environment
+          # when terraform apply runs and are
+          # picked up by azurerm provider
           ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
           ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
           ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
           ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
-          NEON_API_KEY: ${{ secrets.NEON_API_KEY }}
-          VERCEL_API_TOKEN: ${{ secrets.VERCEL_API_TOKEN }}
 
         # values of the variables, which are read from secrets and
         # environment variables of Preview environment in the GitHub
         # repo, are mostly the same as those decalared in Preview
-        # workspace's Variables in Terraform HCP.
+        # workspace's Variables in Terraform HCP
         run: |
           terraform apply -auto-approve \
-          -var="vault_name=${{ vars.VAULT_NAME }}" \
-          -var="vault_resource_group_name=${{ vars.ID_AND_VAULT_RESOURCE_GROUP_NAME }}" \
-          -var="vault_secretname_for_connectionstring=${{ vars.VAULT_SECRETNAME_FOR_CONNECTIONSTRING_PREFIX }}${{env.PR_LABEL}}" \
-          -var="secretname_for_psql_owner_connectionstring=${{ vars.SECRETNAME_FOR_PSQL_OWNER_CONNECTIONSTRING_PREFIX }}${{env.PR_LABEL}}" \
-          -var="environmentname_for_secrets_and_variables=Preview" \
-          -var="repository_for_secrets_and_variables=flowmazondotnet" \
-          -var="neon_project_id=${{ secrets.TF_MANAGED_NEON_PROJECT_ID }}" \
-          -var="neon_source_branch_id=${{ secrets.TF_MANAGED_NEON_SOURCE_BRANCH_ID }}" \
-          -var="neon_new_branch_name=${{ vars.NEON_NEW_BRANCH_NAME_PREFIX }}${{env.PR_LABEL}}" \
-          -var="neon_database_name=${{ vars.NEON_DATABASE_NAME }}" \
-          -var="neon_app_role=${{ vars.NEON_APP_ROLE_PREFIX }}" \
-          -var="neon_owner_role=${{ vars.NEON_OWNER_ROLE_PREFIX }}" \
-          -var="neon_app_role_password=${{ secrets.TF_MANAGED_NEON_APP_ROLE_PASSWORD }}" \
-          -var="neon_owner_role_password=${{ secrets.TF_MANAGED_NEON_OWNER_ROLE_PASSWORD }}" \
-          -var="vercel_team_id=${{ secrets.VERCEL_TEAM_ID }}" \
-          -var="vercel_project_name=${{ secrets.VERCEL_PROJECT_NAME_PREFIX }}${{env.PR_LABEL}}" \
-          -var="vercel_app_domain_name=${{env.PR_LABEL}}.${{ vars.VERCEL_APP_APEX_DOMAIN_NAME }}" \
-          -var="vercel_region_for_server_side_execution=${{ vars.VERCEL_REGION_FOR_SERVER_SIDE_EXECUTION }}" \
           -var="cloudflare_api_token=${{ secrets.CLOUDFLARE_API_TOKEN }}" \
           -var="cloudflare_zone_id=${{ secrets.CLOUDFLARE_ZONE_ID }}" \
-          -var="grafanacloud_stack_slug=${{ vars.GRAFANA_STACK_SLUG }}" \
-          -var="grafanacloud_frontend_o11y_api_access_token=${{ secrets.GRAFANA_FRONTEND_O11Y_API_ACCESS_TOKEN }}" \
-          -var="grafanacloud_frontend_o11y_instance_name=${{ vars.NEXT_PUBLIC_FARO_SERVICE_NAME_PREFIX }}${{env.PR_LABEL}}" \
-          -var="secretname_for_grafanacloud_frontend_o11y_instance_url=${{ vars.SECRETNAME_FOR_GRAFANACLOUD_FRONTEND_O11Y_INSTANCE_URL_PREFIX }}${{env.PR_LABEL}}" \
-          -var="env_NEXT_PUBLIC_OTEL_ENVIRONMENT=${{ vars.OTEL_ENVIRONMENT_PREFIX }}${{env.PR_LABEL}}" \
+          -var="app_resource_group_name=${{ needs.compute-non-secret-vars.outputs.api_resource_group_name }}" \
+          -var="app_resource_group_location=${{ vars.API_RESOURCE_GROUP_LOCATION }}" \
+          -var="app_name=${{ needs.compute-non-secret-vars.outputs.api_app_name }}" \
+          -var="app_environment_name=${{ needs.compute-non-secret-vars.outputs.api_app_environment_name }}" \
+          -var="app_domain_name=${{ needs.compute-non-secret-vars.outputs.api_app_domain_name }}" \
+          -var="app_container_name=${{ vars.API_CONTAINER_NAME }}" \
+          -var="app_container_port=${{ vars.API_CONTAINER_PORT }}" \
+          -var="github_organisation_or_account=${{ steps.compute-full-image-name.outputs.REPO_LOWER }}" \
+          -var="image_repository=${{ vars.IMAGE_REPOSITORY }}" \
+          -var="image_tag=${{ needs.compute-non-secret-vars.outputs.new_version }}" \
+          -var="managed_identity_name=${{ vars.MANAGED_IDENTITY_NAME }}" \
+          -var="id_and_vault_resource_group_name=${{ vars.ID_AND_VAULT_RESOURCE_GROUP_NAME }}" \
+          -var="key_vault_name=${{ vars.VAULT_NAME }}" \
+          -var="vault_secretname_for_connectionstring=${{ needs.compute-non-secret-vars.outputs.vault_secret_conn_name }}" \
+          -var="allowed_cors_origins_for_api=https://${{ needs.compute-non-secret-vars.outputs.vercel_app_domain }}" \
+          -var="env_OTEL_RESOURCE_ATTRIBUTES=deployment.environment.name=${{ needs.compute-non-secret-vars.outputs.otel_env }}" \
           -var="env_OTEL_EXPORTER_OTLP_ENDPOINT=${{ vars.ENV_OTEL_EXPORTER_OTLP_ENDPOINT }}" \
           -var="env_OTEL_EXPORTER_OTLP_PROTOCOL=${{ vars.ENV_OTEL_EXPORTER_OTLP_PROTOCOL }}" \
-          -var="env_OTEL_EXPORTER_OTLP_HEADERS=${{ secrets.ENV_OTEL_EXPORTER_OTLP_HEADERS }}" \
-          -var="secretname_for_vercel_project_id=${{ vars.SECRETNAME_FOR_VERCEL_PROJECT_ID_PREFIX }}${{env.PR_LABEL}}"
-        working-directory: .iac/environments/preview-ephemeral
-# Create infrastructure specific to a preview environment
-# for this particular Pull Request (except ACAP app for API,
+          -var="env_OTEL_EXPORTER_OTLP_HEADERS=${{ secrets.ENV_OTEL_EXPORTER_OTLP_HEADERS }}"
+
+        working-directory: .iac/environments/preview-ephemeral-api
+
+        # for this particular Pull Request (except ACAP app for API,
 # which will be created at the same time as deployment due to
 # limitations of ACA app's Terraform resource; see
 # aca_app module's README)
