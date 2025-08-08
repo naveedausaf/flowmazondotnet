@@ -509,14 +509,6 @@ jobs:
           docker build -t ${{ steps.compute-full-image-name.outputs.FULL_IMAGE_NAME }} .
           docker push ${{ steps.compute-full-image-name.outputs.FULL_IMAGE_NAME }}
 
-      - name: Make package public
-        run: |
-          curl -X PATCH \
-            -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
-            -H "Accept: application/vnd.github.v3+json" \
-            "https://api.github.com/user/packages/container/${{ steps.compute-full-image-name.outputs.FULL_IMAGE_NAME }}/visibility" \
-            -d '{"visibility":"public"}'
-
       # Like preview-ephemeral workspace created/synced above,
       # preview-ephemeral-api HCP workspace would be created
       # dynamically by this workflow, then deployed to using
