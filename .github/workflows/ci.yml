@@ -2,7 +2,7 @@ name: CI
 # This concurrency block definition ensures that
 # only a single instance of this workflow can be
 # be running at any given time for a given
-# source (i.e. head) branch
+# source (i.e. head) branch.
 concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
