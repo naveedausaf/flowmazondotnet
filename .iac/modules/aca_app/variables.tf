@@ -37,6 +37,11 @@ variable "env_OTEL_EXPORTER_OTLP_HEADERS" {
   sensitive   = true
 }
 
+variable "vault_secretname_env_OTEL_EXPORTER_OTLP_HEADERS" {
+  description = "The name of the key vault secret into which the value of the env_OTEL_EXPORTER_OTLP_HEADERS variable would be stored."
+  type        = string
+}
+
 variable "env_OTEL_RESOURCE_ATTRIBUTES" {
   description = "Used to pass value of environment variable OTEL_RESOURCE_ATTRIBUTES that the API expects. See README of flowmazonbackend for details."
   type        = string

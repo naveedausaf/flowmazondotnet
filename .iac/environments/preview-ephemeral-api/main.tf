@@ -18,10 +18,11 @@ module "aca_app" {
   # Hence why we have used it in both places.
   app_container_startup_probe = "/health/live"
 
-  env_OTEL_EXPORTER_OTLP_ENDPOINT = var.env_OTEL_EXPORTER_OTLP_ENDPOINT
-  env_OTEL_EXPORTER_OTLP_HEADERS  = var.env_OTEL_EXPORTER_OTLP_HEADERS
-  env_OTEL_RESOURCE_ATTRIBUTES    = var.env_OTEL_RESOURCE_ATTRIBUTES
-  env_OTEL_EXPORTER_OTLP_PROTOCOL = var.env_OTEL_EXPORTER_OTLP_PROTOCOL
+  env_OTEL_EXPORTER_OTLP_ENDPOINT                 = var.env_OTEL_EXPORTER_OTLP_ENDPOINT
+  env_OTEL_EXPORTER_OTLP_HEADERS                  = var.env_OTEL_EXPORTER_OTLP_HEADERS
+  vault_secretname_env_OTEL_EXPORTER_OTLP_HEADERS = var.vault_secretname_env_OTEL_EXPORTER_OTLP_HEADERS
+  env_OTEL_RESOURCE_ATTRIBUTES                    = var.env_OTEL_RESOURCE_ATTRIBUTES
+  env_OTEL_EXPORTER_OTLP_PROTOCOL                 = var.env_OTEL_EXPORTER_OTLP_PROTOCOL
 
   image_server                         = "ghcr.io/${var.github_organisation_or_account}"
   image_repository                     = var.image_repository

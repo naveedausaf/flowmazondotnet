@@ -56,11 +56,8 @@ resource "azurerm_container_app_environment" "app" {
 # Create key vault secret for env_OTLP_EXPORTER_OTLP_HEADERS.
 # Doing so means the value of the variables wouldn't be visible
 # in Azure.
-locals {
-  vault_secretname_env_OTEL_EXPORTER_OTLP_HEADERS = "otlp-headers"
-}
 resource "azurerm_key_vault_secret" "otlp_headers" {
-  name         = local.vault_secretname_env_OTEL_EXPORTER_OTLP_HEADERS
+  name         = var.vault_secretname_env_OTEL_EXPORTER_OTLP_HEADERS
   key_vault_id = data.azurerm_key_vault.vault.id
   value        = var.env_OTEL_EXPORTER_OTLP_HEADERS
 }

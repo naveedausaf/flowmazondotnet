@@ -37,6 +37,7 @@ jobs:
       api_app_name: ${{ steps.compute-non-secret-vars.outputs.api_app_name }}
       api_app_environment_name: ${{ steps.compute-non-secret-vars.outputs.api_app_environment_name }}
       api_app_domain_name: ${{ steps.compute-non-secret-vars.outputs.api_app_domain_name }}
+      vault_secretname_env_OTEL_EXPORTER_OTLP_HEADERS: ${{ steps.compute-non-secret-vars.outputs.vault_secretname_env_OTEL_EXPORTER_OTLP_HEADERS }}
     steps:
       - name: Compute non-secret variables for this and later jobs
         id: compute-non-secret-vars
@@ -118,6 +119,8 @@ jobs:
           echo "api_app_environment_name=${{ vars.API_APP_ENVIRONMENT_NAME_PREFIX }}${{ env.PR_LABEL }}" >> $GITHUB_OUTPUT
 
           echo "api_app_domain_name=api-${{ env.PR_LABEL }}.${{ vars.VERCEL_APP_APEX_DOMAIN_NAME }}" >> $GITHUB_OUTPUT
+
+          echo "vault_secretname_env_OTEL_EXPORTER_OTLP_HEADERS=${{ vars.VAULT_SECRETNAME_ENV_OTEL_EXPORTER_OTLP_HEADERS_PREFIX }}${{ env.PR_LABEL }}" >> $GITHUB_OUTPUT
 
   audit-signatures:
     name: Audit signatures of NPM dependencies
@@ -633,7 +636,8 @@ jobs:
           -var="env_OTEL_RESOURCE_ATTRIBUTES=deployment.environment.name=${{ needs.compute-non-secret-vars.outputs.otel_env }}" \
           -var="env_OTEL_EXPORTER_OTLP_ENDPOINT=${{ vars.ENV_OTEL_EXPORTER_OTLP_ENDPOINT }}" \
           -var="env_OTEL_EXPORTER_OTLP_PROTOCOL=${{ vars.ENV_OTEL_EXPORTER_OTLP_PROTOCOL }}" \
-          -var="env_OTEL_EXPORTER_OTLP_HEADERS=${{ secrets.ENV_OTEL_EXPORTER_OTLP_HEADERS }}"
+          -var="env_OTEL_EXPORTER_OTLP_HEADERS=${{ secrets.ENV_OTEL_EXPORTER_OTLP_HEADERS }}" \
+          -var="vault_secretname_env_OTEL_EXPORTER_OTLP_HEADERS=${{ needs.compute-non-secret-vars.outputs.vault_secretname_env_OTEL_EXPORTER_OTLP_HEADERS }}"
 
         working-directory: .iac/environments/preview-ephemeral-api
 
