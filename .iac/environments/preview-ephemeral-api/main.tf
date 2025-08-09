@@ -24,7 +24,12 @@ module "aca_app" {
   env_OTEL_RESOURCE_ATTRIBUTES                    = var.env_OTEL_RESOURCE_ATTRIBUTES
   env_OTEL_EXPORTER_OTLP_PROTOCOL                 = var.env_OTEL_EXPORTER_OTLP_PROTOCOL
 
-  image_server                         = "ghcr.io/${var.github_organisation_or_account}"
+  # image_server                         = "ghcr.io/${var.github_organisation_or_account}"
+  registry_login_server                       = "ghcr.io"
+  registry_username                           = var.github_organisation_or_account
+  vault_secretname_registry_password_or_token = var.vault_secretname_registry_password_or_token
+  registry_password_or_token                  = var.github_token_for_registry_read
+
   image_repository                     = var.image_repository
   image_tag                            = var.image_tag
   app_revision_mode                    = "Multiple"
