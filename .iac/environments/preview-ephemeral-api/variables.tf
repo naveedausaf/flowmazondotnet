@@ -101,7 +101,7 @@ variable "github_token_for_registry_read" {
 }
 
 variable "vault_secretname_registry_password_or_token" {
-  description = "Name of the key vault secret that into which the password or token specified by github_token_for_registry_read argument would be stored and from which it would be read by the ACA app for logging in to the GitHub registry."
+  description = "Name of the key vault secret that this will be created,  into which the password or token specified by github_token_for_registry_read argument would be stored and from which it would be read by the ACA app for logging in to the GitHub registry."
   type        = string
   default     = null
 }
