@@ -609,6 +609,22 @@ jobs:
           previewUrl=$(vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_API_TOKEN }})
           echo "previewUrl=$previewUrl" >> "$GITHUB_OUTPUT"
 
+  comment-preview-links:
+    name: Post PR sticky comment with Preview links
+    runs-on: ubuntu-24.04
+    needs: [compute-non-secret-vars, deploy-backend, deploy-frontend-to-vercel]
+    if: github.event.action != 'closed'
+    steps:
+      - name: Post sticky comment with preview links
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          header: preview-environment-links
+          recreate: true
+          message: |
+            # Preview Environment Links
+              - Web: https://${{ needs.compute-non-secret-vars.outputs.vercel_app_domain }}
+              - API: https://${{ needs.compute-non-secret-vars.outputs.api_app_domain_name }}
+
   destroy-ephemeral-environment:
     name: Destroy Infrastructure for PR's Preview
     runs-on: ubuntu-24.04
