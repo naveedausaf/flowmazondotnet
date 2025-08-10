@@ -639,13 +639,15 @@ jobs:
   # This job is based on job of same name
   # in release.yml. See detailed comments
   # there.
+  #
+  # Also note that even though this is a Preview environment, we have created a separate Vercel project above for it (as part of ephemeral environment's infrastructure creation using Terraform). Every Vercel project, including this one for this ephemeral Preview environment, allows you to create a Production or a Staging deployment. We shall create a Production deployment, which is why, somewhat confusingly, `--prod` flag is usedi with `vercel build` and `vercel deploy` commands below even though this is a Preview deployment.
   deploy-frontend-to-vercel:
     name: Deploy Next.js frontend to Vercel
     runs-on: ubuntu-24.04
     environment:
       name: Preview
     needs:
-      [compute-non-secret-vars, create-update-preview-ephemeral, deploy-backend]
+      [compute-non-secret-vars, create-update-preview-ephemeral, migrate-db]
     env:
       VERCEL_API_TOKEN: ${{ secrets.VERCEL_API_TOKEN }}
       VERCEL_ORG_ID: ${{ secrets.VERCEL_TEAM_ID }}
@@ -666,13 +668,13 @@ jobs:
         run: vercel pull --yes --environment=preview --token=${{ secrets.VERCEL_API_TOKEN }}
       - name: Build Project Artifacts
         working-directory: ./flowmazonfrontend
-        run: vercel build --token=${{ secrets.VERCEL_API_TOKEN }}
+        run: vercel build --prod --token=${{ secrets.VERCEL_API_TOKEN }}
         env:
           NEXT_PUBLIC_BACKEND_URL: https://${{ needs.compute-non-secret-vars.outputs.api_app_domain_name }}
           NEXT_PUBLIC_OTEL_ENVIRONMENT: ${{ needs.compute-non-secret-vars.outputs.otel_env }}
           NEXT_PUBLIC_FARO_URL: ${{ secrets[needs.compute-non-secret-vars.outputs.grafana_instance_url_secret] }}
           NEXT_PUBLIC_FARO_SERVICE_NAME: ${{ needs.compute-non-secret-vars.outputs.grafana_instance_name }}
-      # Note that even though this is a PReview environment, we have created a separate Vercel project above for it (as part of ephemeral environment's infrastructure creation using Terraform). Every Vercel project, including this one for this ephemeral PReview environment, allows you to craete a Production or a Staging deployment. We shall create a Production deployment, which is why, somewhat confusingly, `--prod` flag is usedi with `vercel deploy` command below even though this is a Preview deployment.
+
       - name: Deploy Project Artifacts to Vercel
         working-directory: ./flowmazonfrontend
         id: deploy-artifacts
