@@ -560,7 +560,6 @@ jobs:
           -var="env_OTEL_EXPORTER_OTLP_PROTOCOL=${{ vars.ENV_OTEL_EXPORTER_OTLP_PROTOCOL }}" \
           -var="env_OTEL_EXPORTER_OTLP_HEADERS=${{ secrets.ENV_OTEL_EXPORTER_OTLP_HEADERS }}" \
           -var="vault_secretname_env_OTEL_EXPORTER_OTLP_HEADERS=${{ needs.compute-non-secret-vars.outputs.vault_secretname_env_OTEL_EXPORTER_OTLP_HEADERS }}"
-
         working-directory: .iac/environments/preview-ephemeral-api
 
   # This job is based on job of same name
@@ -650,7 +649,9 @@ jobs:
             -var="app_domain_name=${{ needs.compute-non-secret-vars.outputs.api_app_domain_name }}" \
             -var="app_container_name=${{ vars.API_CONTAINER_NAME }}" \
             -var="app_container_port=${{ vars.API_CONTAINER_PORT }}" \
-            -var="github_organisation_or_account=${{ github.repository_owner }}" \
+            -var="github_organisation_or_account=${{ github.actor }}" \
+            -var="github_token_for_registry_read=${{ secrets.API_APP_GH_TOKEN }}" \
+            -var="vault_secretname_registry_password_or_token=${{ needs.compute-non-secret-vars.outputs.vault_secretname_registry_password_or_token }}" \
             -var="image_repository=${{ vars.IMAGE_REPOSITORY }}" \
             -var="image_tag=${{ needs.compute-non-secret-vars.outputs.new_version }}" \
             -var="managed_identity_name=${{ vars.MANAGED_IDENTITY_NAME }}" \
@@ -662,7 +663,7 @@ jobs:
             -var="env_OTEL_EXPORTER_OTLP_ENDPOINT=${{ vars.ENV_OTEL_EXPORTER_OTLP_ENDPOINT }}" \
             -var="env_OTEL_EXPORTER_OTLP_PROTOCOL=${{ vars.ENV_OTEL_EXPORTER_OTLP_PROTOCOL }}" \
             -var="env_OTEL_EXPORTER_OTLP_HEADERS=${{ secrets.ENV_OTEL_EXPORTER_OTLP_HEADERS }}" \
-            -var="github_token_for_registry_read=${{ secrets.API_APP_GH_TOKEN }}"
+            -var="vault_secretname_env_OTEL_EXPORTER_OTLP_HEADERS=${{ needs.compute-non-secret-vars.outputs.vault_secretname_env_OTEL_EXPORTER_OTLP_HEADERS }}"
       - name: Destroy preview-ephemeral infrastructure
         working-directory: .iac/environments/preview-ephemeral
         env:
