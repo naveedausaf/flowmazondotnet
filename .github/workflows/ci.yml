@@ -623,8 +623,10 @@ jobs:
           message: |
             # Preview Environment Links
 
-            Given below are the URLs for the last **_successful_** deployment to the Preview environment for this pull request. If the latest deployment failed (see Checks section below) then these links would be out of date (would take you to a previous Preview deployment or may not work at all):
-              
+            Given below are the URLs for the last **_successful_** deployment to the Preview environment for this pull request. 
+
+            If the latest deployment failed (see Checks section below) then these links would be out of date (would take you to a previous Preview deployment or may not work at all):
+
             - Web: https://${{ needs.compute-non-secret-vars.outputs.vercel_app_domain }}
             - API: https://${{ needs.compute-non-secret-vars.outputs.api_app_domain_name }}
 
