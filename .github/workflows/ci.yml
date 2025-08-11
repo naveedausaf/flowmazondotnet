@@ -579,6 +579,8 @@ jobs:
         run: dotnet restore
       - name: Run unit tests with coverage
         working-directory: ./flowmazonbackend/flowmazonapi.UnitTests
+        # Generating test results file (test_results.xml, not the cobertura format coverage file which is separate) in JUnit format because this is the only format CodeCov currently accepts test results in for its experimental test analytics feature (this is separate to its code coverage feature).
+        # We also upload the test_results.xml file as a Check (which appears in the Checks tab of the pull request) using dorny/test-reporter action as the CodeCov Test Results Analytics feature is still experimental.
         run: |
           dotnet test --configuration Release \
             --logger "junit;LogFileName=test_results.xml" \
@@ -590,8 +592,9 @@ jobs:
         with:
           name: API Unit Tests
           path: flowmazonbackend/flowmazonapi.UnitTests/TestResults/**/test_results.xml
-          # if this doesn't work then reporter should be java-junit
-          # Not sure what the difference is between the two
+          # java-junit reporter is experimental in this action. If this doesn't work properly then reporter should be jest-junit.
+          # Bear in mind though that to use jest-junit, you need to surround the contents of this xml file with a <testsuites> element which has a `time` attribute. See my wiki for details.
+
           reporter: java-junit
           fail-on-error: false
       - name: Upload coverage to Codecov
