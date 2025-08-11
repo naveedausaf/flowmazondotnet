@@ -592,7 +592,7 @@ jobs:
           path: flowmazonbackend/flowmazonapi.UnitTests/TestResults/**/test_results.xml
           # if this doesn't work then reporter should be java-junit
           # Not sure what the difference is between the two
-          reporter: junit-junit
+          reporter: jest-junit
           fail-on-error: false
       - name: Upload coverage to Codecov
         if: always()
