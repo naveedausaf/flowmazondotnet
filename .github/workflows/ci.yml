@@ -589,10 +589,10 @@ jobs:
         uses: dorny/test-reporter@v1
         with:
           name: API Unit Tests
-          path: flowmazonbackend/flowmazonapi.UnitTests/TestResults/**/*.xml
+          path: flowmazonbackend/flowmazonapi.UnitTests/TestResults/**/test_results.xml
           # if this doesn't work then reporter should be java-junit
           # Not sure what the difference is between the two
-          reporter: java-junit
+          reporter: junit-junit
           fail-on-error: false
       - name: Upload coverage to Codecov
         if: always()
