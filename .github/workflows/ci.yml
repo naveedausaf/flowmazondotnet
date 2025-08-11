@@ -562,6 +562,45 @@ jobs:
           -var="vault_secretname_env_OTEL_EXPORTER_OTLP_HEADERS=${{ needs.compute-non-secret-vars.outputs.vault_secretname_env_OTEL_EXPORTER_OTLP_HEADERS }}"
         working-directory: .iac/environments/preview-ephemeral-api
 
+  api-unittests:
+    name: Run API .NET Unit Tests and publish report
+    runs-on: ubuntu-24.04
+    needs: [compute-non-secret-vars]
+    if: github.event.action != 'closed'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+      - name: Restore dependencies
+        working-directory: ./flowmazonbackend/flowmazonapi.UnitTests
+        run: dotnet restore
+      - name: Run unit tests with coverage (TRX + Cobertura)
+        working-directory: ./flowmazonbackend/flowmazonapi.UnitTests
+        run: |
+          dotnet test --configuration Release \
+            --logger "trx;LogFileName=test_results.trx" \
+            --results-directory ./TestResults \
+            --collect:"XPlat Code Coverage"
+      - name: Publish test report to PR Checks
+        if: always()
+        uses: dorny/test-reporter@v1
+        with:
+          name: API Unit Tests
+          path: flowmazonbackend/flowmazonapi.unittests/TestResults/*.trx
+          reporter: dotnet-trx
+          fail-on-error: false
+      - name: Upload coverage to Codecov
+        if: always()
+        uses: codecov/codecov-action@v4
+        with:
+          files: flowmazonbackend/flowmazonapi.unittests/TestResults/**/coverage.cobertura.xml
+          flags: api-unittests
+          name: api-unittests
+          token: ${{ secrets.CODECOV_TOKEN }}
+
   # This job is based on job of same name
   # in release.yml. See detailed comments
   # there.
@@ -623,12 +662,12 @@ jobs:
           message: |
             # Preview Environment Links
 
-            Given below are the URLs for the last **_successful_** deployment to the Preview environment for this pull request. 
-
-            If the latest deployment failed (see Checks section below) then these links would be out of date (would take you to a previous Preview deployment or may not work at all):
-
             - Web: https://${{ needs.compute-non-secret-vars.outputs.vercel_app_domain }}
             - API: https://${{ needs.compute-non-secret-vars.outputs.api_app_domain_name }}
+
+            Links given above are for the last **successful** deployment to the Preview environment for this pull request. 
+
+            If the latest deployment failed (see Checks section below) then these links could be out of date (i.e. could take you to a previous Preview deployment or may not work at all).
 
   destroy-ephemeral-environment:
     name: Destroy Infrastructure for PR's Preview
