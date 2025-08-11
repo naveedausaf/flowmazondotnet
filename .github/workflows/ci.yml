@@ -577,11 +577,11 @@ jobs:
       - name: Restore dependencies
         working-directory: ./flowmazonbackend/flowmazonapi.UnitTests
         run: dotnet restore
-      - name: Run unit tests with coverage (TRX + Cobertura)
+      - name: Run unit tests with coverage
         working-directory: ./flowmazonbackend/flowmazonapi.UnitTests
         run: |
           dotnet test --configuration Release \
-            --logger "trx;LogFileName=test_results.trx" \
+            --logger "junit;LogFileName=test_results.xml" \
             --results-directory ./TestResults \
             --collect:"XPlat Code Coverage"
       - name: Publish test report to PR Checks
@@ -589,14 +589,16 @@ jobs:
         uses: dorny/test-reporter@v1
         with:
           name: API Unit Tests
-          path: flowmazonbackend/flowmazonapi.unittests/TestResults/*.trx
-          reporter: dotnet-trx
+          path: flowmazonbackend/flowmazonapi.UnitTests/TestResults/**/*.xml
+          # if this doesn't work then reporter should be java-junit
+          # Not sure what the difference is between the two
+          reporter: jest-junit
           fail-on-error: false
       - name: Upload coverage to Codecov
         if: always()
         uses: codecov/codecov-action@v4
         with:
-          files: flowmazonbackend/flowmazonapi.unittests/TestResults/**/coverage.cobertura.xml
+          files: flowmazonbackend/flowmazonapi.UnitTests/TestResults/**/coverage.cobertura.xml
           flags: api-unittests
           name: api-unittests
           token: ${{ secrets.CODECOV_TOKEN }}
