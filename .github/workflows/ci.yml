@@ -610,7 +610,7 @@ jobs:
           echo "previewUrl=$previewUrl" >> "$GITHUB_OUTPUT"
 
   comment-preview-links:
-    name: Post PR sticky comment with Preview links
+    name: Post links to Preview env on PR
     runs-on: ubuntu-24.04
     needs: [compute-non-secret-vars, deploy-backend, deploy-frontend-to-vercel]
     if: github.event.action != 'closed'
@@ -622,8 +622,11 @@ jobs:
           recreate: true
           message: |
             # Preview Environment Links
-              - Web: https://${{ needs.compute-non-secret-vars.outputs.vercel_app_domain }}
-              - API: https://${{ needs.compute-non-secret-vars.outputs.api_app_domain_name }}
+
+            Given below are the URLs for the last **_successful_** deployment to the Preview environment for this pull request. If the latest deployment failed (see Checks section below) then these links would be out of date (would take you to a previous Preview deployment or may not work at all):
+              
+            - Web: https://${{ needs.compute-non-secret-vars.outputs.vercel_app_domain }}
+            - API: https://${{ needs.compute-non-secret-vars.outputs.api_app_domain_name }}
 
   destroy-ephemeral-environment:
     name: Destroy Infrastructure for PR's Preview
