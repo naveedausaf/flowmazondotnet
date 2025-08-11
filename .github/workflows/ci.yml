@@ -562,6 +562,50 @@ jobs:
           -var="vault_secretname_env_OTEL_EXPORTER_OTLP_HEADERS=${{ needs.compute-non-secret-vars.outputs.vault_secretname_env_OTEL_EXPORTER_OTLP_HEADERS }}"
         working-directory: .iac/environments/preview-ephemeral-api
 
+  api-unittests:
+    name: Run API .NET Unit Tests and publish report
+    runs-on: ubuntu-24.04
+    needs: [compute-non-secret-vars]
+    if: github.event.action != 'closed'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 9.0.x
+      - name: Restore dependencies
+        working-directory: ./flowmazonbackend/flowmazonapi.UnitTests
+        run: dotnet restore
+      - name: Run unit tests with coverage
+        working-directory: ./flowmazonbackend/flowmazonapi.UnitTests
+        # Generating test results file (test_results.xml, not the cobertura format coverage file which is separate) in JUnit format because this is the only format CodeCov currently accepts test results in for its experimental test analytics feature (this is separate to its code coverage feature).
+        # We also upload the test_results.xml file as a Check (which appears in the Checks tab of the pull request) using dorny/test-reporter action as the CodeCov Test Results Analytics feature is still experimental.
+        run: |
+          dotnet test --configuration Release \
+            --logger "junit;LogFileName=test_results.xml" \
+            --results-directory ./TestResults \
+            --collect:"XPlat Code Coverage"
+      - name: Publish test report to PR Checks
+        if: always()
+        uses: dorny/test-reporter@v1
+        with:
+          name: API Unit Tests
+          path: flowmazonbackend/flowmazonapi.UnitTests/TestResults/**/test_results.xml
+          # java-junit reporter is experimental in this action. If this doesn't work properly then reporter should be jest-junit.
+          # Bear in mind though that to use jest-junit, you need to surround the contents of this xml file with a <testsuites> element which has a `time` attribute. See my wiki for details.
+
+          reporter: java-junit
+          fail-on-error: false
+      - name: Upload coverage to Codecov
+        if: always()
+        uses: codecov/codecov-action@v4
+        with:
+          files: flowmazonbackend/flowmazonapi.UnitTests/TestResults/**/coverage.cobertura.xml
+          flags: api-unittests
+          name: api-unittests
+          token: ${{ secrets.CODECOV_TOKEN }}
+
   # This job is based on job of same name
   # in release.yml. See detailed comments
   # there.
@@ -608,6 +652,27 @@ jobs:
         run: |
           previewUrl=$(vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_API_TOKEN }})
           echo "previewUrl=$previewUrl" >> "$GITHUB_OUTPUT"
+
+  comment-preview-links:
+    name: Post links to Preview env on PR
+    runs-on: ubuntu-24.04
+    needs: [compute-non-secret-vars, deploy-backend, deploy-frontend-to-vercel]
+    if: github.event.action != 'closed'
+    steps:
+      - name: Post sticky comment with preview links
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          header: preview-environment-links
+          # recreate: true
+          message: |
+            # Preview Environment Links
+
+            - Web: https://${{ needs.compute-non-secret-vars.outputs.vercel_app_domain }}
+            - API: https://${{ needs.compute-non-secret-vars.outputs.api_app_domain_name }}
+
+            Links given above are for the last **successful** deployment to the Preview environment for this pull request. 
+
+            If the latest deployment failed (see Checks section below) then these links could be out of date (i.e. could take you to a previous Preview deployment or may not work at all).
 
   destroy-ephemeral-environment:
     name: Destroy Infrastructure for PR's Preview
