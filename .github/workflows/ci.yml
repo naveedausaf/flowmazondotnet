@@ -619,7 +619,7 @@ jobs:
         uses: marocchino/sticky-pull-request-comment@v2
         with:
           header: preview-environment-links
-          recreate: true
+          # recreate: true
           message: |
             # Preview Environment Links
 
