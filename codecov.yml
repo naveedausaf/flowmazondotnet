@@ -1,2 +1,10 @@
 ignore:
   - flowmazonbackend/flowmazonapi/Migrations
+
+flag_management:
+  default_rules:
+    statuses:
+      - type: project
+        target: 90%
+      - type: patch
+        target: 90%
