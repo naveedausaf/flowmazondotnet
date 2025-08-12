@@ -603,12 +603,14 @@ jobs:
 
       - name: Upload coverage to Codecov
         if: always()
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@v5
         with:
           files: flowmazonbackend/flowmazonapi.UnitTests/TestResults/**/coverage.cobertura.xml
+          fail_ci_if_error: true
           #flags: api-unittests
           name: api-unittests
           token: ${{ secrets.CODECOV_TOKEN }}
+          verbose: true
 
   # This job is based on job of same name
   # in release.yml. See detailed comments
