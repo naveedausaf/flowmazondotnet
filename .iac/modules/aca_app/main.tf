@@ -130,11 +130,16 @@ resource "azurerm_container_app" "app" {
 
   }
 
-  secret {
-    name     = var.vault_secretname_registry_password_or_token
-    identity = data.azurerm_user_assigned_identity.managed_identity.id
-    # key_vault_secret_id is mandatory together with name above
-    key_vault_secret_id = azurerm_key_vault_secret.registry_password_or_token.id
+  dynamic "secret" {
+
+    for_each = var.registry_username != null ? [1] : []
+
+    content {
+      name     = var.vault_secretname_registry_password_or_token
+      identity = data.azurerm_user_assigned_identity.managed_identity.id
+      # key_vault_secret_id is mandatory together with name above
+      key_vault_secret_id = azurerm_key_vault_secret.registry_password_or_token.id
+    }
   }
 
   # like the vault_secretname_env_OTEL_EXPORTER_OTLP_HEADERS
