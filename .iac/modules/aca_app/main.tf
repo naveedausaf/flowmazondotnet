@@ -138,7 +138,7 @@ resource "azurerm_container_app" "app" {
       name     = var.vault_secretname_registry_password_or_token
       identity = data.azurerm_user_assigned_identity.managed_identity.id
       # key_vault_secret_id is mandatory together with name above
-      key_vault_secret_id = azurerm_key_vault_secret.registry_password_or_token.id
+      key_vault_secret_id = azurerm_key_vault_secret.registry_password_or_token[0].id
     }
   }
 
