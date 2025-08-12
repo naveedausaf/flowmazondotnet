@@ -838,7 +838,3 @@ jobs:
             echo "Failed to delete workspace ${WORKSPACE_NAME} (HTTP ${delete_response})"
             exit 1
           fi
-          else
-            echo "Failed to delete workspace ${WORKSPACE_NAME} (HTTP ${delete_response})"
-            exit 1
-          fi
