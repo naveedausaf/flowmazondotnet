@@ -4,8 +4,13 @@ ignore:
 coverage:
   status:
     project:
+      default:
+        target: 90%
+        threshold: 1%
       api:
         target: 90%
+        threshold: 1%
         paths:
           - flowmazonbackend
       
+# changes
