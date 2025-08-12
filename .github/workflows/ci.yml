@@ -684,7 +684,7 @@ jobs:
     needs: compute-non-secret-vars
     if: github.event.action == 'closed'
     env:
-      # Providers’ env requirements
+      # Providers' env requirements
       ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
       ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
       ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
@@ -767,3 +767,78 @@ jobs:
             -var="env_OTEL_EXPORTER_OTLP_PROTOCOL=${{ vars.ENV_OTEL_EXPORTER_OTLP_PROTOCOL }}" \
             -var="env_OTEL_EXPORTER_OTLP_HEADERS=${{ secrets.ENV_OTEL_EXPORTER_OTLP_HEADERS }}" \
             -var="secretname_for_vercel_project_id=${{ needs.compute-non-secret-vars.outputs.vercel_project_id_secret }}"
+
+      - name: Install jq for JSON parsing
+        run: sudo apt-get update && sudo apt-get install -y jq
+
+      - name: Delete HCP Terraform workspace (preview-ephemeral-api)
+        env:
+          HCP_TF_ORG: ${{ secrets.TF_ORG }}
+          HCP_TF_TOKEN: ${{ secrets.TF_API_TOKEN }}
+          WORKSPACE_NAME: ${{ needs.compute-non-secret-vars.outputs.tf_api_workspace_name }}
+        run: |
+          echo "Deleting HCP Terraform workspace: ${WORKSPACE_NAME}"
+          # Get workspace by name to obtain its ID
+          response=$(curl -s -H "Authorization: Bearer ${HCP_TF_TOKEN}" \
+            "https://app.terraform.io/api/v2/organizations/${HCP_TF_ORG}/workspaces/${WORKSPACE_NAME}" || echo '{"errors":[]}')
+
+          if echo "$response" | jq -e '.errors' >/dev/null 2>&1; then
+            echo "Workspace ${WORKSPACE_NAME} not found or already deleted. Skipping."
+            exit 0
+          fi
+
+          workspace_id=$(echo "$response" | jq -r '.data.id')
+          if [ -z "$workspace_id" ] || [ "$workspace_id" = "null" ]; then
+            echo "Could not resolve workspace ID for ${WORKSPACE_NAME}. Skipping."
+            exit 0
+          fi
+
+          # Delete workspace by ID
+          delete_response=$(curl -s -w "%{http_code}" -o /dev/null \
+            -H "Authorization: Bearer ${HCP_TF_TOKEN}" \
+            -X DELETE "https://app.terraform.io/api/v2/workspaces/${workspace_id}")
+
+          if [ "$delete_response" = "200" ] || [ "$delete_response" = "204" ] || [ "$delete_response" = "404" ]; then
+            echo "Successfully deleted workspace ${WORKSPACE_NAME} (ID: ${workspace_id})"
+          else
+            echo "Failed to delete workspace ${WORKSPACE_NAME} (HTTP ${delete_response})"
+            exit 1
+          fi
+
+      - name: Delete HCP Terraform workspace (preview-ephemeral)
+        env:
+          HCP_TF_ORG: ${{ secrets.TF_ORG }}
+          HCP_TF_TOKEN: ${{ secrets.TF_API_TOKEN }}
+          WORKSPACE_NAME: ${{ needs.compute-non-secret-vars.outputs.tf_workspace_name }}
+        run: |
+          echo "Deleting HCP Terraform workspace: ${WORKSPACE_NAME}"
+          # Get workspace by name to obtain its ID
+          response=$(curl -s -H "Authorization: Bearer ${HCP_TF_TOKEN}" \
+            "https://app.terraform.io/api/v2/organizations/${HCP_TF_ORG}/workspaces/${WORKSPACE_NAME}" || echo '{"errors":[]}')
+
+          if echo "$response" | jq -e '.errors' >/dev/null 2>&1; then
+            echo "Workspace ${WORKSPACE_NAME} not found or already deleted. Skipping."
+            exit 0
+          fi
+
+          workspace_id=$(echo "$response" | jq -r '.data.id')
+          if [ -z "$workspace_id" ] || [ "$workspace_id" = "null" ]; then
+            echo "Could not resolve workspace ID for ${WORKSPACE_NAME}. Skipping."
+            exit 0
+          fi
+
+          # Delete workspace by ID
+          delete_response=$(curl -s -w "%{http_code}" -o /dev/null \
+            -H "Authorization: Bearer ${HCP_TF_TOKEN}" \
+            -X DELETE "https://app.terraform.io/api/v2/workspaces/${workspace_id}")
+
+          if [ "$delete_response" = "200" ] || [ "$delete_response" = "204" ] || [ "$delete_response" = "404" ]; then
+            echo "Successfully deleted workspace ${WORKSPACE_NAME} (ID: ${workspace_id})"
+          else
+            echo "Failed to delete workspace ${WORKSPACE_NAME} (HTTP ${delete_response})"
+            exit 1
+          fi
+          else
+            echo "Failed to delete workspace ${WORKSPACE_NAME} (HTTP ${delete_response})"
+            exit 1
+          fi
