@@ -596,7 +596,7 @@ jobs:
           name: API Unit Tests
           path: flowmazonbackend/flowmazonapi.UnitTests/TestResults/**/test_results.xml
           # java-junit reporter is experimental in this action. If this doesn't work properly then reporter should be jest-junit.
-          # Bear in mind though that to use jest-junit, you need to surround the contents of this xml file with a <testsuites> element which has a `time` attribute. See my wiki for details.
+          # Bear in mind though that to use jest-junit, you need to surround the contents of this xml file with a <testsuites> element which has a `time` attribute. See my wiki for details
 
           reporter: java-junit
           fail-on-error: false
