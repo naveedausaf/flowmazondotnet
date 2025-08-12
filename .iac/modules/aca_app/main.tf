@@ -63,6 +63,7 @@ resource "azurerm_key_vault_secret" "otlp_headers" {
 }
 
 resource "azurerm_key_vault_secret" "registry_password_or_token" {
+  count        = var.registry_username != null ? 1 : 0
   name         = var.vault_secretname_registry_password_or_token
   key_vault_id = data.azurerm_key_vault.vault.id
   value        = var.registry_password_or_token
