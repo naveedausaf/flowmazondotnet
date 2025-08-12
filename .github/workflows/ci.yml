@@ -2,7 +2,7 @@ name: CI
 # This concurrency block definition ensures that
 # only a single instance of this workflow can be
 # be running at any given time for a given
-# source (i.e. head) branch.
+# source (i.e. head) branch
 concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
@@ -589,23 +589,24 @@ jobs:
             --logger "junit;LogFileName=test_results.xml" \
             --results-directory ./TestResults \
             --collect:"XPlat Code Coverage"
-      # - name: Publish test report to PR Checks
-      #   if: always()
-      #   uses: dorny/test-reporter@v1
-      #   with:
-      #     name: API Unit Tests
-      #     path: flowmazonbackend/flowmazonapi.UnitTests/TestResults/**/test_results.xml
-      #     # java-junit reporter is experimental in this action. If this doesn't work properly then reporter should be jest-junit.
-      #     # Bear in mind though that to use jest-junit, you need to surround the contents of this xml file with a <testsuites> element which has a `time` attribute. See my wiki for details.
+      - name: Publish test report to PR Checks
+        if: always()
+        uses: dorny/test-reporter@v1
+        with:
+          name: API Unit Tests
+          path: flowmazonbackend/flowmazonapi.UnitTests/TestResults/**/test_results.xml
+          # java-junit reporter is experimental in this action. If this doesn't work properly then reporter should be jest-junit.
+          # Bear in mind though that to use jest-junit, you need to surround the contents of this xml file with a <testsuites> element which has a `time` attribute. See my wiki for details.
 
-      #     reporter: java-junit
-      #     fail-on-error: false
+          reporter: java-junit
+          fail-on-error: false
+
       - name: Upload coverage to Codecov
         if: always()
         uses: codecov/codecov-action@v4
         with:
           files: flowmazonbackend/flowmazonapi.UnitTests/TestResults/**/coverage.cobertura.xml
-          flags: api-unittests
+          #flags: api-unittests
           name: api-unittests
           token: ${{ secrets.CODECOV_TOKEN }}
 

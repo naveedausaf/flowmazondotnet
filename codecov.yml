@@ -1,16 +1,42 @@
 ignore:
   - flowmazonbackend/flowmazonapi/Migrations
 
+component_management:
+  individual_components:
+    - component_id: api
+      name: Flowmazon API
+      paths:
+        - flowmazonbackend/**
+
 coverage:
   status:
     project:
       default:
         target: 90%
         threshold: 1%
+        informational: false
       api:
         target: 90%
         threshold: 1%
+        informational: false
+        paths:
+          - flowmazonbackend
+    patch:
+      default:
+        target: 90%
+        threshold: 1%
+        informational: false
+      api:
+        target: 90%
+        threshold: 1%
+        informational: false
         paths:
           - flowmazonbackend
       
-# changes
+comment:
+  # Show a richer comment with components
+  layout: "header, components, diff, files, footer"
+  behavior: default
+  require_changes: false
+  require_base: true
+  require_head: true
