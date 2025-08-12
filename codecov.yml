@@ -34,7 +34,7 @@ coverage:
           - flowmazonbackend
       
 comment:
-  # Show a richer comment with components
+  # Show comment with details:
   layout: "header, components, diff, files, footer"
   behavior: default
   require_changes: false
