@@ -586,9 +586,9 @@ jobs:
         # We also upload the test_results.xml file as a Check (which appears in the Checks tab of the pull request) using dorny/test-reporter action as the CodeCov Test Results Analytics feature is still experimental.
         run: |
           dotnet test --configuration Release \
-            --logger "junit;LogFileName=test_results.xml" \
-            --results-directory ./TestResults \
-            --collect:"XPlat Code Coverage"
+            # --logger "junit;LogFileName=test_results.xml" \
+            # --results-directory ./TestResults \
+            # --collect:"XPlat Code Coverage"
       # - name: Publish test report to PR Checks
       #   if: always()
       #   uses: dorny/test-reporter@v1
@@ -600,14 +600,15 @@ jobs:
 
       #     reporter: java-junit
       #     fail-on-error: false
-      - name: Upload coverage to Codecov
-        if: always()
-        uses: codecov/codecov-action@v4
-        with:
-          files: flowmazonbackend/flowmazonapi.UnitTests/TestResults/**/coverage.cobertura.xml
-          flags: api-unittests
-          name: api-unittests
-          token: ${{ secrets.CODECOV_TOKEN }}
+
+      # - name: Upload coverage to Codecov
+      #   if: always()
+      #   uses: codecov/codecov-action@v4
+      #   with:
+      #     files: flowmazonbackend/flowmazonapi.UnitTests/TestResults/**/coverage.cobertura.xml
+      #     flags: api-unittests
+      #     name: api-unittests
+      #     token: ${{ secrets.CODECOV_TOKEN }}
 
   # This job is based on job of same name
   # in release.yml. See detailed comments
