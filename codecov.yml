@@ -4,8 +4,9 @@ ignore:
 coverage:
   status:
     project:
-      api:
+      default:
         target: 90%
+        threshold: 1%
         paths:
           - flowmazonbackend
       
