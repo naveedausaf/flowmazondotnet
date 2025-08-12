@@ -1,42 +1,19 @@
 ignore:
   - flowmazonbackend/flowmazonapi/Migrations
 
-component_management:
-  individual_components:
-    - component_id: api
-      name: Flowmazon API
-      paths:
-        - flowmazonbackend/**
-
 coverage:
   status:
-    project:
+    project: #add everything under here, more options at https://docs.codecov.com/docs/commit-status
       default:
-        target: 90%
-        threshold: 1%
-        informational: false
-      api:
-        target: 90%
-        threshold: 1%
-        informational: false
-        paths:
-          - flowmazonbackend
-    patch:
-      default:
-        target: 90%
-        threshold: 1%
-        informational: false
-      api:
-        target: 90%
-        threshold: 1%
-        informational: false
-        paths:
-          - flowmazonbackend
-      
-comment:
-  # Show a richer comment with components
-  layout: "header, components, diff, files, footer"
+        # basic
+        target: 90% #default
+        threshold: 0%
+        base: auto 
+
+comment:                  #this is a top-level key
+  layout: " diff, flags, files"
   behavior: default
-  require_changes: false
-  require_base: true
-  require_head: true
+  require_changes: false  # if true: only post the comment if coverage changes
+  require_base: false        # [true :: must have a base report to post]
+  require_head: true       # [true :: must have a head report to post]
+  hide_project_coverage: false # [true :: only show coverage on the git diff aka patch coverage]
