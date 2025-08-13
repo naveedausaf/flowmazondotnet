@@ -289,7 +289,7 @@ jobs:
       - name: Terraform Init
         env:
           # terraform init expects to be given TF_WORKSPACE env var
-          # because it is not part of terraorm block in the root module
+          # because it is not part of terraform block in the root module
           TF_WORKSPACE: ${{needs.compute-non-secret-vars.outputs.tf_workspace_name}}
         run: terraform init
         working-directory: .iac/environments/preview-ephemeral
