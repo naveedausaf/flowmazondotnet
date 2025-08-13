@@ -17,7 +17,7 @@ jobs:
       released: ${{ env.RELEASED }}
       newVersion: ${{ env.NEW_VERSION }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         name: Checkout code
         id: checkout
         with:
@@ -86,7 +86,7 @@ jobs:
     needs: create-release
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
       - name: Setup .NET SDK
         uses: actions/setup-dotnet@v4
         with:
@@ -136,7 +136,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Install psql client
         run: |
@@ -161,7 +161,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
       - name: Print version to console
         run: |
           echo "New Version Number is: ${{ needs.create-release.outputs.newVersion }}"
@@ -249,7 +249,7 @@ jobs:
     needs: [create-release, deploy-backend]
     if: ${{ needs.create-release.outputs.released == 1}}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Print version to console
         run: |
           echo "New Version Number is: ${{ needs.create-release.outputs.newVersion }}"
