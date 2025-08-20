@@ -1,10 +1,12 @@
 ## Overview
 
-## Architecture and Deployment Diagram
+## Deployment Diagram (Production)
 
-Deployment Diagram is as follows. It is also a good approximation of the Logical Architecture of the solution:
+Deployment Diagram for Production is as follows. 
 
-![alt text](image-1.png)
+Application runs on the green nodes and these may be seen as a rough Architecture Diagram of the solution.
+
+![alt text](image.png)
 
 ### API Gateway: CloudFlare API Shield
 
