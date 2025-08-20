@@ -4,7 +4,7 @@
 
 **Deployment Diagram for Production is given below**. 
 
-Application code runs on the green nodes in application infrastructure and these may be seen as a rough Architecture Diagram of the solution.
+Application code runs on application infrastructure nodes shown in **GREEN**. These may be seen as a rough Architecture Diagram of the solution.
 
 ![alt text](image.png)
 
