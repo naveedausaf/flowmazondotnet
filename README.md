@@ -4,7 +4,7 @@
 
 Deployment Diagram is as follows. It is also a good approximation of the Logical Architecture of the solution:
 
-![alt text](image.png)
+![alt text](image-1.png)
 
 ### API Gateway: CloudFlare API Shield
 
