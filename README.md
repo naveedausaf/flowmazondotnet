@@ -1,8 +1,10 @@
 ## Overview
 
-## Architecture
+## Architecture and Deployment Diagram
 
-UML Component diagram with description???
+Deployment Diagram is as follows. It is also a good approximation of the Logical Architecture of the solution:
+
+![alt text](image.png)
 
 ### API Gateway: CloudFlare API Shield
 
