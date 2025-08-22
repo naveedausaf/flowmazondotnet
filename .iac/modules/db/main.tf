@@ -1,8 +1,9 @@
 # --- Neon Infrastructure Setup ---
 
 resource "neon_project" "flowmazon_project" {
-  name   = var.neon_project_name
-  org_id = var.neon_org_id
+  name                      = var.neon_project_name
+  org_id                    = var.neon_org_id
+  history_retention_seconds = 21600
   branch {
     name = var.neon_branch_name
   }
