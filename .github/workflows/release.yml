@@ -219,7 +219,7 @@ jobs:
 
       - name: Run terraform apply on prod-api workspace
         run: |
-          cd .iac/environments/prod-api
+          cd .iac/workspaces/prod-api
           terraform init
           terraform apply -auto-approve -var="image_tag=${{ needs.create-release.outputs.newVersion }}"
 
