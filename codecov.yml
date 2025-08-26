@@ -1,5 +1,5 @@
-# ignore:
-#   - flowmazonbackend/flowmazonapi/Migrations
+ignore:
+  - flowmazonbackend/flowmazonapi/Migrations
 
 coverage:
   status:
