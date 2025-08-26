@@ -567,6 +567,8 @@ jobs:
     runs-on: ubuntu-24.04
     needs: [compute-non-secret-vars]
     if: github.event.action != 'closed'
+    environment:
+      name: Preview
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
