@@ -43,3 +43,12 @@ module "cloudflare_rate_limiting_rule" {
   rate_limit_requests_per_period = 30
 
 }
+
+# register the Microsoft.App provider that is needed to create 
+# an instance of Azure Container Apps environment.
+# Even though the service principal TF uses has permission
+# to register any resource providers it needs, it it somehow
+# fails to register this one.
+resource "azurerm_provider_registration" "app" {
+  name = "Microsoft.App"
+}
