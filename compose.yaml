@@ -14,7 +14,7 @@ services:
       OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT}
       OTEL_EXPORTER_OTLP_PROTOCOL: ${OTEL_EXPORTER_OTLP_PROTOCOL}
       OTEL_EXPORTER_OTLP_HEADERS: ${OTEL_EXPORTER_OTLP_HEADERS}
-      # don't need to decalre NEXT_PUBLIC_ vars here again because
+      # don't need to declare NEXT_PUBLIC_ vars here again because
       # the Dockerfile would set them (they are passed in as ARGs
       # above) as ENV vars. Of those NEXT_PUBLIC_OTEL_ENVIRONMENT
       # will be read by the server side otel initialization
