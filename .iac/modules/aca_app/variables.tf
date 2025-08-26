@@ -143,7 +143,7 @@ variable "app_revision_mode" {
 }
 
 variable "managed_identity_name" {
-  description = "Name of the user-assigned managed identity that would be assigned to the ACA app. This would be used to read secret values from Azure Key Vault. Moreover, if acr_name parameter is not null then the managed identity named by this argument - if this argument is not null - would be used to pull image from the specified Azure Container Regitry."
+  description = "Name of the user-assigned managed identity that would be assigned to the ACA app. This would be used to read secret values from Azure Key Vault. Moreover, if acr_name parameter is not null then the managed identity named by this argument - if this argument is not null - would be used to pull image from the specified Azure Container Registry."
 
   type = string
 
