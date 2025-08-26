@@ -86,6 +86,8 @@ jobs:
     name: Run API .NET Unit Tests and publish report
     runs-on: ubuntu-24.04
     needs: create-release
+    environment:
+      name: Production
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
