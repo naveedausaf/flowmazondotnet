@@ -49,6 +49,9 @@ module "cloudflare_rate_limiting_rule" {
 # Even though the service principal TF uses has permission
 # to register any resource providers it needs, it it somehow
 # fails to register this one.
+# Putting it in this workspace as this is the only long-live
+# workspace in Preview logical environment and ACA app env
+# only gets created once this has already been created.
 resource "azurerm_resource_provider_registration" "aca_app_env_provider_registration" {
   name = "Microsoft.App"
 }
