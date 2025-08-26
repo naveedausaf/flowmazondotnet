@@ -68,3 +68,17 @@ module "cloudflare_rate_limiting_rule" {
   rate_limit_requests_per_period = 30
 
 }
+
+
+# register the Microsoft.App provider that is needed to create 
+# an instance of Azure Container Apps environment.
+# Even though the service principal TF uses has permission
+# to register any resource providers it needs, it it somehow
+# fails to register this one.
+# Putting it in this workspace as this workspace needs to run/
+# be created before prod-api workspace that created the ACA
+# environment which would require this resource provider
+# to be registered.
+resource "azurerm_resource_provider_registration" "aca_app_env_provider_registration" {
+  name = "Microsoft.App"
+}
