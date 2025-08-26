@@ -78,7 +78,7 @@ module "cloudflare_rate_limiting_rule" {
 # Putting it in this workspace as this workspace needs to run/
 # be created before prod-api workspace that created the ACA
 # environment which would require this resource provider
-# to be registered.
+# to be registered
 resource "azurerm_resource_provider_registration" "aca_app_env_provider_registration" {
   name = "Microsoft.App"
 }
