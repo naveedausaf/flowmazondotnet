@@ -396,7 +396,7 @@ jobs:
     # task takes so long to deploy (Azure every time! :( )
     # that I have removed its dependency on migrate-db
     # which is ok as this is only a Preview env
-    needs: [compute-non-secret-vars]
+    needs: [compute-non-secret-vars, create-update-preview-ephemeral]
     name: Deploy API to Azure
     runs-on: ubuntu-latest
     if: github.event.action != 'closed'
@@ -655,16 +655,16 @@ jobs:
           path: ./flowmazonfrontend/playwright-report/
           retention-days: 30
 
-      # - name: Publish test report to PR Checks
-      #   if: always()
-      #   uses: dorny/test-reporter@v1
-      #   with:
-      #     name: API Unit Tests
-      #     path: flowmazonbackend/flowmazonapi.UnitTests/TestResults/**/test_results.xml
-      #     # java-junit reporter is experimental in this action. If this doesn't work properly then reporter should be jest-junit.
-      #     # Bear in mind though that to use jest-junit, you need to surround the contents of this xml file with a <testsuites> element which has a `time` attribute. See my wiki for details.
-      #     reporter: java-junit
-      #     fail-on-error: false
+      - name: Publish test report to PR Checks
+        if: always()
+        uses: dorny/test-reporter@v1
+        with:
+          name: Playwright Integration Tests
+          path: ./flowmazonfrontend/junit-report/test_results.xml
+          # java-junit reporter is experimental in this action. If this doesn't work properly then reporter should be jest-junit.
+          # Bear in mind though that to use jest-junit, you need to surround the contents of this xml file with a <testsuites> element which has a `time` attribute. See my wiki for details.
+          reporter: java-junit
+          fail-on-error: false
 
   api-integration-tests:
     name: Run API .NET Integration Tests and publish report
