@@ -563,7 +563,7 @@ jobs:
         working-directory: .iac/workspaces/preview-ephemeral-api
 
   api-unittests:
-    name: Run API .NET Unit Tests and publish report
+    name: Run API Unit Tests and publish report
     runs-on: ubuntu-24.04
     needs: [compute-non-secret-vars]
     if: github.event.action != 'closed'
