@@ -744,7 +744,13 @@ jobs:
   comment-preview-links:
     name: Post links to Preview env on PR
     runs-on: ubuntu-24.04
-    needs: [compute-non-secret-vars, deploy-backend, deploy-frontend-to-vercel]
+    needs:
+      [
+        compute-non-secret-vars,
+        deploy-backend,
+        deploy-frontend-to-vercel,
+        playwright-tests,
+      ]
     if: github.event.action != 'closed'
     steps:
       - name: Post sticky comment with preview links
