@@ -392,7 +392,11 @@ jobs:
     permissions:
       contents: read # Needed for actions/checkout
       packages: write # Needed to push to GHCR
-    needs: [compute-non-secret-vars, migrate-db]
+    # even though it needs db to be available, this
+    # task takes so long to deploy (Azure every time! :( )
+    # that I have removed its dependency on migrate-db
+    # which is ok as this is only a Preview env
+    needs: [compute-non-secret-vars, create-update-preview-ephemeral]
     name: Deploy API to Azure
     runs-on: ubuntu-latest
     if: github.event.action != 'closed'
@@ -563,7 +567,7 @@ jobs:
         working-directory: .iac/workspaces/preview-ephemeral-api
 
   api-unittests:
-    name: Run API .NET Unit Tests and publish report
+    name: Run API Unit Tests and publish report
     runs-on: ubuntu-24.04
     needs: [compute-non-secret-vars]
     if: github.event.action != 'closed'
@@ -612,6 +616,55 @@ jobs:
           name: api-unittests
           token: ${{ secrets.CODECOV_TOKEN }}
           verbose: true
+  playwright-tests:
+    name: Run Playwright Integration Tests and publish report
+    runs-on: ubuntu-24.04
+    # While this task strictly depends on compute-non-secret-vars and deploy-frontend-to-vercel, I am declaring dependency on deploy-backend and migrate-db also because I took them out of correct dependency graph in order to speed up Preview environment deployment.
+    needs:
+      [
+        compute-non-secret-vars,
+        deploy-frontend-to-vercel,
+        deploy-backend,
+        migrate-db,
+      ]
+    if: github.event.action != 'closed'
+    environment:
+      name: Preview
+    env:
+      BASE_URL: https://${{ needs.compute-non-secret-vars.outputs.vercel_app_domain }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24.x
+      - name: Install dependencies and browsers
+        working-directory: ./flowmazonfrontend
+        run: |
+          npm ci
+          npx playwright install --with-deps
+      - name: Run Playwright tests
+        working-directory: ./flowmazonfrontend
+        # We want all three browsers for which projects have been defined in playwright.config.ts to run.
+        # However we need to specify the projects explicitly as there are other projects for other purposes that are not specific to/are not meant to specify browsers to run tests on.
+        run: npx playwright test --project chromium firefox webkit
+      - uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with:
+          name: playwright-report
+          path: ./flowmazonfrontend/playwright-report/
+          retention-days: 30
+
+      - name: Publish test report to PR Checks
+        if: always()
+        uses: dorny/test-reporter@v1
+        with:
+          name: Playwright Integration Tests
+          path: ./flowmazonfrontend/junit-report/test_results.xml
+          # java-junit reporter is experimental in this action. If this doesn't work properly then reporter should be jest-junit.
+          # Bear in mind though that to use jest-junit, you need to surround the contents of this xml file with a <testsuites> element which has a `time` attribute. See my wiki for details.
+          reporter: java-junit
+          fail-on-error: false
 
   api-integration-tests:
     name: Run API .NET Integration Tests and publish report
@@ -702,7 +755,13 @@ jobs:
   comment-preview-links:
     name: Post links to Preview env on PR
     runs-on: ubuntu-24.04
-    needs: [compute-non-secret-vars, deploy-backend, deploy-frontend-to-vercel]
+    needs:
+      [
+        compute-non-secret-vars,
+        deploy-backend,
+        deploy-frontend-to-vercel,
+        playwright-tests,
+      ]
     if: github.event.action != 'closed'
     steps:
       - name: Post sticky comment with preview links
@@ -713,12 +772,23 @@ jobs:
           message: |
             # Preview Environment Links
 
-            - Web: https://${{ needs.compute-non-secret-vars.outputs.vercel_app_domain }}
-            - API: https://${{ needs.compute-non-secret-vars.outputs.api_app_domain_name }}
+            - **Web:** https://${{ needs.compute-non-secret-vars.outputs.vercel_app_domain }}
 
-            Links given above are for the last **successful** deployment to the Preview environment for this pull request. 
+            - **API:** https://${{ needs.compute-non-secret-vars.outputs.api_app_domain_name }}
 
-            If the latest deployment failed (see Checks section below) then these links could be out of date (i.e. could take you to a previous Preview deployment or may not work at all).
+            - **Playwright Test Report:** download from **Artifacts section at the bottom of [this page](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})**
+
+            ## Note
+
+            - Links given above are for the last **successful** deployment to the Preview environment for this pull request. 
+
+                If the latest deployment failed (see Checks section below) then these links could be out of date (i.e. could take you to a previous Preview deployment or may not work at all).
+
+            -  Playwright HTML report would have screenshots, videos and interactive DOM snapshots for failed tests only.
+
+            -  Summary test run reports are available for each test suite (API Unit Tests, API Integration Tests, Playwright Integration Tests) in the Checks section of this pull request. 
+
+                They would be in a random section in Checks. Due to a limitation of the GitHub API, it is not possible to control where in Checks they appear.
 
   destroy-ephemeral-environment:
     name: Destroy Infrastructure for PR's Preview
