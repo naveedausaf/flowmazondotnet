@@ -784,7 +784,9 @@ jobs:
 
                 If the latest deployment failed (see Checks section below) then these links could be out of date (i.e. could take you to a previous Preview deployment or may not work at all).
 
-            -  Playwright report would have screenshots, videos and interactive DOM snapshots only for failed tests.
+            -  Playwright HTML report would have screenshots, videos and interactive DOM snapshots for failed tests only.
+
+            -  Summary test run reports (not HTML) are available for each test suite (API Unit Tests, API Integration Tests, Playwright Integration Tests) are available in Checks section of this pull request. They would be in a random section in Checks because due to GitHub API limitation, it is not possible to control under which jobs test reports published to Checks section appear.
 
   destroy-ephemeral-environment:
     name: Destroy Infrastructure for PR's Preview
