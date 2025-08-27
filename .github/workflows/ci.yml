@@ -788,7 +788,7 @@ jobs:
 
             -  Summary test run reports are available for each test suite (API Unit Tests, API Integration Tests, Playwright Integration Tests) in the Checks section of this pull request. 
 
-                They would be in a random section in Checks. This is because due to a limitation of the GitHub API, it is not possible to control where in Checks they appear.
+                They would be in a random section in Checks. Due to a limitation of the GitHub API, it is not possible to control where in Checks they appear.
 
   destroy-ephemeral-environment:
     name: Destroy Infrastructure for PR's Preview
