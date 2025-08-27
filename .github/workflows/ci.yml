@@ -780,9 +780,11 @@ jobs:
 
             ## Note
 
-            Links given above are for the last **successful** deployment to the Preview environment for this pull request. 
+            - Links given above are for the last **successful** deployment to the Preview environment for this pull request. 
 
-            If the latest deployment failed (see Checks section below) then these links could be out of date (i.e. could take you to a previous Preview deployment or may not work at all).
+                If the latest deployment failed (see Checks section below) then these links could be out of date (i.e. could take you to a previous Preview deployment or may not work at all).
+
+            -  Playwright report would have screenshots, videos and interactive DOM snapshots only for failed tests.
 
   destroy-ephemeral-environment:
     name: Destroy Infrastructure for PR's Preview
