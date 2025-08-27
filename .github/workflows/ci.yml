@@ -392,6 +392,10 @@ jobs:
     permissions:
       contents: read # Needed for actions/checkout
       packages: write # Needed to push to GHCR
+    # even though it needs db to be available, this
+    # task takes so long to deploy (Azure every time! :( )
+    # that I have removed its dependency on migrate-db
+    # which is ok as this is only a Preview env
     needs: [compute-non-secret-vars]
     name: Deploy API to Azure
     runs-on: ubuntu-latest
@@ -615,7 +619,14 @@ jobs:
   playwright-tests:
     name: Run Playwright Integration Tests and publish report
     runs-on: ubuntu-24.04
-    needs: [compute-non-secret-vars, deploy-frontend-to-vercel, deploy-backend]
+    # While this task strictly depends on compute-non-secret-vars and deploy-frontend-to-vercel, I am declaring dependency on deploy-backend and migrate-db also because I took them out of correct dependency graph in order to speed up Preview environment deployment.
+    needs:
+      [
+        compute-non-secret-vars,
+        deploy-frontend-to-vercel,
+        deploy-backend,
+        migrate-db,
+      ]
     if: github.event.action != 'closed'
     environment:
       name: Preview
@@ -759,14 +770,13 @@ jobs:
           header: preview-environment-links
           # recreate: true
           message: |
-            ## Preview Environment Links
+            # Preview Environment Links
 
-            - Web: https://${{ needs.compute-non-secret-vars.outputs.vercel_app_domain }}
-            - API: https://${{ needs.compute-non-secret-vars.outputs.api_app_domain_name }}
+            - **Web:** https://${{ needs.compute-non-secret-vars.outputs.vercel_app_domain }}
 
-            ## Playwright Test Report
+            - **API:** https://${{ needs.compute-non-secret-vars.outputs.api_app_domain_name }}
 
-            Download Playwright HTML report [from here](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
+            - **Playwright Test Report:** download from **Artifacts section at the bottom of [this page](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})**
 
             ## Note
 
