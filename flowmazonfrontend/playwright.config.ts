@@ -27,7 +27,11 @@ export default defineConfig({
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
     /* Base URL to use in actions like `await page.goto('/')`. */
-    baseURL: 'http://localhost:4000', //Docker Compose is running an NExt,je container at this address
+    //
+    //BASE_URL command line parameter allows us to set baseUrl on the command line which is needed in CD pipeline.
+    //
+    //Default is the Docker Compose is running an Next.js container at this address. This is used for local continuous testing as well as for manually running a test (Docker Compose is assumed to be running).
+    baseURL: process.env.BASE_URL ?? 'http://localhost:4000',
 
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: 'retry-with-trace',
@@ -52,7 +56,7 @@ export default defineConfig({
       use: { ...devices['Desktop Safari'] },
     },
     {
-      //USE THIS POJECT AS DESCRIBED IN README
+      //USE THIS PROJECT AS DESCRIBED IN README
 
       name: 'test against Frontend/Backend launch config',
       use: {
