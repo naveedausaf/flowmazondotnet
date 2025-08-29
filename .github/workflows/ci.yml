@@ -522,7 +522,7 @@ jobs:
       # preview-ephemeral-api HCP workspace would be created
       # dynamically by this workflow, then deployed to using
       # local execution while the state file is maintained in
-      # HCP.
+      # HCP;
       # The choices made for the next two steps are also
       # very similar to that job so see documentation above
       # for the create-update-preview-ephemeral job.
