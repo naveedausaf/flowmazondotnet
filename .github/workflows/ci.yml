@@ -340,7 +340,7 @@ jobs:
               lock_id=$(echo "$output" | grep -o 'ID:\s*[0-9a-z-]\+' | awk '{print $2}')
               echo "FOUND LOCK ID: $lock_id"
               if [ -n "$lock_id" ]; then                
-                terraform force-unlock -force "53037477-707b-ad04-b2bb-b715f7bcb159/preview-pr170"
+                terraform force-unlock -force "aac5e75e-8b13-159d-14be-58eedd517401/preview-pr170"
               fi
               exit $exit_code
             fi
