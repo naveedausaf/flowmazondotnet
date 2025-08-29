@@ -644,7 +644,7 @@ jobs:
         working-directory: .iac/workspaces/preview-ephemeral-api
 
   api-unittests:
-    name: Run API Unit Tests and publish report
+    name: API Unit Tests
     runs-on: ubuntu-24.04
     needs: [compute-non-secret-vars]
     if: github.event.action != 'closed'
@@ -694,7 +694,7 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
           verbose: true
   playwright-tests:
-    name: Run Playwright Integration Tests and publish report
+    name: Playwright Integration Tests
     runs-on: ubuntu-24.04
     # While this task strictly depends on compute-non-secret-vars and deploy-frontend-to-vercel, I am declaring dependency on deploy-backend and migrate-db also because I took them out of correct dependency graph in order to speed up Preview environment deployment.
     needs:
@@ -744,7 +744,7 @@ jobs:
           fail-on-error: false
 
   api-integration-tests:
-    name: Run API .NET Integration Tests and publish report
+    name: API Integration Tests
     runs-on: ubuntu-24.04
     needs: [compute-non-secret-vars]
     if: github.event.action != 'closed'
@@ -853,6 +853,7 @@ jobs:
       - name: Post sticky comment with preview links
         uses: marocchino/sticky-pull-request-comment@v2
         with:
+          recreate: true # so it always appears at the end where PR checks are
           header: preview-environment-links
           # recreate: true
           message: |
