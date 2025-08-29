@@ -349,8 +349,8 @@ jobs:
                 # terraform force-unlock command
                 terraform force-unlock -force "${{ secrets.TF_ORG }}/${{needs.compute-non-secret-vars.outputs.tf_workspace_name}}"
               fi
-              exit $exit_code
             fi
+            exit $exit_code
           shell: bash
         env:
           # terraform init expects to be given TF_WORKSPACE env var
