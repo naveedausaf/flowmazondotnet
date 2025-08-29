@@ -6,6 +6,13 @@ on:
       - main
 
 jobs:
+  chromatic:
+    uses: "./.github/workflows/chromatic.yml"
+    with:
+      failOnChanges: true
+      workingDir: ./flowmazonfrontend
+    secrets:
+      CHROMATIC_PROJECT_TOKEN: ${{ secrets.CHROMATIC_PROJECT_TOKEN }}
   create-release:
     environment:
       name: Production
@@ -134,7 +141,7 @@ jobs:
   migrate-db:
     environment:
       name: Production
-    needs: create-release
+    needs: [create-release, chromatic, api-unittests]
     if: ${{ needs.create-release.outputs.released == 1}}
     name: Migrate Database
     runs-on: ubuntu-latest

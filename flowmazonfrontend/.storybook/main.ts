@@ -6,7 +6,7 @@ const config: StorybookConfig = {
     '@chromatic-com/storybook',
     '@storybook/addon-a11y',
     '@storybook/addon-coverage',
-    '@storybook/addon-docs'
+    '@storybook/addon-docs',
   ],
   docs: {
     defaultName: 'Documentation',
@@ -15,7 +15,7 @@ const config: StorybookConfig = {
     name: '@storybook/nextjs',
     options: {},
   },
-  staticDirs: ['..\\public'],
+  staticDirs: ['../public'],
   core: {
     disableTelemetry: true, // 👈 Disables telemetry
   },
