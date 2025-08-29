@@ -335,8 +335,8 @@ jobs:
               -var="secretname_for_vercel_project_id=${{ needs.compute-non-secret-vars.outputs.vercel_project_id_secret }}" \
               2>&1)
             exit_code=$?
-            echo $output
             if [ $exit_code -ne 0 ]; then
+              echo $output
               lock_id=$(echo "$output" | grep -o 'ID: [0-9a-f-]\+' | cut -d' ' -f2)
               if [ -n "$lock_id" ]; then
                 terraform force-unlock -force "$lock_id"
