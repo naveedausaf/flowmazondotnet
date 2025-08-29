@@ -210,14 +210,14 @@ jobs:
         # Then you would get an error if there are more than
         # one modules being referenced via github references
         # in the root module (a single module referenced like
-        # this is fine though, which is a bit bafffling):
+        # this is fine though, which is a bit baffling):
         #
         # ╷
         # │ Error: Failed to expand subdir globs
         # │
         # │ subdir ".iac/modules/flowmazonfrontend" not found
         #
-        # Basically one of the modules cannot be deferennced.
+        # Basically one of the modules cannot be deferenced.
         #
         # I did have the option of copying across the referenced
         # modules into the dir of the root module, then
@@ -293,10 +293,68 @@ jobs:
           TF_WORKSPACE: ${{needs.compute-non-secret-vars.outputs.tf_workspace_name}}
         run: terraform init
         working-directory: .iac/workspaces/preview-ephemeral
+
       - name: Terraform Apply
+        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 # v3.0.2
+        with:
+          timeout_minutes: 30
+          max_attempts: 2
+
+          # Run terraform apply and capture lock ID on failure
+          command: |
+            cd .iac/workspaces/preview-ephemeral
+            output=$(terraform apply -auto-approve \
+              -var="vault_name=${{ vars.VAULT_NAME }}" \
+              -var="vault_resource_group_name=${{ vars.ID_AND_VAULT_RESOURCE_GROUP_NAME }}" \
+              -var="vault_secretname_for_connectionstring=${{ needs.compute-non-secret-vars.outputs.vault_secret_conn_name }}" \
+              -var="secretname_for_psql_owner_connectionstring=${{ needs.compute-non-secret-vars.outputs.psql_owner_conn_name }}" \
+              -var="environmentname_for_secrets_and_variables=Preview" \
+              -var="repository_for_secrets_and_variables=flowmazondotnet" \
+              -var="neon_project_id=${{ secrets.TF_MANAGED_NEON_PROJECT_ID }}" \
+              -var="neon_source_branch_id=${{ secrets.TF_MANAGED_NEON_SOURCE_BRANCH_ID }}" \
+              -var="neon_new_branch_name=${{ needs.compute-non-secret-vars.outputs.neon_branch_name }}" \
+              -var="neon_database_name=${{ vars.NEON_DATABASE_NAME }}" \
+              -var="neon_app_role=${{ vars.NEON_APP_ROLE }}" \
+              -var="neon_owner_role=${{ vars.NEON_OWNER_ROLE }}" \
+              -var="neon_app_role_password=${{ secrets.TF_MANAGED_NEON_APP_ROLE_PASSWORD }}" \
+              -var="neon_owner_role_password=${{ secrets.TF_MANAGED_NEON_OWNER_ROLE_PASSWORD }}" \
+              -var="vercel_team_id=${{ secrets.VERCEL_TEAM_ID }}" \
+              -var="vercel_project_name=${{ needs.compute-non-secret-vars.outputs.vercel_project_name }}" \
+              -var="vercel_app_domain_name=${{ needs.compute-non-secret-vars.outputs.vercel_app_domain }}" \
+              -var="vercel_region_for_server_side_execution=${{ vars.VERCEL_REGION_FOR_SERVER_SIDE_EXECUTION }}" \
+              -var="cloudflare_api_token=${{ secrets.CLOUDFLARE_API_TOKEN }}" \
+              -var="cloudflare_zone_id=${{ secrets.CLOUDFLARE_ZONE_ID }}" \
+              -var="grafanacloud_stack_slug=${{ vars.GRAFANA_STACK_SLUG }}" \
+              -var="grafanacloud_frontend_o11y_api_access_token=${{ secrets.GRAFANA_FRONTEND_O11Y_API_ACCESS_TOKEN }}" \
+              -var="grafanacloud_frontend_o11y_instance_name=${{ needs.compute-non-secret-vars.outputs.grafana_instance_name }}" \
+              -var="secretname_for_grafanacloud_frontend_o11y_instance_url=${{ needs.compute-non-secret-vars.outputs.grafana_instance_url_secret }}" \
+              -var="env_NEXT_PUBLIC_OTEL_ENVIRONMENT=${{ needs.compute-non-secret-vars.outputs.otel_env }}" \
+              -var="env_OTEL_EXPORTER_OTLP_ENDPOINT=${{ vars.ENV_OTEL_EXPORTER_OTLP_ENDPOINT }}" \
+              -var="env_OTEL_EXPORTER_OTLP_PROTOCOL=${{ vars.ENV_OTEL_EXPORTER_OTLP_PROTOCOL }}" \
+              -var="env_OTEL_EXPORTER_OTLP_HEADERS=${{ secrets.ENV_OTEL_EXPORTER_OTLP_HEADERS }}" \
+              -var="secretname_for_vercel_project_id=${{ needs.compute-non-secret-vars.outputs.vercel_project_id_secret }}" \
+              2>&1)
+            exit_code=$?
+            if [ $exit_code -ne 0 ]; then
+              echo $output
+              # search output for workspace already locked error
+              locked_error_msg=$(echo "$output" | grep -o 'Error message: workspace already locked')
+              if [ -n "$locked_error_msg" ]; then
+                # for this workspace, perhaps because it is a locally
+                # executed workspace with only the state file
+                # being kept in HCP workspace, lock id has the format
+                # <org name>/<workspace name>
+                # In particular, using the lock id (a nonce) that is 
+                # returned in the error does not work with 
+                # terraform force-unlock command
+                terraform force-unlock -force "${{ secrets.TF_ORG }}/${{needs.compute-non-secret-vars.outputs.tf_workspace_name}}"
+              fi
+            fi
+            exit $exit_code
+          shell: bash
         env:
           # terraform init expects to be given TF_WORKSPACE env var
-          # because it is not part of terraorm block in the root module
+          # because it is not part of terraform block in the root module
           TF_WORKSPACE: ${{needs.compute-non-secret-vars.outputs.tf_workspace_name}}
 
           # these need to be in environment
@@ -321,43 +379,6 @@ jobs:
           # terraform apply runs and is picked up
           # by GitHub's Terraform provider
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
-
-        # values of the variables, which are read from secrets and
-        # environment variables of Preview environment in the GitHub
-        # repo, are mostly the same as those decalared in Preview
-        # workspace's Variables in Terraform HCP
-        run: |
-          terraform apply -auto-approve \
-          -var="vault_name=${{ vars.VAULT_NAME }}" \
-          -var="vault_resource_group_name=${{ vars.ID_AND_VAULT_RESOURCE_GROUP_NAME }}" \
-          -var="vault_secretname_for_connectionstring=${{ needs.compute-non-secret-vars.outputs.vault_secret_conn_name }}" \
-          -var="secretname_for_psql_owner_connectionstring=${{ needs.compute-non-secret-vars.outputs.psql_owner_conn_name }}" \
-          -var="environmentname_for_secrets_and_variables=Preview" \
-          -var="repository_for_secrets_and_variables=flowmazondotnet" \
-          -var="neon_project_id=${{ secrets.TF_MANAGED_NEON_PROJECT_ID }}" \
-          -var="neon_source_branch_id=${{ secrets.TF_MANAGED_NEON_SOURCE_BRANCH_ID }}" \
-          -var="neon_new_branch_name=${{ needs.compute-non-secret-vars.outputs.neon_branch_name }}" \
-          -var="neon_database_name=${{ vars.NEON_DATABASE_NAME }}" \
-          -var="neon_app_role=${{ vars.NEON_APP_ROLE }}" \
-          -var="neon_owner_role=${{ vars.NEON_OWNER_ROLE }}" \
-          -var="neon_app_role_password=${{ secrets.TF_MANAGED_NEON_APP_ROLE_PASSWORD }}" \
-          -var="neon_owner_role_password=${{ secrets.TF_MANAGED_NEON_OWNER_ROLE_PASSWORD }}" \
-          -var="vercel_team_id=${{ secrets.VERCEL_TEAM_ID }}" \
-          -var="vercel_project_name=${{ needs.compute-non-secret-vars.outputs.vercel_project_name }}" \
-          -var="vercel_app_domain_name=${{ needs.compute-non-secret-vars.outputs.vercel_app_domain }}" \
-          -var="vercel_region_for_server_side_execution=${{ vars.VERCEL_REGION_FOR_SERVER_SIDE_EXECUTION }}" \
-          -var="cloudflare_api_token=${{ secrets.CLOUDFLARE_API_TOKEN }}" \
-          -var="cloudflare_zone_id=${{ secrets.CLOUDFLARE_ZONE_ID }}" \
-          -var="grafanacloud_stack_slug=${{ vars.GRAFANA_STACK_SLUG }}" \
-          -var="grafanacloud_frontend_o11y_api_access_token=${{ secrets.GRAFANA_FRONTEND_O11Y_API_ACCESS_TOKEN }}" \
-          -var="grafanacloud_frontend_o11y_instance_name=${{ needs.compute-non-secret-vars.outputs.grafana_instance_name }}" \
-          -var="secretname_for_grafanacloud_frontend_o11y_instance_url=${{ needs.compute-non-secret-vars.outputs.grafana_instance_url_secret }}" \
-          -var="env_NEXT_PUBLIC_OTEL_ENVIRONMENT=${{ needs.compute-non-secret-vars.outputs.otel_env }}" \
-          -var="env_OTEL_EXPORTER_OTLP_ENDPOINT=${{ vars.ENV_OTEL_EXPORTER_OTLP_ENDPOINT }}" \
-          -var="env_OTEL_EXPORTER_OTLP_PROTOCOL=${{ vars.ENV_OTEL_EXPORTER_OTLP_PROTOCOL }}" \
-          -var="env_OTEL_EXPORTER_OTLP_HEADERS=${{ secrets.ENV_OTEL_EXPORTER_OTLP_HEADERS }}" \
-          -var="secretname_for_vercel_project_id=${{ needs.compute-non-secret-vars.outputs.vercel_project_id_secret }}"
-        working-directory: .iac/workspaces/preview-ephemeral
 
   migrate-db:
     environment:
@@ -445,7 +466,7 @@ jobs:
       # preview-ephemeral-api HCP workspace would be created
       # dynamically by this workflow, then deployed to using
       # local execution while the state file is maintained in
-      # HCP.
+      # HCP;
       # The choices made for the next two steps are also
       # very similar to that job so see documentation above
       # for the create-update-preview-ephemeral job.
@@ -538,36 +559,54 @@ jobs:
         # environment variables of Preview environment in the GitHub
         # repo, are mostly the same as those decalared in Preview
         # workspace's Variables in Terraform HCP.
-        run: |
-          terraform apply -auto-approve \
-          -var="cloudflare_api_token=${{ secrets.CLOUDFLARE_API_TOKEN }}" \
-          -var="cloudflare_zone_id=${{ secrets.CLOUDFLARE_ZONE_ID }}" \
-          -var="app_resource_group_name=${{ needs.compute-non-secret-vars.outputs.api_resource_group_name }}" \
-          -var="app_resource_group_location=${{ vars.API_RESOURCE_GROUP_LOCATION }}" \
-          -var="app_name=${{ needs.compute-non-secret-vars.outputs.api_app_name }}" \
-          -var="app_environment_name=${{ needs.compute-non-secret-vars.outputs.api_app_environment_name }}" \
-          -var="app_domain_name=${{ needs.compute-non-secret-vars.outputs.api_app_domain_name }}" \
-          -var="app_container_name=${{ vars.API_CONTAINER_NAME }}" \
-          -var="app_container_port=${{ vars.API_CONTAINER_PORT }}" \
-          -var="github_organisation_or_account=${{ github.actor }}" \
-          -var="github_token_for_registry_read=${{ secrets.API_APP_GH_TOKEN }}" \
-          -var="vault_secretname_registry_password_or_token=${{ needs.compute-non-secret-vars.outputs.vault_secretname_registry_password_or_token }}" \
-          -var="image_repository=${{ vars.IMAGE_REPOSITORY }}" \
-          -var="image_tag=${{ needs.compute-non-secret-vars.outputs.new_version }}" \
-          -var="managed_identity_name=${{ vars.MANAGED_IDENTITY_NAME }}" \
-          -var="id_and_vault_resource_group_name=${{ vars.ID_AND_VAULT_RESOURCE_GROUP_NAME }}" \
-          -var="key_vault_name=${{ vars.VAULT_NAME }}" \
-          -var="vault_secretname_for_connectionstring=${{ needs.compute-non-secret-vars.outputs.vault_secret_conn_name }}" \
-          -var="allowed_cors_origins_for_api=https://${{ needs.compute-non-secret-vars.outputs.vercel_app_domain }}" \
-          -var="env_OTEL_RESOURCE_ATTRIBUTES=deployment.environment.name=${{ needs.compute-non-secret-vars.outputs.otel_env }}" \
-          -var="env_OTEL_EXPORTER_OTLP_ENDPOINT=${{ vars.ENV_OTEL_EXPORTER_OTLP_ENDPOINT }}" \
-          -var="env_OTEL_EXPORTER_OTLP_PROTOCOL=${{ vars.ENV_OTEL_EXPORTER_OTLP_PROTOCOL }}" \
-          -var="env_OTEL_EXPORTER_OTLP_HEADERS=${{ secrets.ENV_OTEL_EXPORTER_OTLP_HEADERS }}" \
-          -var="vault_secretname_env_OTEL_EXPORTER_OTLP_HEADERS=${{ needs.compute-non-secret-vars.outputs.vault_secretname_env_OTEL_EXPORTER_OTLP_HEADERS }}"
-        working-directory: .iac/workspaces/preview-ephemeral-api
+        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 # v3.0.2
+        with:
+          timeout_minutes: 30
+          max_attempts: 2
+
+          # Run terraform apply and capture lock ID on failure
+          command: |
+            cd .iac/workspaces/preview-ephemeral-api
+            output=$(terraform apply -auto-approve \
+              -var="cloudflare_api_token=${{ secrets.CLOUDFLARE_API_TOKEN }}" \
+              -var="cloudflare_zone_id=${{ secrets.CLOUDFLARE_ZONE_ID }}" \
+              -var="app_resource_group_name=${{ needs.compute-non-secret-vars.outputs.api_resource_group_name }}" \
+              -var="app_resource_group_location=${{ vars.API_RESOURCE_GROUP_LOCATION }}" \
+              -var="app_name=${{ needs.compute-non-secret-vars.outputs.api_app_name }}" \
+              -var="app_environment_name=${{ needs.compute-non-secret-vars.outputs.api_app_environment_name }}" \
+              -var="app_domain_name=${{ needs.compute-non-secret-vars.outputs.api_app_domain_name }}" \
+              -var="app_container_name=${{ vars.API_CONTAINER_NAME }}" \
+              -var="app_container_port=${{ vars.API_CONTAINER_PORT }}" \
+              -var="github_organisation_or_account=${{ github.actor }}" \
+              -var="github_token_for_registry_read=${{ secrets.API_APP_GH_TOKEN }}" \
+              -var="vault_secretname_registry_password_or_token=${{ needs.compute-non-secret-vars.outputs.vault_secretname_registry_password_or_token }}" \
+              -var="image_repository=${{ vars.IMAGE_REPOSITORY }}" \
+              -var="image_tag=${{ needs.compute-non-secret-vars.outputs.new_version }}" \
+              -var="managed_identity_name=${{ vars.MANAGED_IDENTITY_NAME }}" \
+              -var="id_and_vault_resource_group_name=${{ vars.ID_AND_VAULT_RESOURCE_GROUP_NAME }}" \
+              -var="key_vault_name=${{ vars.VAULT_NAME }}" \
+              -var="vault_secretname_for_connectionstring=${{ needs.compute-non-secret-vars.outputs.vault_secret_conn_name }}" \
+              -var="allowed_cors_origins_for_api=https://${{ needs.compute-non-secret-vars.outputs.vercel_app_domain }}" \
+              -var="env_OTEL_RESOURCE_ATTRIBUTES=deployment.environment.name=${{ needs.compute-non-secret-vars.outputs.otel_env }}" \
+              -var="env_OTEL_EXPORTER_OTLP_ENDPOINT=${{ vars.ENV_OTEL_EXPORTER_OTLP_ENDPOINT }}" \
+              -var="env_OTEL_EXPORTER_OTLP_PROTOCOL=${{ vars.ENV_OTEL_EXPORTER_OTLP_PROTOCOL }}" \
+              -var="env_OTEL_EXPORTER_OTLP_HEADERS=${{ secrets.ENV_OTEL_EXPORTER_OTLP_HEADERS }}" \
+              -var="vault_secretname_env_OTEL_EXPORTER_OTLP_HEADERS=${{ needs.compute-non-secret-vars.outputs.vault_secretname_env_OTEL_EXPORTER_OTLP_HEADERS }}" \
+              2>&1)
+            exit_code=$?
+            if [ $exit_code -ne 0 ]; then
+              echo $output
+              # search output for workspace already locked error
+              locked_error_msg=$(echo "$output" | grep -o 'Error message: workspace already locked')
+              if [ -n "$locked_error_msg" ]; then
+                terraform force-unlock -force "${{ secrets.TF_ORG }}/${{needs.compute-non-secret-vars.outputs.tf_api_workspace_name}}"
+              fi
+            fi
+            exit $exit_code
+          shell: bash
 
   api-unittests:
-    name: Run API Unit Tests and publish report
+    name: API Unit Tests
     runs-on: ubuntu-24.04
     needs: [compute-non-secret-vars]
     if: github.event.action != 'closed'
@@ -617,9 +656,8 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
           verbose: true
   playwright-tests:
-    name: Run Playwright Integration Tests and publish report
+    name: Playwright Integration Tests
     runs-on: ubuntu-24.04
-    # While this task strictly depends on compute-non-secret-vars and deploy-frontend-to-vercel, I am declaring dependency on deploy-backend and migrate-db also because I took them out of correct dependency graph in order to speed up Preview environment deployment.
     needs:
       [
         compute-non-secret-vars,
@@ -643,6 +681,44 @@ jobs:
         run: |
           npm ci
           npx playwright install --with-deps
+
+      # # This job is needed because the ACA app, if not already
+      # # running, can take many minutes to come online where
+      # # Playwright wait for 30 sec by default.
+      # # Using this action instead of increasing timeout allows
+      # # us to remove the dependency of this job on deploy-backend
+      # # task in Preview environment were we have more flexibility.
+      # # The reason for wanting to remove this dependency is
+      # # that installing Playwright browsers can take many minutes
+      # # and this can be parallelised with everything else in the
+      # # the CI pipeline (which deployes to Preview environment
+      # # for the pull request).
+      # - name: Wait for API
+      #   uses: emilioschepis/wait-for-endpoint@v1.0.3
+      #   with:
+      #     url: https://${{ needs.compute-non-secret-vars.outputs.api_app_domain_name }}/health/ready
+      #     method: GET
+      #     expected-status: 200
+      #     timeout: 300000 # 5 minutes
+      #     interval: 1000
+
+      # # since we are going to have to wait for the API anyway,
+      # # regardless of whether we put deploy-backend task as dependency
+      # # of this ask or not (this is because, as mentioned above,
+      # # ACA app can sometimes take very long time to start up),
+      # # therefore we might as well remove dependency on deploy-frontend
+      # # job and just wait for the frontend to come online.
+      # # This allows us to start the current time consuming task
+      # # to start even earlier in Preview.
+      # - name: Wait for Frontend app
+      #   uses: emilioschepis/wait-for-endpoint@v1.0.3
+      #   with:
+      #     url: https://${{ needs.compute-non-secret-vars.outputs.vercel_app_domain }}
+      #     method: GET
+      #     expected-status: 200
+      #     timeout: 300000 # 5 minutes
+      #     interval: 1000
+
       - name: Run Playwright tests
         working-directory: ./flowmazonfrontend
         # We want all three browsers for which projects have been defined in playwright.config.ts to run.
@@ -667,7 +743,7 @@ jobs:
           fail-on-error: false
 
   api-integration-tests:
-    name: Run API .NET Integration Tests and publish report
+    name: API Integration Tests
     runs-on: ubuntu-24.04
     needs: [compute-non-secret-vars]
     if: github.event.action != 'closed'
@@ -776,6 +852,7 @@ jobs:
       - name: Post sticky comment with preview links
         uses: marocchino/sticky-pull-request-comment@v2
         with:
+          recreate: true # so it always appears at the end where PR checks are
           header: preview-environment-links
           # recreate: true
           message: |
