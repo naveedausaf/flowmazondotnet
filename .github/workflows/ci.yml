@@ -698,7 +698,7 @@ jobs:
     runs-on: ubuntu-24.04
     needs: [
         compute-non-secret-vars,
-        deploy-frontend-to-vercel,
+        #deploy-frontend-to-vercel,
         #deploy-backend,
         migrate-db,
       ]
@@ -739,12 +739,18 @@ jobs:
           timeout: 300000 # 5 minutes
           interval: 1000
 
-      # since we are going to have to wai for the API anyway,
-      # regardless of whether we pur deploy-backend rask
+      # since we are going to have to wait for the API anyway,
+      # regardless of whether we put deploy-backend task as dependency
+      # of this ask or not (this is because, as mentioned above,
+      # ACA app can sometimes take very long time to start up),
+      # therefore we might as well remove dependency on deploy-frontend
+      # job and just wait for the frontend to come online.
+      # This allows us to start the current time consuming task
+      # to start even earlier in Preview.
       - name: Wait for Frontend app
         uses: emilioschepis/wait-for-endpoint@v1.0.3
         with:
-          url: https://${{ needs.compute-non-secret-vars.outputs.api_app_domain_name }}/health/ready
+          url: https://${{ needs.compute-non-secret-vars.outputs.vercel_app_domain }}
           method: GET
           expected-status: 200
           timeout: 300000 # 5 minutes
