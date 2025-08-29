@@ -37,10 +37,11 @@ jobs:
         with:
           node-version: 22.18.0
       - name: Install dependencies
+        working-directory: ${{ inputs.workingDir }}
         run: npm ci
       - name: Run Chromatic
         uses: chromaui/action@latest
         with:
           exitZeroOnChanges: ${{ !inputs.failOnChanges }}
-          workingDir: ../flowmazonfrontend
+          workingDir: ${{ inputs.workingDir }}
           projectToken: ${{ secrets.CHROMATIC_PROJECT_TOKEN }}
