@@ -43,5 +43,5 @@ jobs:
         uses: chromaui/action@latest
         with:
           exitZeroOnChanges: ${{ !inputs.failOnChanges }}
-          workingDir: ${{ inputs.workingDir }}
+          workingDir: ./flowmazonfrontend
           projectToken: ${{ secrets.CHROMATIC_PROJECT_TOKEN }}
