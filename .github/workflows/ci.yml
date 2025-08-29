@@ -696,12 +696,10 @@ jobs:
   playwright-tests:
     name: Playwright Integration Tests
     runs-on: ubuntu-24.04
-    # While this task strictly depends on compute-non-secret-vars and deploy-frontend-to-vercel, I am declaring dependency on deploy-backend and migrate-db also because I took them out of correct dependency graph in order to speed up Preview environment deployment.
-    needs:
-      [
+    needs: [
         compute-non-secret-vars,
         deploy-frontend-to-vercel,
-        deploy-backend,
+        #deploy-backend,
         migrate-db,
       ]
     if: github.event.action != 'closed'
@@ -720,6 +718,28 @@ jobs:
         run: |
           npm ci
           npx playwright install --with-deps
+
+      # This job is needed because the ACA app, if not already
+      # running, can take many minutes to come online where
+      # Playwright wait for 30 sec by default.
+      # Using this action instead of increasing timeout allows
+      # us to remove the dependency of this job on deploy-backend
+      # task in Preview environment were we have more flexibility.
+      # The reason for wanting to remove this dependency is
+      # that installing Playwright browsers can take many minutes
+      # and this can be parallelised with everything else in the
+      # the CI pipeline (which deployes to Preview environment
+      # for the pull request)
+      - name: Wait for API
+        uses: emilioschepis/wait-for-endpoint@v1.0.3
+        with:
+          url: https://${{ needs.compute-non-secret-vars.outputs.api_app_domain_name }}/health/ready
+          method: GET
+          expected-status: 200
+          timeout: 300000 # 5 minutes
+          interval: 1000
+          retries: 1
+
       - name: Run Playwright tests
         working-directory: ./flowmazonfrontend
         # We want all three browsers for which projects have been defined in playwright.config.ts to run.
