@@ -1,0 +1,46 @@
+name: "Publish Storybook to Chromatic"
+
+# This is a reusable workflow to publish a Storybook
+# in the specified workingDir to Chromatic
+on:
+  workflow_call:
+    inputs:
+      # whether the workflow should fail if there Chromatic
+      # finds visual diffs when Storybook is published to
+      # Chromatic
+      failOnChanges:
+        required: true
+        type: boolean
+
+      # path of the folder, relative to repo root,
+      # which contains the NPM package (e.g. for a React app)
+      # that has the Storybook that is to be published
+      workingDir:
+        required: true
+        type: string
+    secrets:
+      # Chromatic Project token for the Chromatic project
+      # to which the Storybook is to be published
+      CHROMATIC_PROJECT_TOKEN:
+        required: true
+
+jobs:
+  chromatic-deployment:
+    name: Deploy Storybook to Chromatic
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.18.0
+      - name: Install dependencies
+        run: npm ci
+      - name: Run Chromatic
+        uses: chromaui/action@latest
+        with:
+          exitZeroOnChanges: ${{ !inputs.failOnChanges }}
+          workingDir: ${{ inputs.workingDir }}
+          projectToken: ${{ secrets.CHROMATIC_PROJECT_TOKEN }}

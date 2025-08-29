@@ -752,6 +752,14 @@ jobs:
           previewUrl=$(vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_API_TOKEN }})
           echo "previewUrl=$previewUrl" >> "$GITHUB_OUTPUT"
 
+  chromatic:
+    uses: "./.github/workflows/chromatic.yml"
+    with:
+      failOnChanges: false
+      workingDir: ./flowmazonfrontend
+    secrets:
+      CHROMATIC_PROJECT_TOKEN: ${{ secrets.CHROMATIC_PROJECT_TOKEN }}
+
   comment-preview-links:
     name: Post links to Preview env on PR
     runs-on: ubuntu-24.04
@@ -761,6 +769,7 @@ jobs:
         deploy-backend,
         deploy-frontend-to-vercel,
         playwright-tests,
+        chromatic,
       ]
     if: github.event.action != 'closed'
     steps:
