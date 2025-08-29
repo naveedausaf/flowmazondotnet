@@ -210,14 +210,14 @@ jobs:
         # Then you would get an error if there are more than
         # one modules being referenced via github references
         # in the root module (a single module referenced like
-        # this is fine though, which is a bit bafffling):
+        # this is fine though, which is a bit baffling):
         #
         # ╷
         # │ Error: Failed to expand subdir globs
         # │
         # │ subdir ".iac/modules/flowmazonfrontend" not found
         #
-        # Basically one of the modules cannot be deferennced.
+        # Basically one of the modules cannot be deferenced.
         #
         # I did have the option of copying across the referenced
         # modules into the dir of the root module, then
@@ -335,6 +335,7 @@ jobs:
               -var="secretname_for_vercel_project_id=${{ needs.compute-non-secret-vars.outputs.vercel_project_id_secret }}" \
               2>&1)
             exit_code=$?
+            cat $output
             if [ $exit_code -ne 0 ]; then
               lock_id=$(echo "$output" | grep -o 'ID: [0-9a-f-]\+' | cut -d' ' -f2)
               if [ -n "$lock_id" ]; then
@@ -700,7 +701,7 @@ jobs:
         compute-non-secret-vars,
         #deploy-frontend-to-vercel,
         #deploy-backend,
-        migrate-db,
+        #migrate-db,
       ]
     if: github.event.action != 'closed'
     environment:
@@ -729,7 +730,7 @@ jobs:
       # that installing Playwright browsers can take many minutes
       # and this can be parallelised with everything else in the
       # the CI pipeline (which deployes to Preview environment
-      # for the pull request)
+      # for the pull request).
       - name: Wait for API
         uses: emilioschepis/wait-for-endpoint@v1.0.3
         with:
