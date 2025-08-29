@@ -337,11 +337,17 @@ jobs:
             exit_code=$?
             if [ $exit_code -ne 0 ]; then
               echo $output
-              # Extract the actual lock ID from the error message
-              lock_id=$(echo "$output" | grep -o 'lock ID "[^"]\+"' | head -n1 | awk -F'"' '{print $2}')
-              echo "FOUND LOCK ID: $lock_id"
-              if [ -n "$lock_id" ]; then
-                terraform force-unlock -force "$lock_id"
+              # search output for workspace already locked error
+              locked_error_msg=$(echo "$output" | grep -o 'Error message: workspace already locked')
+              if [ -n "$locked_error_msg" ]; then
+                # for this workspace, perhaps because it is a locally
+                # executed workspace with only the state file
+                # being kept in HCP workspace, lock id has the format
+                # <org name>/<workspace name>
+                # In particular, using the lock id (a nonce) that is 
+                # returned in the error does not work with 
+                # terraform force-unlock command
+                terraform force-unlock -force "${{ secrets.TF_ORG }}/${{needs.compute-non-secret-vars.outputs.tf_workspace_name}}"
               fi
               exit $exit_code
             fi
