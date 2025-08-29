@@ -339,6 +339,7 @@ jobs:
               echo $output
               # Extract the actual lock ID from the error message
               lock_id=$(echo "$output" | grep -o 'lock ID "[^"]\+"' | head -n1 | awk -F'"' '{print $2}')
+              echo "FOUND LOCK ID: $lock_id"
               if [ -n "$lock_id" ]; then
                 terraform force-unlock -force "$lock_id"
               fi
