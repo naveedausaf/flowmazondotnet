@@ -302,7 +302,7 @@ jobs:
 
           # Run terraform apply and capture lock ID on failure
           command: |
-            cd .iac/workspaces/preview-ephemeral \
+            cd .iac/workspaces/preview-ephemeral
             output=$(terraform apply -auto-approve \
               -var="vault_name=${{ vars.VAULT_NAME }}" \
               -var="vault_resource_group_name=${{ vars.ID_AND_VAULT_RESOURCE_GROUP_NAME }}" \
@@ -333,15 +333,15 @@ jobs:
               -var="env_OTEL_EXPORTER_OTLP_PROTOCOL=${{ vars.ENV_OTEL_EXPORTER_OTLP_PROTOCOL }}" \
               -var="env_OTEL_EXPORTER_OTLP_HEADERS=${{ secrets.ENV_OTEL_EXPORTER_OTLP_HEADERS }}" \
               -var="secretname_for_vercel_project_id=${{ needs.compute-non-secret-vars.outputs.vercel_project_id_secret }}" \
-              2>&1) \
-            exit_code=$? \
-            if [ $exit_code -ne 0 ]; then \
-              lock_id=$(echo "$output" | grep -o 'ID: [0-9a-f-]\+' | cut -d' ' -f2) \
-              if [ -n "$lock_id" ]; then \
-                terraform force-unlock -force "$lock_id" \
-              fi \
-              exit $exit_code \
-            fi \
+              2>&1)
+            exit_code=$?
+            if [ $exit_code -ne 0 ]; then
+              lock_id=$(echo "$output" | grep -o 'ID: [0-9a-f-]\+' | cut -d' ' -f2)
+              if [ -n "$lock_id" ]; then
+                terraform force-unlock -force "$lock_id"
+              fi
+              exit $exit_code
+            fi
           shell: bash
         env:
           # terraform init expects to be given TF_WORKSPACE env var
