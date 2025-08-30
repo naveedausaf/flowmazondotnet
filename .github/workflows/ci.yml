@@ -297,7 +297,7 @@ jobs:
       - name: Terraform Apply
         uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 # v3.0.2
         with:
-          timeout_minutes: 30
+          timeout_minutes: 20
           max_attempts: 2
 
           # Run terraform apply and capture lock ID on failure
@@ -561,7 +561,7 @@ jobs:
         # workspace's Variables in Terraform HCP.
         uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 # v3.0.2
         with:
-          timeout_minutes: 30
+          timeout_minutes: 20
           max_attempts: 2
 
           # Run terraform apply and capture lock ID on failure
@@ -912,13 +912,12 @@ jobs:
           TF_WORKSPACE: ${{ needs.compute-non-secret-vars.outputs.tf_api_workspace_name }}
         uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 # v3.0.2
         with:
-          timeout_minutes: 30
+          timeout_minutes: 20
           max_attempts: 2
           # Run terraform apply and capture lock ID on failure
           command: |
             cd .iac/workspaces/preview-ephemeral-api
-            output=$(terraform apply -auto-approve \
-              terraform destroy -auto-approve \
+            output=$(terraform destroy -auto-approve \
                 -var="cloudflare_api_token=${{ secrets.CLOUDFLARE_API_TOKEN }}" \
                 -var="cloudflare_zone_id=${{ secrets.CLOUDFLARE_ZONE_ID }}" \
                 -var="app_resource_group_name=${{ needs.compute-non-secret-vars.outputs.api_resource_group_name }}" \
@@ -967,13 +966,12 @@ jobs:
           TF_WORKSPACE: ${{ needs.compute-non-secret-vars.outputs.tf_workspace_name }}
         uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 # v3.0.2
         with:
-          timeout_minutes: 30
+          timeout_minutes: 20
           max_attempts: 2
           # Run terraform apply and capture lock ID on failure
           command: |
             cd .iac/workspaces/preview-ephemeral
-            output=$(terraform apply -auto-approve \
-              terraform destroy -auto-approve \
+            output=$(terraform destroy -auto-approve \
                 -var="vault_name=${{ vars.VAULT_NAME }}" \
                 -var="vault_resource_group_name=${{ vars.ID_AND_VAULT_RESOURCE_GROUP_NAME }}" \
                 -var="vault_secretname_for_connectionstring=${{ needs.compute-non-secret-vars.outputs.vault_secret_conn_name }}" \
