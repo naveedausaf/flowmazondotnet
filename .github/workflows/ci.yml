@@ -293,6 +293,53 @@ jobs:
           TF_WORKSPACE: ${{needs.compute-non-secret-vars.outputs.tf_workspace_name}}
         run: terraform init
         working-directory: .iac/workspaces/preview-ephemeral
+
+      # TF HCP workspaces that are executed locally, like the ephemeral
+      # workspace in this can sometimes stay locked if the workflow
+      # was canceleld (e.g. a new puch was made to the source branch
+      # of pull request or the pull request was merged)
+      # Since ephemeral workspace created/updated/deleted in this 
+      # workflow are only creaetd/updated/delete by this workflow, within
+      # the concurrenty group of the source branch, the source branch 
+      # of the pull request effectively owns these worksapces. 
+      # Moreover, due to concurrenty group of this workflow, 
+      # there can only one one operation taking place on these
+      # workspaces at any give time. 
+      # Therefor, it is safe to use the -nolock option
+      # when calling terraform apply and terraform destroy
+      # on any of the ephemeral worksapces in this workflow in order
+      # to get around the issues that such a workspace might sometimes
+      # fail to get unlocked in HCP.
+      #
+      # I think it is slightly safer to explicitly unlock it first
+      # before use, which is what I am doing below. 
+      # I do the same with apply and destroy on this and other 
+      # ephemeral workspace elsewhere in this workflow.
+      #
+      # HISTORICAL NOTE: I used retry action before 
+      # (https://github.com/nick-fields/retry) to execute apply
+      # and destroy in, so we would unlock on failure and try the 
+      # apply or destroy again. The problem with that was it
+      # was hiding all the output from the command line operations.
+      # Also, I think the approach of unlocking, with continue-on-error
+      # if there is an error because the workspace was not locked 
+      # to begin with, is neater. 
+      - name: Remove any existing lock on preview-ephemeral workspace
+        # No problem if the workspace was not locked to begin with
+        continue-on-error: true
+        env:
+          # terraform init expects to be given TF_WORKSPACE env var
+          # because it is not part of terraform block in the root module
+          TF_WORKSPACE: ${{needs.compute-non-secret-vars.outputs.tf_workspace_name}}
+        # Contrary to what documentation for `terraform force-unlock` says
+        # and what you would find on the internet, the Lock id for this
+        # workspace is not a UUID nonce and the ID that is returned in
+        # the error response that is supposed to work to unlock this
+        # workspace does not work when passed as lock id to `terraform force-unlock`.
+        # Instead, the lock id is of the form <org name>/<workspace name>
+        run: |
+          terraform force-unlock -force "${{ secrets.TF_ORG }}/${{ needs.compute-non-secret-vars.outputs.tf_workspace_name }}"
+        working-directory: .iac/workspaces/preview-ephemeral
       - name: Terraform Apply
         env:
           # terraform init expects to be given TF_WORKSPACE env var
@@ -446,7 +493,7 @@ jobs:
       # dynamically by this workflow, then deployed to using
       # local execution while the state file is maintained in
       # HCP.
-      # The choices made for the next two steps are also
+      # The choices made for the next few steps are also
       # very similar to that job so see documentation above
       # for the create-update-preview-ephemeral job.
 
@@ -519,7 +566,15 @@ jobs:
           TF_WORKSPACE: ${{ needs.compute-non-secret-vars.outputs.tf_api_workspace_name }}
         run: terraform init
         working-directory: .iac/workspaces/preview-ephemeral-api
-
+      # For reasoning behind, and explantion of, terraform force-unlock
+      # command in the action below, see create-update-preview-ephemeral job
+      - name: Remove any existing lock on preview-ephemeral-api workspace
+        continue-on-error: true
+        env:
+          TF_WORKSPACE: ${{needs.compute-non-secret-vars.outputs.tf_api_workspace_name}}
+        run: |
+          terraform force-unlock -force "${{ secrets.TF_ORG }}/${{ needs.compute-non-secret-vars.outputs.tf_api_workspace_name }}"
+        working-directory: .iac/workspaces/preview-ephemeral-api
       - name: Terraform Apply
         env:
           # terraform init expects to be given TF_WORKSPACE env var
@@ -861,12 +916,27 @@ jobs:
         with:
           cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
 
+      - name: Terraform Init
+        env:
+          # terraform init expects to be given TF_WORKSPACE env var
+          # because it is not part of terraorm block in the root module
+          TF_WORKSPACE: ${{ needs.compute-non-secret-vars.outputs.tf_api_workspace_name }}
+        run: terraform init
+        working-directory: .iac/workspaces/preview-ephemeral-api
+      # For reasoning behind, and explantion of, terraform force-unlock
+      # command in the action below, see create-update-preview-ephemeral job
+      - name: Remove any existing lock on preview-ephemeral-api workspace
+        continue-on-error: true
+        env:
+          TF_WORKSPACE: ${{needs.compute-non-secret-vars.outputs.tf_api_workspace_name}}
+        run: |
+          terraform force-unlock -force "${{ secrets.TF_ORG }}/${{ needs.compute-non-secret-vars.outputs.tf_api_workspace_name }}"
+        working-directory: .iac/workspaces/preview-ephemeral-api
       - name: Destroy API infrastructure (preview-ephemeral-api)
         working-directory: .iac/workspaces/preview-ephemeral-api
         env:
           TF_WORKSPACE: ${{ needs.compute-non-secret-vars.outputs.tf_api_workspace_name }}
         run: |
-          terraform init
           terraform destroy -auto-approve \
             -var="cloudflare_api_token=${{ secrets.CLOUDFLARE_API_TOKEN }}" \
             -var="cloudflare_zone_id=${{ secrets.CLOUDFLARE_ZONE_ID }}" \
@@ -892,12 +962,28 @@ jobs:
             -var="env_OTEL_EXPORTER_OTLP_PROTOCOL=${{ vars.ENV_OTEL_EXPORTER_OTLP_PROTOCOL }}" \
             -var="env_OTEL_EXPORTER_OTLP_HEADERS=${{ secrets.ENV_OTEL_EXPORTER_OTLP_HEADERS }}" \
             -var="vault_secretname_env_OTEL_EXPORTER_OTLP_HEADERS=${{ needs.compute-non-secret-vars.outputs.vault_secretname_env_OTEL_EXPORTER_OTLP_HEADERS }}"
+      - name: Terraform Init
+        env:
+          # terraform init expects to be given TF_WORKSPACE env var
+          # because it is not part of terraform block in the root module
+          TF_WORKSPACE: ${{needs.compute-non-secret-vars.outputs.tf_workspace_name}}
+        run: terraform init
+        working-directory: .iac/workspaces/preview-ephemeral
+      # For reasoning behind, and explantion of, terraform force-unlock
+      # command in the action below, see create-update-preview-ephemeral job
+      - name: Remove any existing lock on preview-ephemeral workspace
+        # No problem if the workspace was not locked to begin with
+        continue-on-error: true
+        env:
+          TF_WORKSPACE: ${{needs.compute-non-secret-vars.outputs.tf_workspace_name}}
+        run: |
+          terraform force-unlock -force "${{ secrets.TF_ORG }}/${{ needs.compute-non-secret-vars.outputs.tf_workspace_name }}"
+        working-directory: .iac/workspaces/preview-ephemeral
       - name: Destroy preview-ephemeral infrastructure
         working-directory: .iac/workspaces/preview-ephemeral
         env:
           TF_WORKSPACE: ${{ needs.compute-non-secret-vars.outputs.tf_workspace_name }}
         run: |
-          terraform init
           terraform destroy -auto-approve \
             -var="vault_name=${{ vars.VAULT_NAME }}" \
             -var="vault_resource_group_name=${{ vars.ID_AND_VAULT_RESOURCE_GROUP_NAME }}" \
