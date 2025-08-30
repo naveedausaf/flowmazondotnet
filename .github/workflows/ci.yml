@@ -222,10 +222,10 @@ jobs:
         # I did have the option of copying across the referenced
         # modules into the dir of the root module, then
         # modify the root module to change the references
-        # dynamiclly in GitHub Actions workflow. This
+        # dynamically in GitHub Actions workflow. This
         # would likely have worked and would have required
         # only local relative path references because the
-        # moule folders would be within the root module's
+        # module folders would be within the root module's
         # folder.
         #
         # However, I have instead chosen to execute the TF
@@ -900,74 +900,121 @@ jobs:
         with:
           cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
 
-      - name: Destroy API infrastructure (preview-ephemeral-api)
+      - name: Terraform init to destroy preview-ephemeral-api
         working-directory: .iac/workspaces/preview-ephemeral-api
         env:
           TF_WORKSPACE: ${{ needs.compute-non-secret-vars.outputs.tf_api_workspace_name }}
         run: |
           terraform init
-          terraform destroy -auto-approve \
-            -var="cloudflare_api_token=${{ secrets.CLOUDFLARE_API_TOKEN }}" \
-            -var="cloudflare_zone_id=${{ secrets.CLOUDFLARE_ZONE_ID }}" \
-            -var="app_resource_group_name=${{ needs.compute-non-secret-vars.outputs.api_resource_group_name }}" \
-            -var="app_resource_group_location=${{ vars.API_RESOURCE_GROUP_LOCATION }}" \
-            -var="app_name=${{ needs.compute-non-secret-vars.outputs.api_app_name }}" \
-            -var="app_environment_name=${{ needs.compute-non-secret-vars.outputs.api_app_environment_name }}" \
-            -var="app_domain_name=${{ needs.compute-non-secret-vars.outputs.api_app_domain_name }}" \
-            -var="app_container_name=${{ vars.API_CONTAINER_NAME }}" \
-            -var="app_container_port=${{ vars.API_CONTAINER_PORT }}" \
-            -var="github_organisation_or_account=${{ github.actor }}" \
-            -var="github_token_for_registry_read=${{ secrets.API_APP_GH_TOKEN }}" \
-            -var="vault_secretname_registry_password_or_token=${{ needs.compute-non-secret-vars.outputs.vault_secretname_registry_password_or_token }}" \
-            -var="image_repository=${{ vars.IMAGE_REPOSITORY }}" \
-            -var="image_tag=${{ needs.compute-non-secret-vars.outputs.new_version }}" \
-            -var="managed_identity_name=${{ vars.MANAGED_IDENTITY_NAME }}" \
-            -var="id_and_vault_resource_group_name=${{ vars.ID_AND_VAULT_RESOURCE_GROUP_NAME }}" \
-            -var="key_vault_name=${{ vars.VAULT_NAME }}" \
-            -var="vault_secretname_for_connectionstring=${{ needs.compute-non-secret-vars.outputs.vault_secret_conn_name }}" \
-            -var="allowed_cors_origins_for_api=https://${{ needs.compute-non-secret-vars.outputs.vercel_app_domain }}" \
-            -var="env_OTEL_RESOURCE_ATTRIBUTES=deployment.environment.name=${{ needs.compute-non-secret-vars.outputs.otel_env }}" \
-            -var="env_OTEL_EXPORTER_OTLP_ENDPOINT=${{ vars.ENV_OTEL_EXPORTER_OTLP_ENDPOINT }}" \
-            -var="env_OTEL_EXPORTER_OTLP_PROTOCOL=${{ vars.ENV_OTEL_EXPORTER_OTLP_PROTOCOL }}" \
-            -var="env_OTEL_EXPORTER_OTLP_HEADERS=${{ secrets.ENV_OTEL_EXPORTER_OTLP_HEADERS }}" \
-            -var="vault_secretname_env_OTEL_EXPORTER_OTLP_HEADERS=${{ needs.compute-non-secret-vars.outputs.vault_secretname_env_OTEL_EXPORTER_OTLP_HEADERS }}"
-      - name: Destroy preview-ephemeral infrastructure
+
+      - name: Terraform Destroy preview-ephemeral-api
+        env:
+          TF_WORKSPACE: ${{ needs.compute-non-secret-vars.outputs.tf_api_workspace_name }}
+        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 # v3.0.2
+        with:
+          timeout_minutes: 30
+          max_attempts: 2
+          # Run terraform apply and capture lock ID on failure
+          command: |
+            cd .iac/workspaces/preview-ephemeral-api
+            output=$(terraform apply -auto-approve \
+              terraform destroy -auto-approve \
+                -var="cloudflare_api_token=${{ secrets.CLOUDFLARE_API_TOKEN }}" \
+                -var="cloudflare_zone_id=${{ secrets.CLOUDFLARE_ZONE_ID }}" \
+                -var="app_resource_group_name=${{ needs.compute-non-secret-vars.outputs.api_resource_group_name }}" \
+                -var="app_resource_group_location=${{ vars.API_RESOURCE_GROUP_LOCATION }}" \
+                -var="app_name=${{ needs.compute-non-secret-vars.outputs.api_app_name }}" \
+                -var="app_environment_name=${{ needs.compute-non-secret-vars.outputs.api_app_environment_name }}" \
+                -var="app_domain_name=${{ needs.compute-non-secret-vars.outputs.api_app_domain_name }}" \
+                -var="app_container_name=${{ vars.API_CONTAINER_NAME }}" \
+                -var="app_container_port=${{ vars.API_CONTAINER_PORT }}" \
+                -var="github_organisation_or_account=${{ github.actor }}" \
+                -var="github_token_for_registry_read=${{ secrets.API_APP_GH_TOKEN }}" \
+                -var="vault_secretname_registry_password_or_token=${{ needs.compute-non-secret-vars.outputs.vault_secretname_registry_password_or_token }}" \
+                -var="image_repository=${{ vars.IMAGE_REPOSITORY }}" \
+                -var="image_tag=${{ needs.compute-non-secret-vars.outputs.new_version }}" \
+                -var="managed_identity_name=${{ vars.MANAGED_IDENTITY_NAME }}" \
+                -var="id_and_vault_resource_group_name=${{ vars.ID_AND_VAULT_RESOURCE_GROUP_NAME }}" \
+                -var="key_vault_name=${{ vars.VAULT_NAME }}" \
+                -var="vault_secretname_for_connectionstring=${{ needs.compute-non-secret-vars.outputs.vault_secret_conn_name }}" \
+                -var="allowed_cors_origins_for_api=https://${{ needs.compute-non-secret-vars.outputs.vercel_app_domain }}" \
+                -var="env_OTEL_RESOURCE_ATTRIBUTES=deployment.environment.name=${{ needs.compute-non-secret-vars.outputs.otel_env }}" \
+                -var="env_OTEL_EXPORTER_OTLP_ENDPOINT=${{ vars.ENV_OTEL_EXPORTER_OTLP_ENDPOINT }}" \
+                -var="env_OTEL_EXPORTER_OTLP_PROTOCOL=${{ vars.ENV_OTEL_EXPORTER_OTLP_PROTOCOL }}" \
+                -var="env_OTEL_EXPORTER_OTLP_HEADERS=${{ secrets.ENV_OTEL_EXPORTER_OTLP_HEADERS }}" \
+                -var="vault_secretname_env_OTEL_EXPORTER_OTLP_HEADERS=${{ needs.compute-non-secret-vars.outputs.vault_secretname_env_OTEL_EXPORTER_OTLP_HEADERS }}" \
+                2>&1)
+            exit_code=$?
+            if [ $exit_code -ne 0 ]; then
+              echo $output
+              # search output for workspace already locked error
+              locked_error_msg=$(echo "$output" | grep -o 'Error message: workspace already locked')
+              if [ -n "$locked_error_msg" ]; then
+                terraform force-unlock -force "${{ secrets.TF_ORG }}/${{needs.compute-non-secret-vars.outputs.tf_api_workspace_name}}"
+              fi
+            fi
+            exit $exit_code
+          shell: bash
+      - name: Terraform init to destroy preview-ephemeral
         working-directory: .iac/workspaces/preview-ephemeral
         env:
           TF_WORKSPACE: ${{ needs.compute-non-secret-vars.outputs.tf_workspace_name }}
         run: |
           terraform init
-          terraform destroy -auto-approve \
-            -var="vault_name=${{ vars.VAULT_NAME }}" \
-            -var="vault_resource_group_name=${{ vars.ID_AND_VAULT_RESOURCE_GROUP_NAME }}" \
-            -var="vault_secretname_for_connectionstring=${{ needs.compute-non-secret-vars.outputs.vault_secret_conn_name }}" \
-            -var="secretname_for_psql_owner_connectionstring=${{ needs.compute-non-secret-vars.outputs.psql_owner_conn_name }}" \
-            -var="environmentname_for_secrets_and_variables=Preview" \
-            -var="repository_for_secrets_and_variables=flowmazondotnet" \
-            -var="neon_project_id=${{ secrets.TF_MANAGED_NEON_PROJECT_ID }}" \
-            -var="neon_source_branch_id=${{ secrets.TF_MANAGED_NEON_SOURCE_BRANCH_ID }}" \
-            -var="neon_new_branch_name=${{ needs.compute-non-secret-vars.outputs.neon_branch_name }}" \
-            -var="neon_database_name=${{ vars.NEON_DATABASE_NAME }}" \
-            -var="neon_app_role=${{ vars.NEON_APP_ROLE }}" \
-            -var="neon_owner_role=${{ vars.NEON_OWNER_ROLE }}" \
-            -var="neon_app_role_password=${{ secrets.TF_MANAGED_NEON_APP_ROLE_PASSWORD }}" \
-            -var="neon_owner_role_password=${{ secrets.TF_MANAGED_NEON_OWNER_ROLE_PASSWORD }}" \
-            -var="vercel_team_id=${{ secrets.VERCEL_TEAM_ID }}" \
-            -var="vercel_project_name=${{ needs.compute-non-secret-vars.outputs.vercel_project_name }}" \
-            -var="vercel_app_domain_name=${{ needs.compute-non-secret-vars.outputs.vercel_app_domain }}" \
-            -var="vercel_region_for_server_side_execution=${{ vars.VERCEL_REGION_FOR_SERVER_SIDE_EXECUTION }}" \
-            -var="cloudflare_api_token=${{ secrets.CLOUDFLARE_API_TOKEN }}" \
-            -var="cloudflare_zone_id=${{ secrets.CLOUDFLARE_ZONE_ID }}" \
-            -var="grafanacloud_stack_slug=${{ vars.GRAFANA_STACK_SLUG }}" \
-            -var="grafanacloud_frontend_o11y_api_access_token=${{ secrets.GRAFANA_FRONTEND_O11Y_API_ACCESS_TOKEN }}" \
-            -var="grafanacloud_frontend_o11y_instance_name=${{ needs.compute-non-secret-vars.outputs.grafana_instance_name }}" \
-            -var="secretname_for_grafanacloud_frontend_o11y_instance_url=${{ needs.compute-non-secret-vars.outputs.grafana_instance_url_secret }}" \
-            -var="env_NEXT_PUBLIC_OTEL_ENVIRONMENT=${{ needs.compute-non-secret-vars.outputs.otel_env }}" \
-            -var="env_OTEL_EXPORTER_OTLP_ENDPOINT=${{ vars.ENV_OTEL_EXPORTER_OTLP_ENDPOINT }}" \
-            -var="env_OTEL_EXPORTER_OTLP_PROTOCOL=${{ vars.ENV_OTEL_EXPORTER_OTLP_PROTOCOL }}" \
-            -var="env_OTEL_EXPORTER_OTLP_HEADERS=${{ secrets.ENV_OTEL_EXPORTER_OTLP_HEADERS }}" \
-            -var="secretname_for_vercel_project_id=${{ needs.compute-non-secret-vars.outputs.vercel_project_id_secret }}"
 
+      - name: Terraform Destroy preview-ephemeral
+        env:
+          TF_WORKSPACE: ${{ needs.compute-non-secret-vars.outputs.tf_workspace_name }}
+        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 # v3.0.2
+        with:
+          timeout_minutes: 30
+          max_attempts: 2
+          # Run terraform apply and capture lock ID on failure
+          command: |
+            cd .iac/workspaces/preview-ephemeral
+            output=$(terraform apply -auto-approve \
+              terraform destroy -auto-approve \
+                -var="vault_name=${{ vars.VAULT_NAME }}" \
+                -var="vault_resource_group_name=${{ vars.ID_AND_VAULT_RESOURCE_GROUP_NAME }}" \
+                -var="vault_secretname_for_connectionstring=${{ needs.compute-non-secret-vars.outputs.vault_secret_conn_name }}" \
+                -var="secretname_for_psql_owner_connectionstring=${{ needs.compute-non-secret-vars.outputs.psql_owner_conn_name }}" \
+                -var="environmentname_for_secrets_and_variables=Preview" \
+                -var="repository_for_secrets_and_variables=flowmazondotnet" \
+                -var="neon_project_id=${{ secrets.TF_MANAGED_NEON_PROJECT_ID }}" \
+                -var="neon_source_branch_id=${{ secrets.TF_MANAGED_NEON_SOURCE_BRANCH_ID }}" \
+                -var="neon_new_branch_name=${{ needs.compute-non-secret-vars.outputs.neon_branch_name }}" \
+                -var="neon_database_name=${{ vars.NEON_DATABASE_NAME }}" \
+                -var="neon_app_role=${{ vars.NEON_APP_ROLE }}" \
+                -var="neon_owner_role=${{ vars.NEON_OWNER_ROLE }}" \
+                -var="neon_app_role_password=${{ secrets.TF_MANAGED_NEON_APP_ROLE_PASSWORD }}" \
+                -var="neon_owner_role_password=${{ secrets.TF_MANAGED_NEON_OWNER_ROLE_PASSWORD }}" \
+                -var="vercel_team_id=${{ secrets.VERCEL_TEAM_ID }}" \
+                -var="vercel_project_name=${{ needs.compute-non-secret-vars.outputs.vercel_project_name }}" \
+                -var="vercel_app_domain_name=${{ needs.compute-non-secret-vars.outputs.vercel_app_domain }}" \
+                -var="vercel_region_for_server_side_execution=${{ vars.VERCEL_REGION_FOR_SERVER_SIDE_EXECUTION }}" \
+                -var="cloudflare_api_token=${{ secrets.CLOUDFLARE_API_TOKEN }}" \
+                -var="cloudflare_zone_id=${{ secrets.CLOUDFLARE_ZONE_ID }}" \
+                -var="grafanacloud_stack_slug=${{ vars.GRAFANA_STACK_SLUG }}" \
+                -var="grafanacloud_frontend_o11y_api_access_token=${{ secrets.GRAFANA_FRONTEND_O11Y_API_ACCESS_TOKEN }}" \
+                -var="grafanacloud_frontend_o11y_instance_name=${{ needs.compute-non-secret-vars.outputs.grafana_instance_name }}" \
+                -var="secretname_for_grafanacloud_frontend_o11y_instance_url=${{ needs.compute-non-secret-vars.outputs.grafana_instance_url_secret }}" \
+                -var="env_NEXT_PUBLIC_OTEL_ENVIRONMENT=${{ needs.compute-non-secret-vars.outputs.otel_env }}" \
+                -var="env_OTEL_EXPORTER_OTLP_ENDPOINT=${{ vars.ENV_OTEL_EXPORTER_OTLP_ENDPOINT }}" \
+                -var="env_OTEL_EXPORTER_OTLP_PROTOCOL=${{ vars.ENV_OTEL_EXPORTER_OTLP_PROTOCOL }}" \
+                -var="env_OTEL_EXPORTER_OTLP_HEADERS=${{ secrets.ENV_OTEL_EXPORTER_OTLP_HEADERS }}" \
+                -var="secretname_for_vercel_project_id=${{ needs.compute-non-secret-vars.outputs.vercel_project_id_secret }}" \
+                2>&1)
+            exit_code=$?
+            if [ $exit_code -ne 0 ]; then
+              echo $output
+              # search output for workspace already locked error
+              locked_error_msg=$(echo "$output" | grep -o 'Error message: workspace already locked')
+              if [ -n "$locked_error_msg" ]; then
+                terraform force-unlock -force "${{ secrets.TF_ORG }}/${{needs.compute-non-secret-vars.outputs.tf_workspace_name}}"
+              fi
+            fi
+            exit $exit_code
+          shell: bash
       - name: Install jq for JSON parsing
         run: sudo apt-get update && sudo apt-get install -y jq
 
