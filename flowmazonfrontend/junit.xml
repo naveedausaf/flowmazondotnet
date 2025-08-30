@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites name="jest tests" tests="38" failures="0" errors="0" time="29.608">
+  <testsuite name="Components/TestStrictModeInStorybook" errors="0" failures="0" skipped="1" timestamp="2025-08-30T23:18:59" time="4.17" tests="1">
+    <testcase classname="Components/TestStrictModeInStorybook no-op" name="Components/TestStrictModeInStorybook no-op" time="0">
+      <skipped/>
+    </testcase>
+  </testsuite>
+  <testsuite name="components/SubmitButton" errors="0" failures="0" skipped="0" timestamp="2025-08-30T23:18:59" time="5.244" tests="1">
+    <testcase classname="components/SubmitButton LoadingStateShownOnSubmit play-test" name="components/SubmitButton LoadingStateShownOnSubmit play-test" time="0.993">
+    </testcase>
+  </testsuite>
+  <testsuite name="components/AlertDialog" errors="0" failures="0" skipped="0" timestamp="2025-08-30T23:18:59" time="8.513" tests="5">
+    <testcase classname="components/AlertDialog Primary smoke-test" name="components/AlertDialog Primary smoke-test" time="0.829">
+    </testcase>
+    <testcase classname="components/AlertDialog AlertDialogIsAccessible play-test" name="components/AlertDialog AlertDialogIsAccessible play-test" time="1.219">
+    </testcase>
+    <testcase classname="components/AlertDialog ElementIdToFocusAfterDialogClosed_NotValid play-test" name="components/AlertDialog ElementIdToFocusAfterDialogClosed_NotValid play-test" time="0.667">
+    </testcase>
+    <testcase classname="components/AlertDialog AlertDialogCanBeClosedToGetBackToForm play-test" name="components/AlertDialog AlertDialogCanBeClosedToGetBackToForm play-test" time="0.695">
+    </testcase>
+    <testcase classname="components/AlertDialog EscapeClosesAlertDialog play-test" name="components/AlertDialog EscapeClosesAlertDialog play-test" time="0.765">
+    </testcase>
+  </testsuite>
+  <testsuite name="screens/add-product/AddProductScreen" errors="0" failures="0" skipped="0" timestamp="2025-08-30T23:18:59" time="10.314" tests="12">
+    <testcase classname="screens/add-product/AddProductScreen Primary smoke-test" name="screens/add-product/AddProductScreen Primary smoke-test" time="1.107">
+    </testcase>
+    <testcase classname="screens/add-product/AddProductScreen ErrorNameIsRequired smoke-test" name="screens/add-product/AddProductScreen ErrorNameIsRequired smoke-test" time="0.432">
+    </testcase>
+    <testcase classname="screens/add-product/AddProductScreen ErrorDescriptionMaxLength smoke-test" name="screens/add-product/AddProductScreen ErrorDescriptionMaxLength smoke-test" time="0.438">
+    </testcase>
+    <testcase classname="screens/add-product/AddProductScreen ErrorDescriptionIsRequried smoke-test" name="screens/add-product/AddProductScreen ErrorDescriptionIsRequried smoke-test" time="0.379">
+    </testcase>
+    <testcase classname="screens/add-product/AddProductScreen ErrorImageURLInvalidURL smoke-test" name="screens/add-product/AddProductScreen ErrorImageURLInvalidURL smoke-test" time="0.392">
+    </testcase>
+    <testcase classname="screens/add-product/AddProductScreen ErrorImageURLRequired smoke-test" name="screens/add-product/AddProductScreen ErrorImageURLRequired smoke-test" time="0.489">
+    </testcase>
+    <testcase classname="screens/add-product/AddProductScreen ErrorImageUrlMaxLength smoke-test" name="screens/add-product/AddProductScreen ErrorImageUrlMaxLength smoke-test" time="0.381">
+    </testcase>
+    <testcase classname="screens/add-product/AddProductScreen ErrorPriceIsRequired smoke-test" name="screens/add-product/AddProductScreen ErrorPriceIsRequired smoke-test" time="0.471">
+    </testcase>
+    <testcase classname="screens/add-product/AddProductScreen ErrorPriceBelowMin smoke-test" name="screens/add-product/AddProductScreen ErrorPriceBelowMin smoke-test" time="0.41">
+    </testcase>
+    <testcase classname="screens/add-product/AddProductScreen ErrorPriceAboveMax smoke-test" name="screens/add-product/AddProductScreen ErrorPriceAboveMax smoke-test" time="0.461">
+    </testcase>
+    <testcase classname="screens/add-product/AddProductScreen ErrorPriceNotMoney smoke-test" name="screens/add-product/AddProductScreen ErrorPriceNotMoney smoke-test" time="0.505">
+    </testcase>
+    <testcase classname="screens/add-product/AddProductScreen ErrorPriceNotNumeric smoke-test" name="screens/add-product/AddProductScreen ErrorPriceNotNumeric smoke-test" time="0.468">
+    </testcase>
+  </testsuite>
+  <testsuite name="pageStories/add-product" errors="0" failures="0" skipped="0" timestamp="2025-08-30T23:18:59" time="25.518" tests="19">
+    <testcase classname="pageStories/add-product Primary smoke-test" name="pageStories/add-product Primary smoke-test" time="1.106">
+    </testcase>
+    <testcase classname="pageStories/add-product RequiredFieldsIdentifiedAsSuch play-test" name="pageStories/add-product RequiredFieldsIdentifiedAsSuch play-test" time="0.447">
+    </testcase>
+    <testcase classname="pageStories/add-product FormNameIsCorrect play-test" name="pageStories/add-product FormNameIsCorrect play-test" time="0.417">
+    </testcase>
+    <testcase classname="pageStories/add-product InputModes play-test" name="pageStories/add-product InputModes play-test" time="0.361">
+    </testcase>
+    <testcase classname="pageStories/add-product Autocomplete play-test" name="pageStories/add-product Autocomplete play-test" time="0.402">
+    </testcase>
+    <testcase classname="pageStories/add-product LoadingStateOnSubmit play-test" name="pageStories/add-product LoadingStateOnSubmit play-test" time="1.566">
+    </testcase>
+    <testcase classname="pageStories/add-product SubmitSuccessfully play-test" name="pageStories/add-product SubmitSuccessfully play-test" time="1.568">
+    </testcase>
+    <testcase classname="pageStories/add-product ServerErrorOnSubmit play-test" name="pageStories/add-product ServerErrorOnSubmit play-test" time="1.901">
+    </testcase>
+    <testcase classname="pageStories/add-product ServerErrorOnsubmit_400Response play-test" name="pageStories/add-product ServerErrorOnsubmit_400Response play-test" time="1.874">
+    </testcase>
+    <testcase classname="pageStories/add-product ServerErrorOnsubmit_500Response play-test" name="pageStories/add-product ServerErrorOnsubmit_500Response play-test" time="1.776">
+    </testcase>
+    <testcase classname="pageStories/add-product ServerErrorOnSubmit_499Response play-test" name="pageStories/add-product ServerErrorOnSubmit_499Response play-test" time="1.686">
+    </testcase>
+    <testcase classname="pageStories/add-product ServerErrorOnSubmit_599Response play-test" name="pageStories/add-product ServerErrorOnSubmit_599Response play-test" time="1.69">
+    </testcase>
+    <testcase classname="pageStories/add-product SubmitValidatesAllFieldsAndJumpsToFirstError play-test" name="pageStories/add-product SubmitValidatesAllFieldsAndJumpsToFirstError play-test" time="0.538">
+    </testcase>
+    <testcase classname="pageStories/add-product SubmitWhenThereAreAlreadyErrorsJumpsToFirstError play-test" name="pageStories/add-product SubmitWhenThereAreAlreadyErrorsJumpsToFirstError play-test" time="0.872">
+    </testcase>
+    <testcase classname="pageStories/add-product ValidateOnTypeButAfterFirstTabOff play-test" name="pageStories/add-product ValidateOnTypeButAfterFirstTabOff play-test" time="1.207">
+    </testcase>
+    <testcase classname="pageStories/add-product NameErrors_ValidateOnTabOff play-test" name="pageStories/add-product NameErrors_ValidateOnTabOff play-test" time="0.773">
+    </testcase>
+    <testcase classname="pageStories/add-product DescriptionErrors_ValidateOnTabOff play-test" name="pageStories/add-product DescriptionErrors_ValidateOnTabOff play-test" time="0.829">
+    </testcase>
+    <testcase classname="pageStories/add-product ImageUrlErrors_ValidateOnTabOff play-test" name="pageStories/add-product ImageUrlErrors_ValidateOnTabOff play-test" time="0.885">
+    </testcase>
+    <testcase classname="pageStories/add-product PriceErrors_ValidateOnTabOff play-test" name="pageStories/add-product PriceErrors_ValidateOnTabOff play-test" time="1.122">
+    </testcase>
+  </testsuite>
+</testsuites>

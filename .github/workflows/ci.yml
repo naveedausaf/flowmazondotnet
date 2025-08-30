@@ -298,13 +298,13 @@ jobs:
       # workspace in this can sometimes stay locked if the workflow
       # was canceleld (e.g. a new puch was made to the source branch
       # of pull request or the pull request was merged)
-      # Since ephemeral workspace created/updated/deleted in this 
+      # Since ephemeral workspace created/updated/deleted in this
       # workflow are only creaetd/updated/delete by this workflow, within
-      # the concurrenty group of the source branch, the source branch 
-      # of the pull request effectively owns these worksapces. 
-      # Moreover, due to concurrenty group of this workflow, 
+      # the concurrenty group of the source branch, the source branch
+      # of the pull request effectively owns these worksapces.
+      # Moreover, due to concurrenty group of this workflow,
       # there can only one one operation taking place on these
-      # workspaces at any give time. 
+      # workspaces at any give time.
       # Therefor, it is safe to use the -nolock option
       # when calling terraform apply and terraform destroy
       # on any of the ephemeral worksapces in this workflow in order
@@ -312,18 +312,18 @@ jobs:
       # fail to get unlocked in HCP.
       #
       # I think it is slightly safer to explicitly unlock it first
-      # before use, which is what I am doing below. 
-      # I do the same with apply and destroy on this and other 
+      # before use, which is what I am doing below.
+      # I do the same with apply and destroy on this and other
       # ephemeral workspace elsewhere in this workflow.
       #
-      # HISTORICAL NOTE: I used retry action before 
+      # HISTORICAL NOTE: I used retry action before
       # (https://github.com/nick-fields/retry) to execute apply
-      # and destroy in, so we would unlock on failure and try the 
+      # and destroy in, so we would unlock on failure and try the
       # apply or destroy again. The problem with that was it
       # was hiding all the output from the command line operations.
       # Also, I think the approach of unlocking, with continue-on-error
-      # if there is an error because the workspace was not locked 
-      # to begin with, is neater. 
+      # if there is an error because the workspace was not locked
+      # to begin with, is neater.
       - name: Remove any existing lock on preview-ephemeral workspace
         # No problem if the workspace was not locked to begin with
         continue-on-error: true
@@ -845,12 +845,98 @@ jobs:
           echo "previewUrl=$previewUrl" >> "$GITHUB_OUTPUT"
 
   chromatic:
+    if: github.event.action != 'closed'
     uses: "./.github/workflows/chromatic.yml"
     with:
       failOnChanges: false
       workingDir: ./flowmazonfrontend
     secrets:
       CHROMATIC_PROJECT_TOKEN: ${{ secrets.CHROMATIC_PROJECT_TOKEN }}
+
+  # The job below gives us three things:
+  #
+  # 1. Runs interaction tests (only some stories have these).
+  #
+  # 2. Gives us coverage for all stories in the Storybook
+  # (including those that do not have interaction tests).
+  # Since the final render of every story (after interaction
+  # test, if any, has run) get visual-tested in Chromatic
+  # (these are in a sense asserts on the stories that are
+  # not contained in the stories themselves),
+  # coverage that includes stories both with and
+  # without interaction tests gives makes sense and is
+  # a complete coverage report for unit tests (stories) of
+  # flowmazonfrontend app.
+  #
+  # 3. Because of the way storybook has been configured
+  # (see .storybook/test-runner.js in flowmazonfrontend),
+  # automated accessibility tests suite of axe-core
+  # is run on the final render of every story.
+  # Now individual visual states of a component
+  # are highlighted in separate stories. In particular,
+  # the initial (starting) state of a story with an
+  # interaction tests - for this story accessibility tests
+  # would run only on the final render - the starting
+  # visual state would have a story of its own.
+  # For this reason, and the fact that we write stories
+  # all the way up to an entire screen/page (which would be
+  # a component, most likely with behaviour) and it is only
+  # behaviour across pages that is tested in Playwright tests,
+  # the accessibility tests ru non stories are the only
+  # automated accessibility tests we need for the frontend
+  # app.
+  # In particular, we DO NOT need to run axe-core in
+  # Playwright tests also.
+  #
+  # THEREFORE WE NEED TO EXTRACT THREE THINGS IN THIS JOB:
+  # 1. Coverage reported by Storybook test-runner. This
+  # needs to be posted to CodeCov
+  # 2. Test run report. This would combine both interaction
+  # test results (where stories have them) and whether stories
+  # rendered without errors (actual asserts on render
+  # of a tory are Chromatic visual diffs and would happen in
+  # Chromatic).
+  # This needs to be posted to CodeCov as well as uploaded
+  # as a check on the PR.
+  # 3.Accessibility Test report. Q. WHERE SHOULD I UPLOAD THIS?
+  storybook-tests:
+    name: Storybook Tests
+    runs-on: ubuntu-24.04
+    if: github.event.action != 'closed'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24.x
+      - name: Install dependencies
+        working-directory: ./flowmazonfrontend
+        run: npm ci
+      - name: Build Storybook
+        working-directory: ./flowmazonfrontend
+        run: npm run build-storybook
+      - name: Run Storybook tests
+        working-directory: ./flowmazonfrontend
+        run: npm run test-storybook:ci
+      - name: Publish test report to PR Checks
+        if: always()
+        uses: dorny/test-reporter@v1
+        with:
+          name: Storybook Tests
+          path: junit.xml # Path to test results
+          reporter: jest-junit # Format of test results
+          fail-on-error: false
+
+      - name: Upload coverage to Codecov
+        if: always()
+        uses: codecov/codecov-action@v5
+        with:
+          files: ./flowmazonfrontend/sbcoverage/coverage-storybook.json
+          fail_ci_if_error: true
+          #flags: api-unittests
+          name: storybook-tests
+          token: ${{ secrets.CODECOV_TOKEN }}
+          verbose: true
 
   comment-preview-links:
     name: Post links to Preview env on PR
