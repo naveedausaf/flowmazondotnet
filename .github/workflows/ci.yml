@@ -909,9 +909,12 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 24.x
-      - name: Install dependencies
+      - name: Install dependencies and playeright browsers
         working-directory: ./flowmazonfrontend
-        run: npm ci
+        run: |
+          npm ci
+          npx playwright install --with-deps
+
       - name: Build Storybook
         working-directory: ./flowmazonfrontend
         run: npm run build-storybook
