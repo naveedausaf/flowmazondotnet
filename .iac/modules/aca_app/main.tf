@@ -554,7 +554,7 @@ resource "azapi_resource" "managed_certificate" {
   # A managed resource can sometimes take a very, very long time
   # to create. We cannot retry the operation easily as it gets
   # created at sometime after the request has timed out but
-  # Terraform (this workspace's state) does not know about it.
+  # Terraform (this workspace's state) does not know about it
   #
   # So I am just specifying a long timeout on create, update and delete
   timeouts {
