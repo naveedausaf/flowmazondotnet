@@ -5,7 +5,7 @@ coverage:
   status:
     project: #add everything under here, more options at https://docs.codecov.com/docs/commit-status
       default:
-        target: 90%
+        target: 98%
         threshold: 1%
         informational: false
 
