@@ -1,7 +1,3 @@
-comment:
-  layout: "header, diff, components, files" # I don't use codecov flags as I am using newer, recommended components feature. So "flags" not included in layout.
-  require_changes: true
-  behavior: default
 coverage:
   status:
     project: #add everything under here, more options at https://docs.codecov.com/docs/commit-status
@@ -9,6 +5,11 @@ coverage:
         target: 99%
         threshold: 1%
         informational: false
+# comment:
+#   layout: "header, diff, components, files" # I don't use codecov flags as I am using newer, recommended components feature. So "flags" not included in layout.
+#   require_changes: true
+#   behavior: default
+
         
 ignore:
   - flowmazonbackend/flowmazonapi/Migrations
