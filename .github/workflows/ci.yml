@@ -624,8 +624,6 @@ jobs:
   standalone-tests:
     uses: "./.github/workflows/standalone-tests.yml"
     needs: [compute-non-secret-vars]
-    environment:
-      name: Preview
     secrets:
       CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
   playwright-tests:
