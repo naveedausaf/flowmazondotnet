@@ -88,9 +88,8 @@ jobs:
       #   id: deploystep1
       #   if: ${{ env.RELEASED == 1 }}
 
-  # OTHER JOBS HERE...
   api-unittests:
-    name: Run API .NET Unit Tests and publish report
+    name: API Unit Tests
     runs-on: ubuntu-24.04
     needs: create-release
     environment:

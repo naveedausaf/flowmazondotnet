@@ -1,6 +1,13 @@
 comment:
   layout: "header, diff, components" # I don't use codecov flags as I am using newer, recommended components feature. So "flags" not included in layout.
-
+coverage:
+  status:
+    project: #add everything under here, more options at https://docs.codecov.com/docs/commit-status
+      default:
+        target: 85%
+        threshold: 1%
+        informational: false
+        
 ignore:
   - flowmazonbackend/flowmazonapi/Migrations
 
