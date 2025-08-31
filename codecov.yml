@@ -2,6 +2,10 @@
 # ignore:
 #   - flowmazonbackend/flowmazonapi/Migrations
 
+comment:
+    layout: "header, dif, files, footer"
+    hide_project_coverage: false
+
 coverage:
   status:
     project: #add everything under here, more options at https://docs.codecov.com/docs/commit-status
