@@ -624,6 +624,9 @@ jobs:
   standalone-tests:
     uses: "./.github/workflows/standalone-tests.yml"
     needs: [compute-non-secret-vars]
+    permissions:
+      checks: write
+      pull-requests: write
     secrets:
       CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
   playwright-tests:
