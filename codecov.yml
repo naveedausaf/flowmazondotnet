@@ -13,11 +13,11 @@ component_management:
         informational: false
         
   individual_components:
-    - component_id: API  # this is an identifier that should not be changed
+    - component_id: api  # this is an identifier that should not be changed
       name: API  # this is a display name, and can be changed freely
       paths:
-        - flowmazonbackend/flowmazonapi/**
-    - component_id: Frontend Web app
-      name: frontend
+        - flowmazonbackend/**
+    - component_id: frontend
+      name: Frontend Web app
       paths:
         - flowmazonfrontend/**
