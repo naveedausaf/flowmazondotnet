@@ -621,62 +621,11 @@ jobs:
           -var="vault_secretname_env_OTEL_EXPORTER_OTLP_HEADERS=${{ needs.compute-non-secret-vars.outputs.vault_secretname_env_OTEL_EXPORTER_OTLP_HEADERS }}"
         working-directory: .iac/workspaces/preview-ephemeral-api
 
-  api-unittests:
-    name: API Unit Tests
-    runs-on: ubuntu-24.04
+  standalone-tests:
+    uses: "./.github/workflows/standalone-tests.yml"
     needs: [compute-non-secret-vars]
-    if: github.event.action != 'closed'
-    environment:
-      name: Preview
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-      - name: Setup .NET SDK
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: 9.0.x
-      - name: Restore dependencies
-        working-directory: ./flowmazonbackend/flowmazonapi.UnitTests
-        run: dotnet restore
-      - name: Run unit tests with coverage
-        working-directory: ./flowmazonbackend/flowmazonapi.UnitTests
-        # Generating test results file (test_results.xml, not the cobertura format coverage file which is separate) in JUnit format because this is the only format CodeCov currently accepts test results in for its experimental test analytics feature (this is separate to its code coverage feature).
-        # In order for dotnet test to be able to use test run report in this format, we need to add reference to `JunitXml.TestLogger` in the test project (not in the project under test), as described here:
-        # https://github.com/spekt/junit.testlogger
-        #
-        # We also upload the test_results.xml file as a Check (which appears in the Checks tab of the pull request) using dorny/test-reporter action as the CodeCov Test Results Analytics feature is still experimental.
-        run: |
-          dotnet test --configuration Release \
-            --logger "junit;LogFileName=test_results.xml" \
-            --results-directory ./TestResults \
-            --collect:"XPlat Code Coverage"
-      - name: Upload test results to Codecov
-        if: ${{ !cancelled() }}
-        uses: codecov/test-results-action@v1
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          files: flowmazonbackend/flowmazonapi.UnitTests/TestResults/**/test_results.xml
-      - name: Publish test report to PR Checks
-        if: always()
-        uses: dorny/test-reporter@v1
-        with:
-          name: API Unit Tests
-          path: flowmazonbackend/flowmazonapi.UnitTests/TestResults/**/test_results.xml
-          # java-junit reporter is experimental in this action. If this doesn't work properly then reporter should be jest-junit.
-          # Bear in mind though that to use jest-junit, you need to surround the contents of this xml file with a <testsuites> element which has a `time` attribute. See my wiki for details.
-          reporter: java-junit
-          fail-on-error: false
-
-      - name: Upload coverage to Codecov
-        if: always()
-        uses: codecov/codecov-action@v5
-        with:
-          files: flowmazonbackend/flowmazonapi.UnitTests/TestResults/**/coverage.cobertura.xml
-          fail_ci_if_error: true
-          #flags: api-unittests
-          name: api-unittests
-          token: ${{ secrets.CODECOV_TOKEN }}
-          verbose: true
+    secrets:
+      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
   playwright-tests:
     name: Playwright Integration Tests
     runs-on: ubuntu-24.04

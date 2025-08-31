@@ -1,6 +1,5 @@
-ignore:
-  - flowmazonbackend/flowmazonapi/Migrations
-
+comment:
+  layout: "header, diff, components" # I don't use codecov flags as I am using newer, recommended components feature. So "flags" not included in layout.
 coverage:
   status:
     project: #add everything under here, more options at https://docs.codecov.com/docs/commit-status
@@ -8,3 +7,24 @@ coverage:
         target: 85%
         threshold: 1%
         informational: false
+        
+ignore:
+  - flowmazonbackend/flowmazonapi/Migrations
+
+component_management:
+  default_rules:  # default rules that will be inherited by all components
+    statuses:
+      - type: project # in this case every component that doens't have a status defined will have a project type one
+        target: 85%
+        threshold: 1%
+        informational: false
+        
+  individual_components:
+    - component_id: api  # this is an identifier that should not be changed
+      name: API  # this is a display name, and can be changed freely
+      paths:
+        - flowmazonbackend/**
+    - component_id: frontend
+      name: Frontend Web app
+      paths:
+        - flowmazonfrontend/**
