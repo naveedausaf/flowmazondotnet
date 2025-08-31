@@ -1,7 +1,10 @@
 
+ignore:
+  - flowmazonbackend/flowmazonapi/Migrations
 
-# ignore:
-#   - flowmazonbackend/flowmazonapi/Migrations
+comment:
+    layout: "header, diff, files, footer"
+    hide_project_coverage: FALSE
 
 coverage:
   status:
