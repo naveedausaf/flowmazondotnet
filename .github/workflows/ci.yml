@@ -650,6 +650,12 @@ jobs:
             --logger "junit;LogFileName=test_results.xml" \
             --results-directory ./TestResults \
             --collect:"XPlat Code Coverage"
+      - name: Upload test results to Codecov
+        if: ${{ !cancelled() }}
+        uses: codecov/test-results-action@v1
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: flowmazonbackend/flowmazonapi.UnitTests/TestResults/**/test_results.xml
       - name: Publish test report to PR Checks
         if: always()
         uses: dorny/test-reporter@v1
@@ -746,7 +752,12 @@ jobs:
           name: playwright-report
           path: ./flowmazonfrontend/playwright-report/
           retention-days: 30
-
+      - name: Upload test results to Codecov
+        if: ${{ !cancelled() }}
+        uses: codecov/test-results-action@v1
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./flowmazonfrontend/junit-report/test_results.xml
       - name: Publish test report to PR Checks
         if: always()
         uses: dorny/test-reporter@v1
@@ -797,7 +808,12 @@ jobs:
           # Bear in mind though that to use jest-junit, you need to surround the contents of this xml file with a <testsuites> element which has a `time` attribute. See my wiki for details.
           reporter: java-junit
           fail-on-error: false
-
+      - name: Upload test results to Codecov
+        if: ${{ !cancelled() }}
+        uses: codecov/test-results-action@v1
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: flowmazonbackend/flowmazonapi.IntegrationTests/TestResults/**/test_results.xml
   # This job is based on job of same name
   # in release.yml. See detailed comments
   # there.
@@ -929,7 +945,12 @@ jobs:
           path: ./flowmazonfrontend/junit.xml # Path to test results
           reporter: jest-junit # Format of test results
           fail-on-error: false
-
+      - name: Upload test results to Codecov
+        if: ${{ !cancelled() }}
+        uses: codecov/test-results-action@v1
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./flowmazonfrontend/junit.xml
       - name: Upload coverage to Codecov
         if: always()
         uses: codecov/codecov-action@v5
