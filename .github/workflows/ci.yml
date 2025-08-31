@@ -712,7 +712,7 @@ jobs:
           files: ./flowmazonfrontend/junit-report/test_results.xml
       - name: Publish test report to PR Checks
         if: always()
-        uses: dorny/test-reporter@v1
+        uses: dorny/test-reporter@v2
         with:
           name: Playwright Integration Tests
           path: ./flowmazonfrontend/junit-report/test_results.xml
