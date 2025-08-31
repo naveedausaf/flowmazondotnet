@@ -91,6 +91,8 @@ jobs:
   standalone-tests:
     uses: "./.github/workflows/standalone-tests.yml"
     needs: [create-release]
+    permissions:
+      checks: write
     secrets:
       CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
   migrate-db:
