@@ -3,7 +3,7 @@
 # Overview
 
 # Production Environment
-## Deployment Diagram (Production)
+## Deployment Diagram
 
 **Deployment Diagram for Production is given below**. 
 
@@ -11,11 +11,6 @@ Application code runs on application infrastructure nodes shown in **GREEN**. Th
 
 ![alt text](image.png)
 
-## Coverage
-
-[![Coverage Grid Diagram](https://codecov.io/gh/naveedausaf/flowmazondotnet/graphs/tree.svg?token=txbNf6rVf5)]
-
-Each block represents a single file in the project. The size and color of each block is represented by the number of statements and the coverage, respectively.
 
 ## Setup (after Cloning the Repo)
 
