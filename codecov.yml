@@ -1,11 +1,10 @@
 
-ignore:
-  - flowmazonbackend/flowmazonapi/Migrations
-
 comment:
   layout: "header, diff, files, footer"
-  hide_project_coverage: FALSE
-
+  hide_project_coverage: false
+  hide_branch_coverage: false
+  hide_comparison: false
+  
 coverage:
   status:
     project: #add everything under here, more options at https://docs.codecov.com/docs/commit-status
@@ -16,6 +15,10 @@ coverage:
         paths:
           - flowmazonbackend/**
           - flowmazonfrontend/**
+
+ignore:
+  - flowmazonbackend/flowmazonapi/Migrations
+  
 # component_management:
 #   default_rules:  # default rules that will be inherited by all components
 #     statuses:
