@@ -22,6 +22,9 @@ jobs:
     name: API Unit Tests
     runs-on: ubuntu-24.04
     if: github.event.action != 'closed'
+    permissions:
+      checks: write
+      pull-requests: write
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -69,5 +72,146 @@ jobs:
           fail_ci_if_error: true
           #flags: api-unittests
           name: api-unittests
+          token: ${{ secrets.CODECOV_TOKEN }}
+          verbose: true
+  api-integration-tests:
+    name: API Integration Tests
+    runs-on: ubuntu-24.04
+    if: github.event.action != 'closed'
+    permissions:
+      checks: write
+      pull-requests: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 9.0.x
+      - name: Restore dependencies
+        working-directory: ./flowmazonbackend/flowmazonapi.IntegrationTests
+        run: dotnet restore
+      - name: Run Integration Tests
+        working-directory: ./flowmazonbackend/flowmazonapi.IntegrationTests
+        # Generating test results file in JUnit format (test_results.xml, not coverage report file which will not be generated as we are do not collect coverage from integration test runs as its usually not possible or straightforward to do that) because this is the only format CodeCov currently accepts test results in for its experimental test analytics feature (this is separate to its code coverage feature).
+        # In order for dotnet test to be able to use test run report in this format, we need to add reference to `JunitXml.TestLogger` in the test project (not in the project under test), as described here:
+        # https://github.com/spekt/junit.testlogger
+        #
+        # We also upload the test_results.xml file as a Check (which appears in the Checks tab of the pull request) using dorny/test-reporter action as the CodeCov Test Results Analytics feature is still experimental.
+        run: |
+          dotnet test --configuration Release \
+            --logger "junit;LogFileName=test_results.xml" \
+            --results-directory ./TestResults \
+            --collect:"XPlat Code Coverage"
+      - name: Publish test report to PR Checks
+        if: always()
+        uses: dorny/test-reporter@v1
+        with:
+          name: API Integration Tests
+          path: flowmazonbackend/flowmazonapi.IntegrationTests/TestResults/**/test_results.xml
+          # java-junit reporter is experimental in this action. If this doesn't work properly then reporter should be jest-junit.
+          # Bear in mind though that to use jest-junit, you need to surround the contents of this xml file with a <testsuites> element which has a `time` attribute. See my wiki for details.
+          reporter: java-junit
+          fail-on-error: false
+      - name: Upload test results to Codecov
+        if: ${{ !cancelled() }}
+        uses: codecov/test-results-action@v1
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: flowmazonbackend/flowmazonapi.IntegrationTests/TestResults/**/test_results.xml
+
+  # The job below gives us three things:
+  #
+  # 1. Runs interaction tests (only some stories have these).
+  #
+  # 2. Gives us coverage for all stories in the Storybook
+  # (including those that do not have interaction tests).
+  # Since the final render of every story (after interaction
+  # test, if any, has run) get visual-tested in Chromatic
+  # (these are in a sense asserts on the stories that are
+  # not contained in the stories themselves),
+  # coverage that includes stories both with and
+  # without interaction tests gives makes sense and is
+  # a complete coverage report for unit tests (stories) of
+  # flowmazonfrontend app.
+  #
+  # 3. Because of the way storybook has been configured
+  # (see .storybook/test-runner.js in flowmazonfrontend),
+  # automated accessibility tests suite of axe-core
+  # is run on the final render of every story.
+  # Now individual visual states of a component
+  # are highlighted in separate stories. In particular,
+  # the initial (starting) state of a story with an
+  # interaction tests - for this story accessibility tests
+  # would run only on the final render - the starting
+  # visual state would have a story of its own.
+  # For this reason, and the fact that we write stories
+  # all the way up to an entire screen/page (which would be
+  # a component, most likely with behaviour) and it is only
+  # behaviour across pages that is tested in Playwright tests,
+  # the accessibility tests ru non stories are the only
+  # automated accessibility tests we need for the frontend
+  # app.
+  # In particular, we DO NOT need to run axe-core in
+  # Playwright tests also.
+  #
+  # THEREFORE WE NEED TO EXTRACT THREE THINGS IN THIS JOB:
+  # 1. Coverage reported by Storybook test-runner. This
+  # needs to be posted to CodeCov
+  # 2. Test run report. This would combine both interaction
+  # test results (where stories have them) and whether stories
+  # rendered without errors (actual asserts on render
+  # of a tory are Chromatic visual diffs and would happen in
+  # Chromatic).
+  # This needs to be posted to CodeCov as well as uploaded
+  # as a check on the PR.
+  # 3.Accessibility Test report. Q. WHERE SHOULD I UPLOAD THIS?
+  storybook-tests:
+    name: Storybook Tests
+    runs-on: ubuntu-24.04
+    if: github.event.action != 'closed'
+    permissions:
+      checks: write
+      pull-requests: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24.x
+      - name: Install dependencies and playeright browsers
+        working-directory: ./flowmazonfrontend
+        run: |
+          npm ci
+          npx playwright install --with-deps
+
+      - name: Build Storybook
+        working-directory: ./flowmazonfrontend
+        run: npm run build-storybook
+      - name: Run Storybook tests
+        working-directory: ./flowmazonfrontend
+        run: npm run test-storybook:ci
+      - name: Publish test report to PR Checks
+        if: always()
+        uses: dorny/test-reporter@v1
+        with:
+          name: Storybook Tests
+          path: ./flowmazonfrontend/junit.xml # Path to test results
+          reporter: jest-junit # Format of test results
+          fail-on-error: false
+      - name: Upload test results to Codecov
+        if: ${{ !cancelled() }}
+        uses: codecov/test-results-action@v1
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./flowmazonfrontend/junit.xml
+      - name: Upload coverage to Codecov
+        if: always()
+        uses: codecov/codecov-action@v5
+        with:
+          files: ./flowmazonfrontend/sbcoverage/coverage-storybook.json
+          fail_ci_if_error: true
+          #flags: api-unittests
+          name: storybook-tests
           token: ${{ secrets.CODECOV_TOKEN }}
           verbose: true
