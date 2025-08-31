@@ -627,7 +627,7 @@ jobs:
     environment:
       name: Preview
     secrets:
-      CHROMATIC_PROJECT_TOKEN: ${{ secrets.CHROMATIC_PROJECT_TOKEN }}
+      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
   playwright-tests:
     name: Playwright Integration Tests
     runs-on: ubuntu-24.04
