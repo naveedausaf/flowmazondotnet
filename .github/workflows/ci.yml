@@ -926,7 +926,7 @@ jobs:
         uses: dorny/test-reporter@v1
         with:
           name: Storybook Tests
-          path: junit.xml # Path to test results
+          path: ./flowmazonfrontend/junit.xml # Path to test results
           reporter: jest-junit # Format of test results
           fail-on-error: false
 
