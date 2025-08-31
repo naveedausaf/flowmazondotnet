@@ -1,5 +1,5 @@
 comment:
-  layout: "header, diff, components" # I don't use codecov flags asd I am using newer, recommended components feature. So "flags" no includes in layout.
+  layout: "header, diff, components" # I don't use codecov flags as I am using newer, recommended components feature. So "flags" not included in layout.
 
 ignore:
   - flowmazonbackend/flowmazonapi/Migrations

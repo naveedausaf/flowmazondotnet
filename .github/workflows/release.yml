@@ -117,14 +117,14 @@ jobs:
             --logger "junit;LogFileName=test_results.xml" \
             --results-directory ./TestResults \
             --collect:"XPlat Code Coverage"
-      # - name: Publish test report to PR Checks
-      #   if: always()
-      #   uses: dorny/test-reporter@v1
-      #   with:
-      #     name: API Unit Tests
-      #     path: flowmazonbackend/flowmazonapi.UnitTests/TestResults/**/test_results.xml
-      #     # java-junit reporter is experimental in this action. If this doesn't work properly then reporter should be jest-junit.
-      #     # Bear in mind though that to use jest-junit, you need to surround the contents of this xml file with a <testsuites> element which has a `time` attribute. See my wiki for details.
+      - name: Publish test report to PR Checks
+        if: always()
+        uses: dorny/test-reporter@v1
+        with:
+          name: API Unit Tests
+          path: flowmazonbackend/flowmazonapi.UnitTests/TestResults/**/test_results.xml
+          # java-junit reporter is experimental in this action. If this doesn't work properly then reporter should be jest-junit.
+          # Bear in mind though that to use jest-junit, you need to surround the contents of this xml file with a <testsuites> element which has a `time` attribute. See my wiki for details.
 
       #     reporter: java-junit
       #     fail-on-error: false
