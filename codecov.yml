@@ -3,7 +3,7 @@
 #   - flowmazonbackend/flowmazonapi/Migrations
 
 comment:
-    layout: "header, dif, files, footer"
+    layout: "header, diff, files, footer"
     hide_project_coverage: false
 
 coverage:
