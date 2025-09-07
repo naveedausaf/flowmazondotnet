@@ -1,4 +1,8 @@
 import type { Meta, StoryObj } from '@storybook/nextjs';
+
+//THIS MUST BE A RELATIVE IMPORT, otherwise
+//Storybook fails to update or hangs on refresh
+// on stories in this file.
 import { allModes } from '../../../.storybook/modes';
 
 import ProductCard from './ProductCard';
