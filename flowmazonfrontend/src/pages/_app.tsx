@@ -55,7 +55,7 @@ export default function App({ Component, pageProps }: AppProps) {
     <>
       <Head>
         <title>Flowmazon</title>
-        <meta name='description' content='We make your wallet cry.' />
+        <meta name='description' content='Your one-stop shop.' />
       </Head>
       <main className='m-auto max-w-7xl min-w-[300px] p-4'>
         <Component {...pageProps} />

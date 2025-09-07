@@ -63,7 +63,7 @@ export default function AddProductScreen({
       <Head>
         <title>Add Product - Flowmazon</title>
       </Head>
-      <div className='bg-base-100 sm:px-1 sm:py-5 md:px-3 md:py-4 lg:px-3 lg:py-4'>
+      <div className='sm:px-1 sm:py-5 md:px-3 md:py-4 lg:px-3 lg:py-4'>
         <div className='mx-auto max-w-5xl px-0'>
           <h1 className='mb-4 text-lg font-bold'>Add Product</h1>
           <form action={onSubmit} aria-label='add product form'>
