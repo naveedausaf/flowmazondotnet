@@ -11,7 +11,7 @@ export default function ProductCard({ product }: ProductCardProps) {
   return (
     <Link
       href={`/products/${product.id}`}
-      className='card bg-base-1 00 transition-shadow hover:shadow-xl'
+      className='card bg-base-100 transition-shadow hover:shadow-xl'
     >
       {/* daisyui requires we wrap the image in a figure tag 
        but we don't want it ni the Accessibility Tree*/}

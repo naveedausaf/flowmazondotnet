@@ -9,7 +9,7 @@ const config: StorybookConfig = {
     '@storybook/addon-docs',
   ],
   docs: {
-    defaultName: 'Docs',
+    defaultName: 'Documentation',
   },
   framework: {
     name: '@storybook/nextjs',
