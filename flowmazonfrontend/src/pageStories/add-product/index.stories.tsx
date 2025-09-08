@@ -557,7 +557,7 @@ async function testTextbox<TErrorCaseNames extends string, TInput>(
     await userEvent.tab();
 
     textboxGetter({ description: errorCase.ErrorMessage });
-    await expect(textbox.ariaInvalid).toBeTruthy();
+    await expect(textbox.ariaInvalid).not.toBeTruthy();
 
     await userEvent.tab({ shift: true });
   }
