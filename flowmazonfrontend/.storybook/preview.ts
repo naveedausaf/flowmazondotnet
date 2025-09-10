@@ -12,24 +12,6 @@ import React from 'react';
 initialize();
 
 const preview: Preview = {
-  // decorators: [
-  //   (Story) => (
-  //     // Set background color of the area surrounding the story
-  //     //needing to do this as we have set the body background color
-  //     // in _document.tsx in app also (which Storybook does not use).
-  //     //The story wrapper in announced in NVDA
-  //     //when I am accessibility testing stories
-  //     //because of the aria-label. This alerts me
-  //     //the the story's content is beginning and I should
-  //     //be ready to listen to it.
-  //     <section
-  //       className='min-h-screen bg-(--body-background-color)'
-  //       aria-label='Story Wrapper'
-  //     >
-  //       <Story />
-  //     </section>
-  //   ),
-  // ],
   parameters: {
     layout: 'fullscreen',
 
@@ -39,7 +21,13 @@ const preview: Preview = {
         date: /Date$/i,
       },
     },
-
+    backgrounds: {
+      options: {
+        // 👇 Default options
+        //dark: { name: 'Dark', value: '#333' },
+        light: { name: 'Light', value: '#e3e6e6' },
+      },
+    },
     viewport: {
       viewports: {
         sm: {
@@ -95,7 +83,10 @@ const preview: Preview = {
       codePanel: true,
     },
   },
-
+  initialGlobals: {
+    // 👇 Set the initial background color
+    backgrounds: { value: 'light' },
+  },
   tags: ['autodocs'],
   loaders: [mswLoader],
 };

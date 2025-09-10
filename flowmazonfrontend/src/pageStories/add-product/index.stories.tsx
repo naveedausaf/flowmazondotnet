@@ -514,6 +514,27 @@ export const PriceErrors_ValidateOnTabOff: Story = {
   },
 };
 
+export const Html_Lang_Attribute: Story = {
+  name: 'Lang attribute present on html element',
+  play: async ({ canvasElement }) => {
+    throw new Error('Not implemented yet');
+    // //initialise
+    // const pom = createAddProductPagePOM(canvasElement);
+    // await expect(pom.html).toHaveAttribute('lang', 'en');
+    // await expect(pom.title).toHaveTextContent('Add Product - Flowmazon');
+  },
+};
+
+export const Page_Title: Story = {
+  name: 'Page Title present',
+  play: async ({ canvasElement }) => {
+    throw new Error('Not implemented yet');
+    // //initialise
+    // const pom = createAddProductPagePOM(canvasElement);
+    // await expect(pom.title).toHaveTextContent('Add Product - Flowmazon');
+  },
+};
+
 async function testTextbox<TErrorCaseNames extends string, TInput>(
   textboxGetter: TextboxGet,
   form: HTMLElement,
@@ -557,7 +578,7 @@ async function testTextbox<TErrorCaseNames extends string, TInput>(
     await userEvent.tab();
 
     textboxGetter({ description: errorCase.ErrorMessage });
-    await expect(textbox.ariaInvalid).not.toBeTruthy();
+    await expect(textbox.ariaInvalid).toBeTruthy();
 
     await userEvent.tab({ shift: true });
   }

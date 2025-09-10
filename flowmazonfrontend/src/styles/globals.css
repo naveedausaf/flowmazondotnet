@@ -21,7 +21,4 @@
   --radius-selector: 0.5rem;
   --radius-field: 0.5rem;
   --radius-box: 0.5rem;
-
-  /*this is a custom variable we use in our app*/
-  --body-background-color: '#e3e6e6';
 }
