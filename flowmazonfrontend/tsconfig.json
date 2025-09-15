@@ -17,6 +17,12 @@
     },
     "target": "ES2017"
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", "src/instrumentation.ts"],
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    "src/instrumentation.ts",
+    "src/components/heroCard/HeroCard.stories.tsxx"
+  ],
   "exclude": ["node_modules"]
 }

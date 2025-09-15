@@ -38,6 +38,15 @@ export default meta;
 
 type Story = StoryObj<typeof AddProductPage>;
 
+//TODO: When extracting this file out into reusable library,
+//Make sure guidance given in following WebAIM articles
+//has been incorporated both in the library and
+//in any screen/page specific tests given here or
+//in screen's stories:
+//
+// 1.https://webaim.org/techniques/forms/
+// 2. https://webaim.org/techniques/formvalidation/
+
 //TODO: Write a test in Playwright to pick up
 //aria-live="assertive" set on name textbox
 //I can pick it up with NVDA but not Guiepup's
@@ -516,7 +525,7 @@ export const PriceErrors_ValidateOnTabOff: Story = {
 
 export const Html_Lang_Attribute: Story = {
   name: 'Lang attribute present on html element',
-  play: async ({ canvasElement }) => {
+  play: /* async */ (/* { canvasElement } */) => {
     throw new Error('Not implemented yet');
     // //initialise
     // const pom = createAddProductPagePOM(canvasElement);
@@ -527,12 +536,16 @@ export const Html_Lang_Attribute: Story = {
 
 export const Page_Title: Story = {
   name: 'Page Title present',
-  play: async ({ canvasElement }) => {
-    throw new Error('Not implemented yet');
-    // //initialise
-    // const pom = createAddProductPagePOM(canvasElement);
-    // await expect(pom.title).toHaveTextContent('Add Product - Flowmazon');
-  },
+  play: () =>
+    /* {
+      canvasElement
+    }, */
+    {
+      throw new Error('Not implemented yet');
+      // //initialise
+      // const pom = createAddProductPagePOM(canvasElement);
+      // await expect(pom.title).toHaveTextContent('Add Product - Flowmazon');
+    },
 };
 
 async function testTextbox<TErrorCaseNames extends string, TInput>(

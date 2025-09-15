@@ -23,6 +23,8 @@ module.exports = {
         'prettier',
         'plugin:@typescript-eslint/recommended-type-checked',
         'plugin:@typescript-eslint/strict-type-checked',
+
+        //can't remember why I disabled this:
         // 'plugin:@typescript-eslint/stylistic-type-checked',
       ],
     },

@@ -16,7 +16,7 @@ export default function PriceTag({
     <span
       {...otherProps}
       role='paragraph'
-      className={`badge badge-outline !border-gray-200 ${className}`}
+      className={`badge badge-outline !border-gray-200 ${className || ''}`}
     >
       {currencySymbol}
       {price}
