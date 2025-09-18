@@ -30,6 +30,12 @@ const preview: Preview = {
     },
     viewport: {
       viewports: {
+        xs: {
+          // custom viewport based on iPhone SE 3rd gen
+          name: 'xs (iPhone SE 3rd gen)',
+          styles: { height: '667px', width: '375px' },
+          type: 'mobile',
+        },
         sm: {
           // based on aspect ratio of Pixel XL viewport in
           // Storybook default viewports

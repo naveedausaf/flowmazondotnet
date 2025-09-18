@@ -1,10 +1,11 @@
 import type { Meta, StoryObj } from '@storybook/nextjs';
-
+import { getRouter } from '@storybook/nextjs/router.mock';
+import { within, userEvent, expect } from '@storybook/test';
 //THIS MUST BE A RELATIVE IMPORT, otherwise
 //Storybook fails to update or hangs on refresh
 // on stories in this file.
 import { allModes } from '../../../.storybook/modes';
-
+import { computeSizesValue } from '@/config/breakpoints';
 import ProductCard from './ProductCard';
 
 /**
@@ -26,13 +27,6 @@ import ProductCard from './ProductCard';
 //  */
 const meta = {
   component: ProductCard,
-  decorators: [
-    (Story) => (
-      <div className='grid grid-cols-1 gap-4 p-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4'>
-        <Story />
-      </div>
-    ),
-  ],
   parameters: {
     chromatic: {
       modes: {
@@ -48,6 +42,15 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Primary: Story = {
+  decorators: [
+    (Story) => (
+      <main className='m-auto min-h-screen max-w-7xl min-w-[300px] p-4'>
+        <div className='grid grid-cols-1 gap-4 p-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4'>
+          <Story />
+        </div>
+      </main>
+    ),
+  ],
   args: {
     product: {
       id: '1',
@@ -57,11 +60,48 @@ export const Primary: Story = {
         'https://images.unsplash.com/photo-1602143407151-7111542de6e8?q=80&w=687&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
       imageWidth: 687,
       imageHeight: 687,
+      imagePlaceholderDataUrl:
+        'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==',
       price: 29.99,
       currencySymbol: '$',
       isNew: false,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     },
+    sizes: computeSizesValue({ sm: '50vw', md: '33vw', lg: '25vw' }, '100vw'),
   },
 };
+
+export const LinkGoesToProductDetailsPage: Story = {
+  decorators: Primary.decorators,
+  args: Primary.args,
+  beforeEach: () => {
+    //It only seems reasonable to assume (with no documentation on this anywhere to be found) that the router mock would be create at least once per stories file if not once every story. This would give us per-story isolation by clearing a mock within getRouter() that we need to use as is done below.
+    //Bear in mind that test-runner runs multiple files in parallel but within a single file, it runs stories sequentially.
+    getRouter().push.mockClear();
+  },
+  play: async ({ canvasElement, args }) => {
+    const canvas = within(canvasElement);
+    const productLink = canvas.getByRole('link', { name: args.product.name });
+    productLink.focus();
+    await userEvent.keyboard('{enter}');
+
+    await expect(getRouter().push).toHaveBeenCalledTimes(1);
+    await expect(getRouter().push.mock.calls[0][0]).toBe(
+      //TODO: This is duplicated in HeroCard.tsx also, we need a separate function for computing this URL
+      `/products/${args.product.id}`,
+    );
+  },
+};
+
+//TODO Make linting rule for Next.js images and this should be caught by it:
+
+// export const LowQualityImagePlaceholder: Story = {
+//   args: {
+//     ...Primary.args,
+//   },
+//   decorators: Primary.decorators,
+//   play: /* async */ (/* { canvasElement } */) => {
+//     throw new Error('Not implemented yet');
+//   },
+// };

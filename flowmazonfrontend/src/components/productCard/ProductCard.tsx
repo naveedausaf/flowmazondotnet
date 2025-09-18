@@ -6,9 +6,14 @@ import { Product } from '@/models/product';
 export interface ProductCardProps {
   product: Product;
   className?: string;
+  sizes?: string; //sizes attribute for the Image component
 }
 
-export default function ProductCard({ product, className }: ProductCardProps) {
+export default function ProductCard({
+  product,
+  className,
+  sizes = '100vw',
+}: ProductCardProps) {
   return (
     <Link
       href={`/products/${product.id}`}
@@ -29,6 +34,9 @@ export default function ProductCard({ product, className }: ProductCardProps) {
           width={product.imageWidth}
           height={product.imageHeight}
           className='h-48 object-cover'
+          placeholder='blur'
+          blurDataURL={product.imagePlaceholderDataUrl}
+          sizes={sizes}
         />
       </figure>
       <div className='card-body'>

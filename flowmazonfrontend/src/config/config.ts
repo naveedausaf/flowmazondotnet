@@ -6,6 +6,7 @@ const config = {
     base: baseUrl,
     product: `${baseUrl}/product`,
   },
+  breakpoints: {},
 } as const;
 
 export default config;

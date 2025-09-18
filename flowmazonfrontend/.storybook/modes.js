@@ -1,4 +1,7 @@
 export const allModes = {
+  xs: {
+    viewport: 'xs',
+  },
   sm: {
     viewport: 'sm',
   },
