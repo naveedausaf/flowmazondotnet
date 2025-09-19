@@ -19,6 +19,16 @@ export default function ProductCard({
   const productDescriptionId = useId();
   const priceId = useId();
   return (
+    /* WITH ARIA ATTRIBUTES:
+    link    Waterizer Water Bottle
+Waterizer Water Bottle  link    Rubberised ultra-durable metal water bottle. $29.99
+
+    */
+
+    /* WITHOUT ARIA ATTRIBUTES:
+link    heading    level 2  Waterizer Water Bottle
+Waterizer Water Bottle  heading    level 2  Rubberised ultra-durable metal water bottle.  $29.99  link
+*/
     <Link
       href={`/products/${product.id}`}
       className={`card bg-base-100 transition-shadow hover:shadow-xl ${className || ''}`}

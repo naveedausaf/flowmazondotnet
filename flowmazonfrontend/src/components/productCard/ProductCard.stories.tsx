@@ -84,6 +84,10 @@ export const LinkGoesToProductDetailsPage: Story = {
     const canvas = within(canvasElement);
     const productLink = canvas.getByRole('link', {
       name: args.product.name,
+      description: new RegExp(
+        `${args.product.description} \\${args.product.currencySymbol}${args.product.price.toString()}`,
+        'i',
+      ),
     });
     productLink.focus();
     await userEvent.keyboard('{enter}');

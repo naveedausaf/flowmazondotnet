@@ -56,7 +56,7 @@ export default function HeroCard<T extends ElementType = 'section'>({
           <Link
             href={`/products/${product.id}`}
             className='btn btn-primary'
-            aria-describedby='{productDescriptionId}'
+            aria-describedby={productDescriptionId}
             aria-label={`${product.name}, Check it out`}
           >
             Check it out
