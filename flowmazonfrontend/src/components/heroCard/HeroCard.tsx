@@ -7,6 +7,7 @@ import {
   ComponentPropsWithoutRef,
   ElementType,
   PropsWithChildren,
+  useId,
 } from 'react';
 
 // Implementation of 'as' props pattern (aka Polymorphic component pattern) from:
@@ -27,6 +28,7 @@ export default function HeroCard<T extends ElementType = 'section'>({
   ...props
 }: HeroCardProps<T>) {
   const OuterTag = as ?? 'section';
+  const productDescriptionId = useId();
   return (
     <OuterTag
       {...props}
@@ -47,9 +49,16 @@ export default function HeroCard<T extends ElementType = 'section'>({
         />
         <div>
           <h1 className='text-5xl font-bold'>{product.name}</h1>
-          <p className='py-6'>{product.description}</p>
+          <p className='py-6' id={productDescriptionId}>
+            {product.description}
+          </p>
           {/* TODO: Take out the computation of this link into a separate module. It is repeated in ProductCard also. Do a search for this to see if it also appears elsewhere before remove it. */}
-          <Link href={`/products/${product.id}`} className='btn btn-primary'>
+          <Link
+            href={`/products/${product.id}`}
+            className='btn btn-primary'
+            aria-describedby='{productDescriptionId}'
+            aria-label={`${product.name}, Check it out`}
+          >
             Check it out
           </Link>
         </div>

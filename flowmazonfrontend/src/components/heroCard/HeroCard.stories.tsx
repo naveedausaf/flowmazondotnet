@@ -6,6 +6,8 @@ import { Primary as ProductCardPrimary } from '../productCard/ProductCard.storie
 //Storybook fails to update or hangs on refresh
 // on stories in this file.
 import { allModes } from '../../../.storybook/modes';
+import { getRouter } from '@storybook/nextjs/router.mock';
+import { within, userEvent, expect } from '@storybook/test';
 
 // More on how to set up stories at: https://storybook.js.org/docs/react/writing-stories/introduction
 const meta: Meta<typeof HeroCard> = {
@@ -50,11 +52,26 @@ export const Defaults: Story = {
 };
 
 export const LinkGoesToProductDetailsPage: Story = {
+  decorators: Primary.decorators,
   args: Primary.args,
-  play: /* async */ (/* { canvasElement } */) => {
-    //implement using same story in ProductCard.stories.tsx
-    //if possible
-    throw new Error('Not implemented yet');
+  beforeEach: () => {
+    //It only seems reasonable to assume (with no documentation on this anywhere to be found) that the router mock would be create at least once per stories file if not once every story. This would give us per-story isolation by clearing a mock within getRouter() that we need to use as is done below.
+    //Bear in mind that test-runner runs multiple files in parallel but within a single file, it runs stories sequentially.
+    getRouter().push.mockClear();
+  },
+  play: async ({ canvasElement, args }) => {
+    const canvas = within(canvasElement);
+    const productLink = canvas.getByRole('link', {
+      name: new RegExp(`^${args.product.name}`, 'i'),
+    });
+    productLink.focus();
+    await userEvent.keyboard('{enter}');
+
+    await expect(getRouter().push).toHaveBeenCalledTimes(1);
+    await expect(getRouter().push.mock.calls[0][0]).toBe(
+      //TODO: This is duplicated in HeroCard.tsx also, we need a separate function for computing this URL
+      `/products/${args.product.id}`,
+    );
   },
 };
 

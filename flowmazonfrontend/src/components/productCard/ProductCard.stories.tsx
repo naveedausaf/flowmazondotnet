@@ -82,7 +82,9 @@ export const LinkGoesToProductDetailsPage: Story = {
   },
   play: async ({ canvasElement, args }) => {
     const canvas = within(canvasElement);
-    const productLink = canvas.getByRole('link', { name: args.product.name });
+    const productLink = canvas.getByRole('link', {
+      name: args.product.name,
+    });
     productLink.focus();
     await userEvent.keyboard('{enter}');
 

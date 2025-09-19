@@ -2,6 +2,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import PriceTag from '../priceTag/PriceTag';
 import { Product } from '@/models/product';
+import { useId } from 'react';
 
 export interface ProductCardProps {
   product: Product;
@@ -14,10 +15,15 @@ export default function ProductCard({
   className,
   sizes = '100vw',
 }: ProductCardProps) {
+  const productNameId = useId();
+  const productDescriptionId = useId();
+  const priceId = useId();
   return (
     <Link
       href={`/products/${product.id}`}
       className={`card bg-base-100 transition-shadow hover:shadow-xl ${className || ''}`}
+      aria-labelledby={productNameId}
+      aria-describedby={`${productDescriptionId} ${priceId}`}
     >
       {/* daisyui requires we wrap the image in a figure tag 
        but we don't want it in the Accessibility Tree*/}
@@ -40,10 +46,13 @@ export default function ProductCard({
         />
       </figure>
       <div className='card-body'>
-        <h2 className='card-title'>{product.name}</h2>
+        <h2 id={productNameId} className='card-title'>
+          {product.name}
+        </h2>
         {product.isNew && <div className='badge badge-secondary'>NEW</div>}
-        <p>{product.description}</p>
+        <p id={productDescriptionId}>{product.description}</p>
         <PriceTag
+          id={priceId}
           price={product.price}
           currencySymbol={product.currencySymbol}
         />
