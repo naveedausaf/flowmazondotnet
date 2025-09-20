@@ -10,18 +10,27 @@ import {
   useId,
 } from 'react';
 
-// Implementation of 'as' props pattern (aka Polymorphic component pattern) from:
-// https://www.christianvm.dev/blog/react-as-prop
+/**
+ * Props for the HeroCard component
+ *
+ */
 type HeroCardProps<T extends ElementType = 'section'> = PropsWithChildren<
   ComponentPropsWithoutRef<T>
 > & {
+  /** The component or HTML tag to render as the outer element. Defaults to 'section'.
+   *
+   * Implementation of 'as' props pattern (aka Polymorphic component pattern) from [Christian Medina's post](https://www.christianvm.dev/blog/react-as-prop).
+   */
   as?: T;
+
+  /**
+   * ARIA label for the outer element. Defaults to "Featured Product"
+   */
   ariaLabel?: string;
 } & ProductCardProps;
 
 export default function HeroCard<T extends ElementType = 'section'>({
   product,
-  className,
   sizes = '100vw',
   as,
   ariaLabel = 'Featured Product',
@@ -33,7 +42,7 @@ export default function HeroCard<T extends ElementType = 'section'>({
     <OuterTag
       {...props}
       ariaLabel={ariaLabel}
-      className={`hero bg-base-200 rounded-xl ${className ?? ''}`}
+      className={`hero bg-base-200 rounded-xl`}
     >
       <div className='hero-content flex-col lg:flex-row'>
         <Image

@@ -4,15 +4,23 @@ import PriceTag from '../priceTag/PriceTag';
 import { Product } from '@/models/product';
 import { useId } from 'react';
 
+/**
+ * Props for the ProductCard component
+ */
 export interface ProductCardProps {
+  /**
+   * The product to display in the card
+   */
   product: Product;
-  className?: string;
-  sizes?: string; //sizes attribute for the Image component
+
+  /**
+   * `sizes` attribute for the Image component. Use `computeSizesValue` function from `config/breakpoints.ts` to compute it in the caller.
+   */
+  sizes?: string;
 }
 
 export default function ProductCard({
   product,
-  className,
   sizes = '100vw',
 }: ProductCardProps) {
   const productNameId = useId();
@@ -29,9 +37,10 @@ Waterizer Water Bottle  link    Rubberised ultra-durable metal water bottle. $29
 link    heading    level 2  Waterizer Water Bottle
 Waterizer Water Bottle  heading    level 2  Rubberised ultra-durable metal water bottle.  $29.99  link
 */
+
     <Link
       href={`/products/${product.id}`}
-      className={`card bg-base-100 transition-shadow hover:shadow-xl ${className || ''}`}
+      className={`card bg-base-100 focus:ring-accent-content transition-shadow hover:shadow-xl focus:ring-2 focus:ring-offset-1`}
       aria-labelledby={productNameId}
       aria-describedby={`${productDescriptionId} ${priceId}`}
     >

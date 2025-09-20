@@ -27,6 +27,15 @@ import ProductCard from './ProductCard';
 //  */
 const meta = {
   component: ProductCard,
+  decorators: [
+    (Story) => (
+      <main className='m-auto min-h-screen max-w-7xl min-w-[300px] p-4'>
+        <div className='grid grid-cols-1 gap-4 p-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4'>
+          <Story />
+        </div>
+      </main>
+    ),
+  ],
   parameters: {
     chromatic: {
       modes: {
@@ -41,16 +50,14 @@ export default meta;
 
 type Story = StoryObj<typeof meta>;
 
+/** Primary story for the ProductCard component
+ *
+ * #### In Case of Visual Diff Failure
+ *
+ * If a visual diff if reported for this story in a tool like Chromatic, verify accessibility of Focused story again (would require comparison with this story).
+ *
+ */
 export const Primary: Story = {
-  decorators: [
-    (Story) => (
-      <main className='m-auto min-h-screen max-w-7xl min-w-[300px] p-4'>
-        <div className='grid grid-cols-1 gap-4 p-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4'>
-          <Story />
-        </div>
-      </main>
-    ),
-  ],
   args: {
     product: {
       id: '1',
@@ -72,8 +79,40 @@ export const Primary: Story = {
   },
 };
 
+/**
+ * Shows Focused state of the component
+ *
+ * #### In Case of Visual Diff Failure
+ *
+ * If a visual diff if reported either for FocusedState story or for Primary story in a tool like Chromatic, verify the following again in FocusedState story:
+ * 
+ * - The card has a focus indicator around it ([WCAG 2.4.7](https://www.w3.org/WAI/WCAG22/Understanding/focus-visible.html) Level AA).
+ * - The focus indicator has a contrast of 3:1 against colours around the component (but not within the component) ([WCAG 1.4.11](https://www.w3.org/WAI/WCAG21/Understanding/non-text-contrast.html) Level AA).
+ * - The focus indicator's pixels have at least 3:1 contrast with the same pixels in unfocused states (**compare with same pixels in Primary story which wouldn't have the focus indicator**). Also, the focuse indicator pixels should be at least as large as the area of a 2 CSS pixel thick perimeter surrounding the element. [WCAG 2.4.13](https://www.w3.org/WAI/WCAG22/Understanding/focus-appearance) Level AAA.
+ * - The focus indicator does not wrap around the component in an awkward manner as illustrated [here in the repo wiki](https://github.com/user-attachments/assets/d78dc10b-de38-42f1-a38a-5ed29365005b)
+
+ */
+export const FocusedState: Story = {
+  args: {
+    product: {
+      ...Primary.args.product,
+    },
+  },
+  play: async ({ canvasElement, args }) => {
+    const canvas = within(canvasElement);
+    const productLink = canvas.getByRole('link', {
+      name: args.product.name,
+      description: new RegExp(
+        `${args.product.description} \\${args.product.currencySymbol}${args.product.price.toString()}`,
+        'i',
+      ),
+    });
+    productLink.focus();
+    await expect(productLink).toHaveFocus();
+  },
+};
+
 export const LinkGoesToProductDetailsPage: Story = {
-  decorators: Primary.decorators,
   args: Primary.args,
   beforeEach: () => {
     //It only seems reasonable to assume (with no documentation on this anywhere to be found) that the router mock would be create at least once per stories file if not once every story. This would give us per-story isolation by clearing a mock within getRouter() that we need to use as is done below.
